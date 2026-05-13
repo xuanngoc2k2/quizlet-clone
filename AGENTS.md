@@ -27,6 +27,7 @@ Khi bắt đầu session mới hoặc đổi AI tool, PHẢI đọc theo thứ t
 4. `tasks/done.md` → Task nào đã xong (tránh làm lại)
 5. `docs/knowledge/INDEX.md` → Lessons learned
 6. `git log -5 --oneline` → 5 commits gần nhất (biết đang ở đâu)
+7. Chạy `./scripts/ai-preflight.sh` → Kiểm tra code-review-graph + MCP sẵn sàng
 
 Khi user nói bất kỳ thứ gì ("bắt đầu", "start", "tiếp tục", hoặc bất kỳ prompt nào),
 hãy tự detect trạng thái project và hành động:
@@ -116,7 +117,6 @@ KHÔNG viết code, KHÔNG scaffold, KHÔNG implement cho đến khi có file sp
 - Không thêm tính năng ngoài yêu cầu.
 - Không tạo abstraction cho code chỉ dùng 1 lần.
 - Không thêm "flexibility" hoặc "configurability" nếu không được yêu cầu.
-- Không viết error handling cho tình huống không thể xảy ra.
 - Nếu viết 200 dòng mà có thể 50 dòng → viết lại.
 - **Test:** Senior Engineer có thấy cái này quá phức tạp không? Nếu có → simplify.
 
@@ -139,8 +139,35 @@ KHÔNG viết code, KHÔNG scaffold, KHÔNG implement cho đến khi có file sp
 - Nếu user sai → cảnh báo **RISK**, không đồng ý hùa theo.
 - Không flip-flop ý kiến chỉ vì user đổi ý. Chỉ đổi khi có evidence mới.
 - Nếu request là anti-pattern → từ chối rõ ràng + đề xuất cách tốt hơn.
-- Không fake "Great idea!" — Khen chỉ khi thực sự xứng đáng.
 - **Test:** Nếu sắp đồng ý nhưng biết là sai → DỪNG LẠI và nói sự thật.
+
+### 6. Component-First Architecture
+**Tách nhỏ, tái sử dụng, dễ đọc cho cả AI lẫn người.**
+
+**Frontend (React/Vue/Svelte):**
+- Page/Screen file chỉ **compose** components — KHÔNG chứa logic/state/fetch
+- UI block > 50 dòng JSX → **PHẢI** tách thành component riêng
+- Logic reusable → custom hook (`hooks/useXxx.ts`)
+- API/business logic → service (`services/xxx.service.ts`)
+- Types → `types.ts` trong feature folder
+
+**Backend (Node/Express/Fastify):**
+- Route handler chỉ parse request + gọi service — KHÔNG chứa business logic
+- Business logic → service layer
+- Database queries → repository layer
+- Validation → middleware hoặc schema (Zod/Joi)
+
+**Feature folder structure:**
+```
+src/features/[feature-name]/
+  components/     ← UI components
+  hooks/          ← Custom hooks
+  services/       ← API/business logic
+  types.ts        ← TypeScript types
+  utils.ts        ← Helper functions
+  index.ts        ← Public API (re-exports)
+```
+- **Test:** Nếu component/file quá lớn để đọc trong 30 giây → tách.
 
 ---
 
@@ -152,6 +179,81 @@ KHÔNG viết code, KHÔNG scaffold, KHÔNG implement cho đến khi có file sp
 - Đọc `docs/knowledge/INDEX.md` trước khi code feature liên quan
 - Khi gặp git merge conflict → **KHÔNG tự resolve** → báo user quyết định
 - Secrets trong `.env` — KHÔNG hard-code key, url, password vào code
+
+---
+
+## ⚙️ Task Execution Protocol (BẮT BUỘC)
+
+> Mỗi task PHẢI đi qua 3 gate. Không được skip. Không được rút gọn.
+> Flow: **Task → Pre-Code → Code → Post-Code → Commit**
+
+<HARD-GATE: PRE-CODE>
+Trước khi viết BẤT KỲ dòng code nào, PHẢI hoàn thành:
+
+**1. Graph Context Summary**
+- Gọi `get_minimal_context_tool(task_description)` → liệt kê files liên quan
+- Gọi `semantic_search_nodes_tool(keyword)` → tìm component/hook/service đã tồn tại
+- Nếu MCP tools không khả dụng → đọc `docs/ARCHITECTURE.md` + dùng file tree
+- ⚠️ **PHẢI ghi rõ trong output:** "📊 Graph Context: [danh sách files liên quan]"
+- ⚠️ **Nếu đã có component/hook/service tương tự → TÁI SỬ DỤNG, không tạo mới**
+
+**2. Impact Analysis**
+- Gọi `get_impact_radius_tool(file)` cho MỖI file định sửa
+- OUTPUT BẮT BUỘC (ghi rõ trong response):
+  ```
+  ✅ Allowed files: [files sẽ create/modify — chỉ sửa những file này]
+  ⛔ Forbidden files: [files KHÔNG được đụng]
+  ⚠️ Risk files: [shared/infra files — cần giải thích nếu sửa]
+  🧪 Tests affected: [test files cần chạy lại]
+  ```
+
+**3. Component Plan (cho UI tasks)**
+- Liệt kê components sẽ tạo/sửa (theo Component-First Rule #6)
+- Page file chỉ compose — KHÔNG chứa logic/state/fetch
+- UI block > 50 dòng JSX → tách component
+
+Nếu THIẾU bất kỳ output nào ở trên → KHÔNG ĐƯỢC bắt đầu code.
+</HARD-GATE>
+
+<HARD-GATE: DURING-CODE>
+Trong khi code, PHẢI tuân theo:
+
+1. **Chỉ sửa files trong "Allowed files"** đã khai báo ở Pre-Code
+2. Nếu cần sửa file ngoài scope → **DỪNG LẠI**, update Impact Analysis, giải thích lý do
+3. **Component-First**: Không nhét >50 dòng JSX vào 1 component
+4. Mỗi file mới phải đúng vị trí trong folder structure
+5. **Verify graph usage**: Khi không chắc file nào bị ảnh hưởng → gọi `get_impact_radius_tool` NGAY, không đoán
+</HARD-GATE>
+
+<HARD-GATE: POST-CODE>
+Sau khi code xong, PHẢI hoàn thành TRƯỚC KHI báo done:
+
+**1. Post-Code Impact Check**
+- Gọi `get_impact_radius_tool` cho các files ĐÃ SỬA
+- So sánh với Impact Analysis ban đầu
+- Nếu có file bị ảnh hưởng ngoài dự kiến → kiểm tra + sửa
+
+**2. Verification** (chạy `./scripts/ai-review.sh` hoặc thủ công)
+- TypeScript: `npx tsc --noEmit`
+- Lint: `npm run lint` (nếu có)
+- Test: `npm test` (nếu có)
+- Build: `npm run build` (nếu có)
+- Nếu bất kỳ lệnh nào fail → SỬA cho đến khi pass
+
+**3. Completion Report** (ghi rõ trong response)
+```
+📋 COMPLETION REPORT
+- Files created: [danh sách]
+- Files modified: [danh sách]
+- Files deleted: [danh sách]
+- Graph tools used: ✅/❌ (liệt kê tools đã gọi)
+- Tests: pass/fail/skip (lý do skip)
+- Build: pass/fail/skip
+- Impact ngoài dự kiến: có/không
+```
+
+KHÔNG ĐƯỢC báo "done" nếu chưa hoàn thành Completion Report.
+</HARD-GATE>
 
 ## Skills (AI Auto-Activate)
 
@@ -255,13 +357,31 @@ Khi có architecture/tech decision quan trọng:
 
 ### Primary: Code-Review-Graph (MCP — tự động)
 ```bash
-# Cài đặt (1 lần)
-pip install code-review-graph && code-review-graph install
+# Cài đặt (1 lần — dùng pipx để tránh conflict Python)
+pipx install code-review-graph && code-review-graph install
+# hoặc: uv tool install code-review-graph
 
-# Build lần đầu
+# Build lần đầu (chạy trong root project)
 code-review-graph build
 
 # Update (tự động qua git hook, hoặc thủ công)
 code-review-graph update
 ```
+
+### Pre-Code / Post-Code Scripts
+```bash
+# Trước khi code: kiểm tra môi trường
+./scripts/ai-preflight.sh
+
+# Sau khi code: chạy verification
+./scripts/ai-review.sh
+```
+
 Sau khi build, AI tự động dùng MCP tools để navigate — không cần đọc file thủ công.
+
+### Verify AI Đang Dùng Graph
+Nếu user muốn kiểm tra AI có thực sự dùng code-review-graph:
+- Hỏi AI: "List các tool MCP bạn đang có"
+- Kiểm tra Completion Report có dòng "Graph tools used: ✅" không
+- Trong Cursor: Settings → MCP Servers → kiểm tra chấm xanh
+- Trong Claude Code: gõ `/mcp` để xem danh sách servers

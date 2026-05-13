@@ -112,6 +112,22 @@ Mở bằng AI tool → nói "bắt đầu"
 
 ---
 
+## 🤖 AI Coding Flow (Per Task)
+
+> Mỗi task AI phải đi qua 7 bước. Xem chi tiết trong `AGENTS.md` → Task Execution Protocol.
+
+```
+1. ./scripts/ai-preflight.sh     → Kiểm tra môi trường (graph, MCP)
+2. Graph Context Summary          → Hiểu code liên quan (dùng code-review-graph)
+3. Impact Analysis                → Khai báo files sẽ sửa + files cấm đụng
+4. Component Plan                 → Tách UI/logic (nếu là UI task)
+5. Code                          → Chỉ sửa allowed files
+6. ./scripts/ai-review.sh        → Verification (typecheck, lint, test, build)
+7. Commit                        → Sau khi pass — 1 task = 1 commit
+```
+
+---
+
 ## 🧠 Project Brain
 
 ### Shared (committed to git)

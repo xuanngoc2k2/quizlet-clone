@@ -1,0 +1,110 @@
+#!/bin/bash
+# ai-preflight.sh — Kiểm tra môi trường trước khi AI bắt đầu code
+# Chạy: ./scripts/ai-preflight.sh
+
+set -e
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+RESET='\033[0m'
+
+PASS=0
+WARN=0
+FAIL=0
+
+echo ""
+echo "🔍 AI Preflight Check"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# 1. Check code-review-graph installed
+if command -v code-review-graph &> /dev/null; then
+  echo -e "${GREEN}✅ code-review-graph: installed${RESET}"
+  ((PASS++))
+else
+  echo -e "${RED}❌ code-review-graph: NOT installed${RESET}"
+  echo "   → Cài đặt: pipx install code-review-graph && code-review-graph install"
+  ((FAIL++))
+fi
+
+# 2. Check .mcp.json exists (MCP config)
+if [ -f ".mcp.json" ] || [ -f "mcp.json" ]; then
+  echo -e "${GREEN}✅ MCP config: found${RESET}"
+  ((PASS++))
+else
+  echo -e "${YELLOW}⚠️  MCP config (.mcp.json): not found${RESET}"
+  echo "   → AI sẽ fallback sang ARCHITECTURE.md + file tree"
+  ((WARN++))
+fi
+
+# 3. Check graph has been built
+GRAPH_DIRS=(".code-review-graph" "context" ".crg")
+GRAPH_FOUND=false
+for dir in "${GRAPH_DIRS[@]}"; do
+  if [ -d "$dir" ]; then
+    GRAPH_FOUND=true
+    echo -e "${GREEN}✅ Graph data: found ($dir/)${RESET}"
+    ((PASS++))
+    break
+  fi
+done
+
+if [ "$GRAPH_FOUND" = false ]; then
+  if command -v code-review-graph &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Graph data: not built yet${RESET}"
+    echo "   → Chạy: code-review-graph build"
+    ((WARN++))
+  else
+    echo -e "${YELLOW}⚠️  Graph data: not available (code-review-graph chưa cài)${RESET}"
+    ((WARN++))
+  fi
+fi
+
+# 4. Check graph freshness (compare last commit vs graph build time)
+if [ "$GRAPH_FOUND" = true ]; then
+  LAST_COMMIT_TIME=$(git log -1 --format=%ct 2>/dev/null || echo "0")
+  for dir in "${GRAPH_DIRS[@]}"; do
+    if [ -d "$dir" ]; then
+      GRAPH_TIME=$(stat -f %m "$dir" 2>/dev/null || stat -c %Y "$dir" 2>/dev/null || echo "0")
+      break
+    fi
+  done
+  
+  if [ "$LAST_COMMIT_TIME" -gt "$GRAPH_TIME" ] 2>/dev/null; then
+    echo -e "${YELLOW}⚠️  Graph: outdated (code mới hơn graph)${RESET}"
+    echo "   → Chạy: code-review-graph update"
+    ((WARN++))
+  else
+    echo -e "${GREEN}✅ Graph: up to date${RESET}"
+    ((PASS++))
+  fi
+fi
+
+# 5. Check AGENTS.md exists
+if [ -f "AGENTS.md" ]; then
+  echo -e "${GREEN}✅ AGENTS.md: found${RESET}"
+  ((PASS++))
+else
+  echo -e "${RED}❌ AGENTS.md: NOT found${RESET}"
+  echo "   → Project không dùng AI template"
+  ((FAIL++))
+fi
+
+# Summary
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "  ✅ Pass: $PASS  ⚠️  Warn: $WARN  ❌ Fail: $FAIL"
+
+if [ $FAIL -gt 0 ]; then
+  echo -e "  ${RED}→ NOT READY — fix errors above${RESET}"
+  echo ""
+  exit 1
+else
+  if [ $WARN -gt 0 ]; then
+    echo -e "  ${YELLOW}→ READY with warnings${RESET}"
+  else
+    echo -e "  ${GREEN}→ ALL GOOD — ready to code${RESET}"
+  fi
+  echo ""
+  exit 0
+fi
