@@ -8,6 +8,7 @@
 
 ## Definition of Done
 - [ ] Có ít nhất 1 file trong `docs/specs/`
+- [ ] `docs/IMPLEMENTATION_PLAN.md` đã viết (plan tổng)
 - [ ] `AGENTS.md` đã điền Stack + Folder Structure
 - [ ] `tasks/layer-0-todo.md` có tasks cho Layer 0
 - [ ] User đã approve spec (ghi rõ trong commit message)
@@ -40,15 +41,16 @@ KHÔNG viết code, KHÔNG scaffold, KHÔNG implement cho đến khi:
   - Scope quá lớn? → chia nhỏ
   - Requirement mơ hồ? → làm rõ
 - [ ] 9. Hỏi user review + approve
-- [ ] 10. Phân tích dependency → chia Layers (xem `docs/SCOPE_BREAKDOWN.md`)
-- [ ] 11. Tạo `tasks/layer-0-todo.md`, `layer-1-todo.md`, ... tùy scope
-- [ ] 12. Chia phases phù hợp project → `docs/phases/phase-1..N.md`
-- [ ] 13. Update `AGENTS.md`:
+- [ ] 10. Viết `docs/IMPLEMENTATION_PLAN.md` — plan tổng tất cả phases + status
+- [ ] 11. Chia phases phù hợp project → `docs/phases/phase-1..N.md`
+- [ ] 12. Phân tích dependency Phase 1 → chia Layers (xem `docs/SCOPE_BREAKDOWN.md`)
+- [ ] 13. Tạo `tasks/layer-0-todo.md`, `layer-1-todo.md`, ... cho Phase 1
+- [ ] 14. Update `AGENTS.md`:
   - Điền Stack
   - Điền Folder Structure
   - Current Phase = 1, Current Layer = 0
-- [ ] 14. Update `docs/ARCHITECTURE.md` — điền đầy đủ
-- [ ] 15. Commit: `docs: complete Phase 0 planning`
+- [ ] 15. Update `docs/ARCHITECTURE.md` — điền đầy đủ
+- [ ] 16. Commit: `docs: complete Phase 0 planning`
 
 ---
 
