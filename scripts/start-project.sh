@@ -266,6 +266,26 @@ if ! command -v code-review-graph &> /dev/null; then
   fi
 fi
 
+# ── Suggest RTK ───────────────────────────────
+if ! command -v rtk &> /dev/null; then
+  echo ""
+  echo -e "  ${YELLOW}💡 Gợi ý: Cài RTK (Reduce Token Kit) để nén Terminal output, giảm 60-90% token rác cho AI.${RESET}"
+  read -p "     Bạn có muốn cài đặt RTK ngay bây giờ không? (y/n): " INSTALL_RTK
+  if [[ "$INSTALL_RTK" =~ ^[Yy]$ ]]; then
+    echo -e "     ${CYAN}Đang cài đặt RTK...${RESET}"
+    if command -v brew &> /dev/null; then
+        brew install rtk
+    elif command -v cargo &> /dev/null; then
+        cargo install --git https://github.com/rtk-ai/rtk
+    else
+        curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+    fi
+    echo -e "     ${GREEN}✅ RTK đã được cài đặt.${RESET}"
+  else
+    echo -e "     ${YELLOW}⏭️  Bỏ qua cài đặt RTK. Bạn có thể cài sau bằng Homebrew hoặc Cargo.${RESET}"
+  fi
+fi
+
 # ── Done ────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"

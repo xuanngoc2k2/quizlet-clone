@@ -28,6 +28,13 @@ has_npm_script() {
   return 1
 }
 
+if command -v rtk &> /dev/null; then
+  RTK="rtk "
+  echo -e "  ${GREEN}✅ RTK detected — wrapping verbose commands${RESET}"
+else
+  RTK=""
+fi
+
 # 1. Update code-review-graph
 echo ""
 echo "📊 Step 1: Update Graph"
@@ -48,7 +55,7 @@ fi
 echo ""
 echo "🔷 Step 2: TypeScript Check"
 if [ -f "tsconfig.json" ]; then
-  if npx tsc --noEmit 2>&1; then
+  if ${RTK}npx tsc --noEmit 2>&1; then
     echo -e "  ${GREEN}✅ TypeScript: PASS${RESET}"
     ((PASS++))
   else
@@ -64,7 +71,7 @@ fi
 echo ""
 echo "🧹 Step 3: Lint"
 if has_npm_script "lint"; then
-  if npm run lint 2>&1; then
+  if ${RTK}npm run lint 2>&1; then
     echo -e "  ${GREEN}✅ Lint: PASS${RESET}"
     ((PASS++))
   else
@@ -80,7 +87,7 @@ fi
 echo ""
 echo "🧪 Step 4: Tests"
 if has_npm_script "test"; then
-  if npm test 2>&1; then
+  if ${RTK}npm test 2>&1; then
     echo -e "  ${GREEN}✅ Tests: PASS${RESET}"
     ((PASS++))
   else
@@ -88,7 +95,7 @@ if has_npm_script "test"; then
     ((FAIL++))
   fi
 elif has_npm_script "test:unit"; then
-  if npm run test:unit 2>&1; then
+  if ${RTK}npm run test:unit 2>&1; then
     echo -e "  ${GREEN}✅ Unit Tests: PASS${RESET}"
     ((PASS++))
   else
@@ -104,7 +111,7 @@ fi
 echo ""
 echo "🏗️  Step 5: Build"
 if has_npm_script "build"; then
-  if npm run build 2>&1; then
+  if ${RTK}npm run build 2>&1; then
     echo -e "  ${GREEN}✅ Build: PASS${RESET}"
     ((PASS++))
   else
@@ -113,6 +120,31 @@ if has_npm_script "build"; then
   fi
 else
   echo -e "  ${YELLOW}⏭️  Skipped — no build script in package.json${RESET}"
+  ((SKIP++))
+fi
+
+# Helper: check if package exists in dependencies
+has_package() {
+  if [ -f "package.json" ]; then
+    node -e "const p=require('./package.json'); process.exit((p.dependencies && p.dependencies['$1']) || (p.devDependencies && p.devDependencies['$1']) ? 0 : 1)" 2>/dev/null
+    return $?
+  fi
+  return 1
+}
+
+# 6. React Doctor
+echo ""
+echo "🩺 Step 6: React Doctor"
+if has_package "react"; then
+  if ${RTK}npx --yes react-doctor 2>&1; then
+    echo -e "  ${GREEN}✅ React Doctor: PASS${RESET}"
+    ((PASS++))
+  else
+    echo -e "  ${RED}❌ React Doctor: FAIL${RESET}"
+    ((FAIL++))
+  fi
+else
+  echo -e "  ${YELLOW}⏭️  Skipped — not a React project${RESET}"
   ((SKIP++))
 fi
 

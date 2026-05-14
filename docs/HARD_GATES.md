@@ -56,10 +56,12 @@ Sau khi code xong, PHẢI hoàn thành TRƯỚC KHI báo done:
 - Nếu có file bị ảnh hưởng ngoài dự kiến → kiểm tra + sửa
 
 **3. Verification** (chạy `./scripts/ai-review.sh` hoặc thủ công)
-- TypeScript: `npx tsc --noEmit`
-- Lint: `npm run lint` (nếu có)
-- Test: `npm test` (nếu có)
-- Build: `npm run build` (nếu có)
+- Dùng `rtk` (nếu có) trước các lệnh terminal dài để giảm token rác.
+- TypeScript: `rtk npx tsc --noEmit`
+- Lint: `rtk npm run lint` (nếu có)
+- Test: `rtk npm test` (nếu có)
+- Build: `rtk npm run build` (nếu có)
+- UI/React: `rtk npx react-doctor` (bắt buộc nếu là project React)
 - Nếu bất kỳ lệnh nào fail → SỬA cho đến khi pass
 - ⚠️ **PHẢI paste raw output** (hoặc trích dẫn key lines). KHÔNG chỉ ghi "pass".
 
@@ -71,11 +73,12 @@ Sau khi code xong, PHẢI hoàn thành TRƯỚC KHI báo done:
 - Files deleted: [danh sách]
 - Spec compliance: ✅ match / ⚠️ gaps [liệt kê]
 - Graph tools used: ✅/❌ (liệt kê tools đã gọi)
-- Verification evidence:
+- Verification evidence (dùng rtk để gọn log):
   - TypeScript: [paste exit code hoặc error count]
   - Lint: [paste error count hoặc "0 errors"]
   - Tests: [paste X/Y passed hoặc skip + lý do]
   - Build: [paste exit code]
+  - React Doctor: [paste status hoặc skip]
 - Impact ngoài dự kiến: có/không
 ```
 

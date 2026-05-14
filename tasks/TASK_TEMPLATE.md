@@ -66,6 +66,7 @@ KHÔNG dùng: "TBD", "TODO", "similar to step N", "add appropriate handling".
 <!-- - JSX > 50 dòng → tách component -->
 <!-- - Logic → hooks/useXxx.ts | Fetch → services/xxx.service.ts -->
 <!-- - Scaffold: scaffolds/component.tsx.tmpl -->
+<!-- - Verification: Chạy `npx react-doctor` để check component quality -->
 
 <!-- Type=api -->
 <!-- - Route = parse request + call service. KHÔNG business logic -->
@@ -82,9 +83,9 @@ KHÔNG dùng: "TBD", "TODO", "similar to step N", "add appropriate handling".
 
 ### Verification (Iron Law — evidence before claims)
 - [ ] Spec compliance: implementation matches requirements? Thiếu gì? Thừa gì?
-- [ ] `npx tsc --noEmit` → [paste exit code]
-- [ ] `npm run lint` → [paste error count hoặc skip + lý do]
-- [ ] `npm test` → [paste X/Y passed hoặc skip + lý do]
+- [ ] `rtk npx tsc --noEmit` (dùng rtk nếu có) → [paste exit code]
+- [ ] `rtk npm run lint` (dùng rtk nếu có) → [paste error count hoặc skip]
+- [ ] `rtk npm test` (dùng rtk nếu có) → [paste X/Y passed hoặc skip]
 - [ ] Post-code impact check (không có side effects ngoài dự kiến)
 
 ### Completion Notes
