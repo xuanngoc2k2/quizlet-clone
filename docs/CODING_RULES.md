@@ -91,6 +91,7 @@ src/features/[feature-name]/
 - Error handling cho mọi async function
 - Không sửa files ngoài danh sách cho phép trong task
 - Đọc `docs/knowledge/INDEX.md` trước khi code feature liên quan
+- **BẮT BUỘC ghi bài học vào `docs/knowledge/`** (và update `INDEX.md`) nếu vừa fix một bug khó hoặc tìm ra một config/pattern mới.
 - Dùng `scaffolds/*.tmpl` khi tạo file mới (component, service, api-route, hook, test)
 - Khi gặp git merge conflict → **KHÔNG tự resolve** → báo user quyết định
 - Secrets trong `.env` — KHÔNG hard-code key, url, password vào code

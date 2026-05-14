@@ -65,7 +65,13 @@ Sau khi code xong, PHẢI hoàn thành TRƯỚC KHI báo done:
 - Nếu bất kỳ lệnh nào fail → SỬA cho đến khi pass
 - ⚠️ **PHẢI paste raw output** (hoặc trích dẫn key lines). KHÔNG chỉ ghi "pass".
 
-**4. Completion Report** (ghi rõ trong response)
+**4. Knowledge & Memory Update**
+- Nếu task vừa hoàn thành giải quyết một **bug phức tạp**, cấu hình khó, hoặc phát hiện ra **pattern/best-practice mới**:
+- BẮT BUỘC tạo file mới trong `docs/knowledge/` (VD: `YYYY-MM-DD-[topic].md`).
+- Cập nhật file `docs/knowledge/INDEX.md` và gắn Tags (VD: `#bug`, `#config`, `#ui`).
+- Nếu có quy trình / script mới cần ghi nhớ cho context cá nhân, lưu vào `memory/`.
+
+**5. Completion Report** (ghi rõ trong response)
 ```
 📋 COMPLETION REPORT
 - Files created: [danh sách]
@@ -80,6 +86,7 @@ Sau khi code xong, PHẢI hoàn thành TRƯỚC KHI báo done:
   - Build: [paste exit code]
   - React Doctor: [paste status hoặc skip]
 - Impact ngoài dự kiến: có/không
+- Knowledge Updated: [Đường dẫn file knowledge mới tạo hoặc "None"]
 ```
 
 ⛔ KHÔNG ĐƯỢC báo "done" nếu:
