@@ -10,6 +10,7 @@
 
 **Date:** YYYY-MM-DD
 **Status:** 📝 Draft | ✅ Validated | 🏆 Promoted
+**Tags:** [e.g., #ui, #auth, #database, #performance]
 **Discovered by:** [AI tool name / human name]
 **Related files:** `[src/path/to/file.ts]`
 

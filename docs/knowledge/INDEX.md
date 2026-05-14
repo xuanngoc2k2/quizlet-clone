@@ -14,12 +14,23 @@
 
 ---
 
-## By Topic
+## By Tags
 
-<!-- AI tự thêm entries ở đây khi tạo knowledge file mới -->
-<!-- Format: - [Title](./filename.md) — Status — 1-line summary -->
+> AI: Dùng tool tìm kiếm (ví dụ: `grep "#auth" docs/knowledge/*.md`) thay vì đọc toàn bộ thư mục nếu số lượng lớn.
 
-_Chưa có learnings. Sẽ được thêm khi phát hiện patterns trong quá trình phát triển._
+### #ui
+<!-- Thêm entries liên quan tới UI, styling, components... -->
+_Chưa có_
+
+### #api
+<!-- Thêm entries liên quan tới API, fetch, data fetching... -->
+_Chưa có_
+
+### #config
+<!-- Thêm entries liên quan tới setup, build, CI/CD... -->
+_Chưa có_
+
+<!-- Thêm tags mới khi cần -->
 
 ---
 
