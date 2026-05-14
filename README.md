@@ -1,30 +1,32 @@
-# 🚀 Universal AI Project Template
+# 🚀 Universal AI Coding OS (Template)
 
-> Production-ready template cho bất kỳ project nào.
-> Hoạt động với **MỌI** AI coding tool: Antigravity, Claude Code, Cursor, Codex, Windsurf, Copilot.
-
----
-
-## ✨ Tại Sao Dùng Template Này?
-
-- **Zero-friction start** — nói "bắt đầu" là AI tự chạy
-- **Universal** — không lock vào 1 AI tool, chuyển tool bất kỳ lúc nào
-- **Shared knowledge** — learnings + decisions committed, team đọc được
-- **Private memory** — session logs riêng tư, không làm rác git
-- **Auto-detect state** — AI tự biết project đang ở đâu
-- **Onboarding nhanh** — người mới productive trong 30 phút
+> Production-ready template biến mọi project thành một **Hệ điều hành cho AI (AI Coding OS)** cực kỳ kỷ luật.
+> Hoạt động hoàn hảo với: Antigravity, Claude Code, Cursor, Windsurf, Copilot.
 
 ---
 
-## 📋 Yêu Cầu
+## ✨ AI OS Capabilities
 
-- `git` đã cài
+Hệ thống này không chỉ là cấu trúc thư mục, mà là một **bộ quy tắc (protocol)** ép AI phải code như một Senior Engineer:
+
+- 📉 **Token Optimization (Giảm 80% rác)**: Tách `AGENTS.md` thành `.ai-context.md` cực nhẹ. Tích hợp sẵn [RTK](https://github.com/rtk-ai/rtk) để nén output Terminal trước khi cho AI đọc.
+- 🛡️ **Iron Law Verification**: Áp dụng triết lý *Superpowers* — Cấm AI tự ý báo "pass". Bắt buộc phải có Raw Evidence. Tích hợp sẵn `react-doctor` để audit chất lượng UI Component.
+- 🗺️ **Code Navigation (MCP)**: Ép AI dùng `code-review-graph` thay vì mò mẫm bằng `grep`/`find`, đảm bảo không sửa nhầm file.
+- 🧱 **Bite-Sized TDD**: Cấu trúc Task template chia nhỏ công việc thành TDD steps (Fail → Implement → Pass), cấm AI gộp bước.
+- 🚫 **Anti-Rationalization**: Bảng *Red Flags* chặn đứng các thói quen xấu của AI (Lười, Xin lỗi, Hard-code bí mật, Viết placeholder).
+
+---
+
+## 📋 Yêu Cầu Hệ Thống
+
+- `git`
 - `bash` (macOS / Linux / WSL)
-- AI coding tool bất kỳ (Antigravity, Claude Code, Cursor, Codex, Windsurf, Copilot)
+- **(Khuyên dùng)** `code-review-graph`: Để AI vẽ bản đồ codebase.
+- **(Khuyên dùng)** `rtk`: Nén log terminal, tiết kiệm token LLM.
 
 ---
 
-## 🏁 Bắt Đầu (3 bước)
+## 🏁 Bắt Đầu (Chỉ 3 bước)
 
 ### 1. Clone template
 ```bash
@@ -36,168 +38,82 @@ cd my-project
 ```bash
 ./scripts/start-project.sh
 ```
+Script sẽ giúp bạn:
+- Khởi tạo repo git sạch.
+- Cài đặt `code-review-graph` và `rtk` (nếu bạn muốn).
+- Generate file context tự động.
 
-Script hỏi:
-- Tên project
-- Brain dump ý tưởng (tùy chọn)
-- AI tools sử dụng (chọn nhiều)
+### 3. Gọi AI vào làm việc
+Mở terminal bằng AI CLI (Antigravity/Claude Code) hoặc mở editor (Cursor/Windsurf) và chat:
+> **"Bắt đầu"**
 
-### 3. Mở bằng AI tool bất kỳ, nói "bắt đầu"
-
-```
-AI tự đọc AGENTS.md → detect state → tự chạy Phase 0 Planning → hỏi mày clarify → viết spec → tạo tasks → bắt đầu code 🚀
-```
-
-**Không cần biết template hoạt động thế nào. Chỉ cần nói "bắt đầu".**
+AI sẽ tự động đọc state, khởi chạy Phase 0 (Planning), hỏi bạn ý tưởng, viết Spec, chia Task và tiến hành code. Mọi thứ tự động.
 
 ---
 
-## 🗂️ Cấu Trúc
+## 🗂️ Cấu Trúc Hệ Điều Hành
 
 ```
 my-project/
 │
-├── AGENTS.md                    ← 🧠 AI đọc đầu tiên (universal)
+├── AGENTS.md                    ← 🧠 AI đọc khi Planning / Architecture
+├── .ai-context.md               ← ⚡ Short Context (Regenerated after commit)
 ├── CLAUDE.md                    ← 🔗 Adapter: Claude Code
+├── GEMINI.md                    ← 🔗 Adapter: Gemini CLI / Antigravity
 ├── .cursorrules                 ← 🔗 Adapter: Cursor
-├── .windsurfrules               ← 🔗 Adapter: Windsurf
 │
 ├── docs/
-│   ├── ONBOARDING.md            ← 📖 Human đọc đầu tiên
-│   ├── BRIEF.md                 ← Brain dump ban đầu
-│   ├── ARCHITECTURE.md          ← Kiến trúc hệ thống
-│   ├── knowledge/               ← 📚 Shared learnings
-│   ├── decisions/               ← 🏛️ Architecture Decision Records
-│   ├── specs/                   ← Design docs
-│   └── phases/                  ← Phase definitions
+│   ├── CODING_RULES.md          ← 6 Nguyên tắc code + Red flags
+│   ├── HARD_GATES.md            ← Quy trình ép buộc (Pre-code, Post-code)
+│   ├── knowledge/               ← 📚 Shared learnings (Tags-based)
+│   └── phases/                  ← Các phase của dự án
 │
 ├── memory/                      ← 📝 Private session logs (gitignored)
-├── context/                     ← 🔍 Code Knowledge Graph (code-review-graph)
-├── tasks/                       ← Task board (layer-based)
-├── src/                         ← Source code
-├── tests/                       ← Unit / Integration / E2E
-├── .github/workflows/           ← CI/CD pipeline
-├── skills/                      ← Custom project skills
-└── scripts/                     ← Init + utility scripts
+├── tasks/                       ← Task board (layer-based) + TASK_TEMPLATE.md
+├── scaffolds/                   ← CLI Boilerplates (UI, API, Test, Hook)
+├── scripts/                     ← Automation (ai-preflight.sh, ai-review.sh)
+│
+├── src/                         ← Source code của bạn
+└── tests/                       ← Unit / Integration / E2E
 ```
 
 ---
 
-## 🔄 Workflow
+## 🤖 AI Workflow (Bắt buộc cho mỗi Task)
 
-```
-./scripts/start-project.sh → Nhập tên + brain dump
-      ↓
-Mở bằng AI tool → nói "bắt đầu"
-      ↓
-┌─── PHASE 0: PLANNING (auto) ─────────────────┐
-│  AI đọc BRIEF → hỏi clarify                  │
-│  Propose approaches → user chọn              │
-│  Viết design spec + ADRs                     │
-│  Tạo phases (tuỳ project) + tasks            │
-│  User approve → bắt đầu code                │
-└───────────────────────────────────────────────┘
-      ↓
-┌─── PHASE 1-N: DEVELOPMENT ───────────────────┐
-│  Pick task từ Layer hiện tại → code → test   │
-│  Update layer-N-todo.md → move sang done.md  │
-│  Tạo Layer N+1 khi Layer N xong 100%         │
-│  Lặp lại cho đến khi xong features           │
-└───────────────────────────────────────────────┘
-      ↓
-┌─── FINAL PHASE: RELEASE ─────────────────────┐
-│  Refinement bugs → E2E test → deploy 🚀      │
-└───────────────────────────────────────────────┘
-```
+AI phải đi qua các *Hard Gates* này. Nếu làm sai sẽ bị chặn ở Hook:
+
+1. **Pre-Code Gate (`scripts/ai-preflight.sh`)**: Phân tích Impact Radius (ảnh hưởng file nào). Cấm sửa file ngoài scope.
+2. **During-Code**: Không quá 50 dòng/component. Bắt buộc dùng `scaffolds`.
+3. **Post-Code Gate (`scripts/ai-review.sh`)**: Tự động bọc lệnh bằng `rtk` để chạy Lint, TSC, Test. Chạy `npx react-doctor` cho UI.
+4. **Completion**: AI phải in ra Completion Report với raw evidence.
 
 ---
 
-## 🤖 AI Coding Flow (Per Task)
+## 🧠 Project Brain (Quản lý Kiến thức)
 
-> Mỗi task AI phải đi qua 7 bước. Xem chi tiết trong `AGENTS.md` → Task Execution Protocol.
+Hệ thống sử dụng **Knowledge Tags** để quản lý bài học, tránh AI lặp lại lỗi cũ:
 
 ```
-1. ./scripts/ai-preflight.sh     → Kiểm tra môi trường (graph, MCP)
-2. Graph Context Summary          → Hiểu code liên quan (dùng code-review-graph)
-3. Impact Analysis                → Khai báo files sẽ sửa + files cấm đụng
-4. Component Plan                 → Tách UI/logic (nếu là UI task)
-5. Code                          → Chỉ sửa allowed files
-6. ./scripts/ai-review.sh        → Verification (typecheck, lint, test, build)
-7. Commit                        → Sau khi pass — 1 task = 1 commit
+Fix bug / Tối ưu
+  → Tạo file: docs/knowledge/YYYY-MM-DD-[topic].md
+  → Gắn tag: #ui, #api, #config
+  → AI tự tìm kiếm tag liên quan trước khi nhận task mới.
 ```
-
----
-
-## 🧠 Project Brain
-
-### Shared (committed to git)
-| Hệ thống | Folder | Mục đích |
-|-----------|--------|----------|
-| **Knowledge** | `docs/knowledge/` | Lessons learned, tránh lỗi cũ |
-| **Decisions** | `docs/decisions/` | Tại sao chọn tech/approach này |
-| **Specs** | `docs/specs/` | Design documents |
-
-### Private (gitignored)
-| Hệ thống | Folder | Mục đích |
-|-----------|--------|----------|
-| **Memory** | `memory/` | Session logs cá nhân |
-
-### Knowledge Promotion Flow
-```
-Fix bug / discover pattern
-  → Tạo docs/knowledge/YYYY-MM-DD-[topic].md (Draft)
-  → Gặp lại 2+ lần → Validated
-  → Rất quan trọng → Promoted → thêm vào AGENTS.md rules
-```
-
----
-
-## 🚦 CI/CD Pipeline
-
-Template bao gồm 3 workflows (`.github/workflows/`):
-
-1. **CI Gate (`ci.yml`)** — Chạy khi push/PR: Lint, Typecheck, Test, Build.
-2. **Preview Build (`preview-build.yml`)** — Chạy khi push `develop`: Upload artifact cho QA/Review.
-3. **Production Build (`production-build.yml`)** — Manual trigger từ `main` với environment approval.
-
----
-
-## 📊 Monitoring
-
-Xem hướng dẫn tại `docs/MONITORING.md`:
-- Setup **Sentry** (Error tracking) cho Node.js / React
-- Setup **Prometheus + Grafana** qua Docker Compose (Optional)
 
 ---
 
 ## 🤖 AI Tools Supported
 
-| Tool | Config File | Status |
+| Tool | Config File | Tối ưu? |
 |------|------------|--------|
-| **Claude Code / Opencode** | `CLAUDE.md` | ✅ |
-| **Cursor** | `.cursorrules` | ✅ |
-| **Windsurf** | `.windsurfrules` | ✅ |
-| **GitHub Copilot** | `.github/copilot-instructions.md` | ✅ |
-| **OpenAI Codex** | `AGENTS.md` (native) | ✅ |
-| **Antigravity** | `AGENTS.md` | ✅ |
-| **Bất kỳ AI khác** | Prompt: "đọc AGENTS.md" | ✅ |
-
----
-
-## 📌 Rules Vàng
-
-| Rule | Lý do |
-|------|-------|
-| Plan trước khi code | Tránh build sai thứ |
-| Nói "bắt đầu" là đủ | AI tự detect state |
-| `AGENTS.md` là source of truth | AI nào cũng đọc |
-| 1 task = 1 commit | Rollback dễ |
-| Test viết ngay | Tránh bug chồng bug |
-| Ghi knowledge khi fix bug | Tránh lỗi cũ |
-| Đọc knowledge trước khi code | Học từ quá khứ |
+| **Gemini CLI (Antigravity)** | `GEMINI.md` | ✅ Native |
+| **Claude Code / Opencode** | `CLAUDE.md` | ✅ Native |
+| **Cursor** | `.cursorrules` | ✅ Native |
+| **Windsurf** | `.windsurfrules` | ✅ Native |
+| **GitHub Copilot** | `.github/copilot-instructions.md` | ✅ Hỗ trợ |
 
 ---
 
 ## 📜 License
-
 MIT
