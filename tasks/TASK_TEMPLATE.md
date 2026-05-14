@@ -57,6 +57,11 @@ KHÔNG dùng: "TBD", "TODO", "similar to step N", "add appropriate handling".
 <!-- Chỉ uncomment block tương ứng với Task Type -->
 
 <!-- Type=ui -->
+<!-- ⚠️ PHẢI đọc skills TRƯỚC KHI code (không skip): -->
+<!-- - Đọc `ui-ux-pro-max/SKILL.md` → palette, typography, layout patterns -->
+<!-- - Đọc `frontend-dev-guidelines/SKILL.md` → component architecture -->
+<!-- - Nếu React: đọc `react-best-practices/SKILL.md` + `react-ui-patterns/SKILL.md` -->
+<!-- Rules: -->
 <!-- - Page = compose only. KHÔNG logic/state/fetch -->
 <!-- - JSX > 50 dòng → tách component -->
 <!-- - Logic → hooks/useXxx.ts | Fetch → services/xxx.service.ts -->
