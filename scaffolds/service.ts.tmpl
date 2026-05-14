@@ -1,0 +1,22 @@
+// scaffolds/service.ts.tmpl
+// Usage: Copy, rename, replace {{placeholders}}
+// Rule: Pure business logic. No framework imports.
+
+import { db } from "@/lib/db";
+
+export class {{ServiceName}} {
+  /**
+   * TODO: describe method
+   */
+  static async {{methodName}}(/* params */) {
+    try {
+      // TODO: implement business logic
+      // Use db for database operations
+      return { success: true };
+    } catch (error) {
+      throw new Error(
+        `{{ServiceName}}.{{methodName}} failed: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
+  }
+}

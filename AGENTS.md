@@ -21,13 +21,13 @@
 
 ### Session Resume (BẮT BUỘC mỗi session mới)
 Khi bắt đầu session mới hoặc đổi AI tool, PHẢI đọc theo thứ tự:
-1. `AGENTS.md` → Current Phase + Layer + Stack + Folder Structure
-2. `docs/IMPLEMENTATION_PLAN.md` → Big picture, tất cả phases + status
-3. `tasks/layer-N-todo.md` → Layer hiện tại, task nào đang/cần làm
-4. `tasks/done.md` → Task nào đã xong (tránh làm lại)
-5. `docs/knowledge/INDEX.md` → Lessons learned
-6. `git log -5 --oneline` → 5 commits gần nhất (biết đang ở đâu)
-7. Chạy `./scripts/ai-preflight.sh` → Kiểm tra code-review-graph + MCP sẵn sàng
+1. Chạy `./scripts/ai-preflight.sh` → Quick Context (phase, layer, recent commits, stats)
+2. `.ai-context.md` → Compact rules (40 dòng thay vì 388 dòng AGENTS.md)
+3. `tasks/layer-N-todo.md` → Task đang/cần làm
+4. `docs/knowledge/INDEX.md` → Lessons learned (chỉ entries liên quan task)
+
+> 💡 **Token-saving:** Chỉ đọc AGENTS.md đầy đủ khi cần Phase 0, phase transition, hoặc architecture decisions.
+> Cho regular tasks (feature, bugfix, test): `.ai-context.md` + preflight output là ĐỦ.
 
 Khi user nói bất kỳ thứ gì ("bắt đầu", "start", "tiếp tục", hoặc bất kỳ prompt nào),
 hãy tự detect trạng thái project và hành động:
@@ -103,158 +103,48 @@ KHÔNG viết code, KHÔNG scaffold, KHÔNG implement cho đến khi có file sp
 
 ## Coding Principles (BẮT BUỘC)
 
-> Dựa trên triết lý Andrej Karpathy. Mọi AI agent PHẢI tuân theo.
+> Chi tiết đầy đủ: `docs/CODING_RULES.md`
+> Compact version: `.ai-context.md`
 
-### 1. Think Before Coding
-**Không tự suy đoán. Không giấu sự nhầm lẫn. Đưa ra các đánh đổi.**
-- Nêu rõ giả định. Nếu không chắc chắn → **hỏi**.
-- Nếu có nhiều cách hiểu → trình bày chúng, **không âm thầm tự chọn**.
-- Nếu có cách đơn giản hơn → nói ra. Push back nếu cần.
-- Nếu điều gì đó không rõ ràng → **DỪNG LẠI**. Nói rõ điểm gây lú. Hỏi.
+**6 nguyên tắc cốt lõi:**
+1. **Think Before Coding** — Không suy đoán. Hỏi nếu không rõ.
+2. **Simplicity First** — Code tối thiểu. Không over-engineer.
+3. **Surgical Changes** — Chỉ sửa những gì cần thiết.
+4. **Goal-Driven** — Xác định tiêu chí thành công, verify trước khi claim done.
+5. **Intellectual Honesty** — Nói thẳng khi sai. Không chiều theo.
+6. **Component-First** — Tách nhỏ: Page = compose only, logic = hooks/services.
 
-### 2. Simplicity First
-**Viết số lượng code tối thiểu để giải quyết vấn đề. Không suy đoán tương lai.**
-- Không thêm tính năng ngoài yêu cầu.
-- Không tạo abstraction cho code chỉ dùng 1 lần.
-- Không thêm "flexibility" hoặc "configurability" nếu không được yêu cầu.
-- Nếu viết 200 dòng mà có thể 50 dòng → viết lại.
-- **Test:** Senior Engineer có thấy cái này quá phức tạp không? Nếu có → simplify.
-
-### 3. Surgical Changes
-**Chỉ chạm vào những gì bắt buộc. Chỉ dọn dẹp đống lộn xộn do chính mình tạo ra.**
-- Không "cải thiện" code, comment, format ở vùng lân cận.
-- Không refactor những thứ không hỏng.
-- Tuân theo style hiện tại của project, dù muốn làm khác.
-- Nếu thay đổi tạo code thừa → xóa import/variable/function do **chính mình** làm vô dụng. Không xóa dead code có từ trước.
-- **Test:** Mọi dòng bị thay đổi phải trace trực tiếp về yêu cầu của user.
-
-### 4. Goal-Driven Execution
-**Xác định tiêu chí thành công. Lặp lại cho đến khi verified.**
-- Biến task thành mục tiêu verifiable: "Fix bug" → "Viết test tái hiện bug → sửa cho test pass".
-- Đối với task nhiều bước → nêu plan ngắn gọn: `[Step] → verify: [check]`.
-- Criteria mạnh, tự verify được — không cần user làm rõ liên tục.
-
-### 5. Intellectual Honesty (No Sycophancy)
-**Không chiều theo. Nói thẳng khi thấy sai.**
-- Nếu user sai → cảnh báo **RISK**, không đồng ý hùa theo.
-- Không flip-flop ý kiến chỉ vì user đổi ý. Chỉ đổi khi có evidence mới.
-- Nếu request là anti-pattern → từ chối rõ ràng + đề xuất cách tốt hơn.
-- **Test:** Nếu sắp đồng ý nhưng biết là sai → DỪNG LẠI và nói sự thật.
-
-### 6. Component-First Architecture
-**Tách nhỏ, tái sử dụng, dễ đọc cho cả AI lẫn người.**
-
-**Frontend (React/Vue/Svelte):**
-- Page/Screen file chỉ **compose** components — KHÔNG chứa logic/state/fetch
-- UI block > 50 dòng JSX → **PHẢI** tách thành component riêng
-- Logic reusable → custom hook (`hooks/useXxx.ts`)
-- API/business logic → service (`services/xxx.service.ts`)
-- Types → `types.ts` trong feature folder
-
-**Backend (Node/Express/Fastify):**
-- Route handler chỉ parse request + gọi service — KHÔNG chứa business logic
-- Business logic → service layer
-- Database queries → repository layer
-- Validation → middleware hoặc schema (Zod/Joi)
-
-**Feature folder structure:**
-```
-src/features/[feature-name]/
-  components/     ← UI components
-  hooks/          ← Custom hooks
-  services/       ← API/business logic
-  types.ts        ← TypeScript types
-  utils.ts        ← Helper functions
-  index.ts        ← Public API (re-exports)
-```
-- **Test:** Nếu component/file quá lớn để đọc trong 30 giây → tách.
-
----
-
-### Operational Rules
-- Test viết ngay sau mỗi task — không để cuối
-- 1 commit = 1 task — message: `feat/fix/test/chore: [mô tả]`
-- Error handling cho mọi async function
-- Không sửa files ngoài danh sách cho phép trong task
-- Đọc `docs/knowledge/INDEX.md` trước khi code feature liên quan
-- Khi gặp git merge conflict → **KHÔNG tự resolve** → báo user quyết định
-- Secrets trong `.env` — KHÔNG hard-code key, url, password vào code
+**3 luật sắt:**
+- **Verification Iron Law:** KHÔNG claim "done/pass" nếu chưa CHẠY command + XEM raw output.
+- **No Placeholder:** Tasks phải có exact file paths + actual code + exact commands.
+- **Red Flags:** Nếu đang nghĩ "chắc pass rồi" hoặc "lần này ngoại lệ" → DỪNG LẠI.
 
 ---
 
 ## ⚙️ Task Execution Protocol (BẮT BUỘC)
 
-> Mỗi task PHẢI đi qua 3 gate. Không được skip. Không được rút gọn.
-> Flow: **Task → Pre-Code → Code → Post-Code → Commit**
+> Chi tiết đầy đủ: `docs/HARD_GATES.md`
 
-<HARD-GATE: PRE-CODE>
-Trước khi viết BẤT KỲ dòng code nào, PHẢI hoàn thành:
+Flow: **Task → Pre-Code → Code → Post-Code → Commit**
 
-**1. Graph Context Summary**
-- Gọi `get_minimal_context_tool(task_description)` → liệt kê files liên quan
-- Gọi `semantic_search_nodes_tool(keyword)` → tìm component/hook/service đã tồn tại
-- Nếu MCP tools không khả dụng → đọc `docs/ARCHITECTURE.md` + dùng file tree
-- ⚠️ **PHẢI ghi rõ trong output:** "📊 Graph Context: [danh sách files liên quan]"
-- ⚠️ **Nếu đã có component/hook/service tương tự → TÁI SỬ DỤNG, không tạo mới**
+**PRE-CODE** (trước khi viết code):
+1. Graph Context — `get_minimal_context_tool` + `semantic_search_nodes_tool`
+2. Impact Analysis — `get_impact_radius_tool` → Allowed/Forbidden/Risk files
+3. Component Plan (UI tasks) — liệt kê components
 
-**2. Impact Analysis**
-- Gọi `get_impact_radius_tool(file)` cho MỖI file định sửa
-- OUTPUT BẮT BUỘC (ghi rõ trong response):
-  ```
-  ✅ Allowed files: [files sẽ create/modify — chỉ sửa những file này]
-  ⛔ Forbidden files: [files KHÔNG được đụng]
-  ⚠️ Risk files: [shared/infra files — cần giải thích nếu sửa]
-  🧪 Tests affected: [test files cần chạy lại]
-  ```
+**DURING-CODE:**
+- Chỉ sửa Allowed files. Ngoài scope → DỪNG + giải thích.
+- Component-First: JSX > 50 dòng → tách.
 
-**3. Component Plan (cho UI tasks)**
-- Liệt kê components sẽ tạo/sửa (theo Component-First Rule #6)
-- Page file chỉ compose — KHÔNG chứa logic/state/fetch
-- UI block > 50 dòng JSX → tách component
+**POST-CODE** (trước khi báo done):
+1. Spec Compliance — Thiếu gì? Thừa gì?
+2. Impact Check — so sánh với pre-code analysis
+3. Verification — chạy tsc/lint/test/build, **paste raw output**
+4. Completion Report — evidence-based, không self-report
 
-Nếu THIẾU bất kỳ output nào ở trên → KHÔNG ĐƯỢC bắt đầu code.
-</HARD-GATE>
+⛔ KHÔNG báo "done" nếu thiếu Completion Report hoặc raw evidence.
 
-<HARD-GATE: DURING-CODE>
-Trong khi code, PHẢI tuân theo:
-
-1. **Chỉ sửa files trong "Allowed files"** đã khai báo ở Pre-Code
-2. Nếu cần sửa file ngoài scope → **DỪNG LẠI**, update Impact Analysis, giải thích lý do
-3. **Component-First**: Không nhét >50 dòng JSX vào 1 component
-4. Mỗi file mới phải đúng vị trí trong folder structure
-5. **Verify graph usage**: Khi không chắc file nào bị ảnh hưởng → gọi `get_impact_radius_tool` NGAY, không đoán
-</HARD-GATE>
-
-<HARD-GATE: POST-CODE>
-Sau khi code xong, PHẢI hoàn thành TRƯỚC KHI báo done:
-
-**1. Post-Code Impact Check**
-- Gọi `get_impact_radius_tool` cho các files ĐÃ SỬA
-- So sánh với Impact Analysis ban đầu
-- Nếu có file bị ảnh hưởng ngoài dự kiến → kiểm tra + sửa
-
-**2. Verification** (chạy `./scripts/ai-review.sh` hoặc thủ công)
-- TypeScript: `npx tsc --noEmit`
-- Lint: `npm run lint` (nếu có)
-- Test: `npm test` (nếu có)
-- Build: `npm run build` (nếu có)
-- Nếu bất kỳ lệnh nào fail → SỬA cho đến khi pass
-
-**3. Completion Report** (ghi rõ trong response)
-```
-📋 COMPLETION REPORT
-- Files created: [danh sách]
-- Files modified: [danh sách]
-- Files deleted: [danh sách]
-- Graph tools used: ✅/❌ (liệt kê tools đã gọi)
-- Tests: pass/fail/skip (lý do skip)
-- Build: pass/fail/skip
-- Impact ngoài dự kiến: có/không
-```
-
-KHÔNG ĐƯỢC báo "done" nếu chưa hoàn thành Completion Report.
-</HARD-GATE>
-
+---
 ## Skills (AI Auto-Activate)
 
 > **Quy tắc ưu tiên:** `skills/` (template) > `~/.gemini/antigravity/skills/` (global)

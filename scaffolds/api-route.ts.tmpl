@@ -1,0 +1,45 @@
+// scaffolds/api-route.ts.tmpl
+// Usage: Copy to src/app/api/[resource]/route.ts, replace {{placeholders}}
+// Rule: Route handler = parse request + call service. NO business logic.
+
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { {{ServiceName}} } from "@/services/{{serviceFile}}";
+
+const {{schemaName}} = z.object({
+  // TODO: define request schema
+});
+
+export async function GET(req: NextRequest) {
+  try {
+    const result = await {{ServiceName}}.findAll();
+    return NextResponse.json({ data: result });
+  } catch (error) {
+    console.error("[API] GET /api/{{resource}}:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const validated = {{schemaName}}.parse(body);
+    const result = await {{ServiceName}}.create(validated);
+    return NextResponse.json({ data: result }, { status: 201 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation failed", details: error.errors },
+        { status: 400 }
+      );
+    }
+    console.error("[API] POST /api/{{resource}}:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

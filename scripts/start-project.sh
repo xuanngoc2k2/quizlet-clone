@@ -167,19 +167,71 @@ echo -e "  ${GREEN}✅ AI adapter files configured${RESET}"
 mkdir -p src tests/unit tests/integration tests/e2e context memory
 echo -e "  ${GREEN}✅ Folders created: src/, tests/, context/, memory/${RESET}"
 
+# Copy lint config templates
+if [ -d "configs" ]; then
+  cp configs/eslint.config.template.mjs eslint.config.mjs 2>/dev/null && \
+    echo -e "  ${GREEN}✅ ESLint config → eslint.config.mjs${RESET}" || true
+  cp configs/.prettierrc.template.json .prettierrc.json 2>/dev/null && \
+    echo -e "  ${GREEN}✅ Prettier config → .prettierrc.json${RESET}" || true
+fi
+
+# Generate .ai-context.md
+if [ -f ".ai-context.template.md" ]; then
+  if [ -x "scripts/generate-ai-context.sh" ]; then
+    bash scripts/generate-ai-context.sh 2>/dev/null && \
+      echo -e "  ${GREEN}✅ .ai-context.md generated (compact rules for AI)${RESET}" || \
+      echo -e "  ${YELLOW}⚠️  .ai-context.md generation failed — can run later${RESET}"
+  else
+    cp .ai-context.template.md .ai-context.md
+    echo -e "  ${GREEN}✅ .ai-context.md copied from template${RESET}"
+  fi
+fi
+
 # ── Git init + Hooks ────────────────────────────────────────
 rm -rf .git
 git init -b main > /dev/null 2>&1
 
-# Setup post-commit hook for auto-updating context
+# Setup git hooks
 mkdir -p .git/hooks
-cat << 'EOF' > .git/hooks/post-commit
+
+# Pre-commit: lint gate (block commit on lint failure)
+cat << 'PREHOOK' > .git/hooks/pre-commit
+#!/bin/bash
+# Block commit if lint or typecheck fails
+if [ -f "package.json" ]; then
+  # TypeScript check
+  if [ -f "tsconfig.json" ]; then
+    npx tsc --noEmit --quiet 2>/dev/null
+    if [ $? -ne 0 ]; then
+      echo "❌ TypeScript check failed — fix errors before commit"
+      exit 1
+    fi
+  fi
+  # Lint check
+  if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts['lint'] ? 0 : 1)" 2>/dev/null; then
+    npm run lint --silent 2>/dev/null
+    if [ $? -ne 0 ]; then
+      echo "❌ Lint failed — fix errors before commit"
+      exit 1
+    fi
+  fi
+fi
+PREHOOK
+chmod +x .git/hooks/pre-commit
+
+# Post-commit: auto-update code knowledge graph
+cat << 'POSTHOOK' > .git/hooks/post-commit
 #!/bin/bash
 # Auto-update code knowledge graph after each commit
 if command -v code-review-graph &> /dev/null; then
   code-review-graph update > /dev/null 2>&1 &
 fi
-EOF
+
+# Auto-regenerate .ai-context.md if template exists
+if [ -f ".ai-context.template.md" ] && [ -x "scripts/generate-ai-context.sh" ]; then
+  bash scripts/generate-ai-context.sh > /dev/null 2>&1 &
+fi
+POSTHOOK
 chmod +x .git/hooks/post-commit
 
 git add .

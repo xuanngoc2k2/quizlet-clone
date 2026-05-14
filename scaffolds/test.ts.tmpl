@@ -1,0 +1,32 @@
+// scaffolds/test.ts.tmpl
+// Usage: Copy to tests/unit/{{name}}.test.ts, replace {{placeholders}}
+
+import { describe, it, expect, beforeEach } from "vitest";
+// or: import { describe, it, expect, beforeEach } from "@jest/globals";
+
+describe("{{TestSubject}}", () => {
+  beforeEach(() => {
+    // TODO: setup
+  });
+
+  it("should {{expectedBehavior}}", () => {
+    // Arrange
+    // TODO: setup test data
+
+    // Act
+    // TODO: call function under test
+
+    // Assert
+    // TODO: verify result
+    expect(true).toBe(true);
+  });
+
+  it("should handle error when {{errorCase}}", () => {
+    // Arrange
+
+    // Act & Assert
+    expect(() => {
+      // TODO: call function that should throw
+    }).toThrow();
+  });
+});

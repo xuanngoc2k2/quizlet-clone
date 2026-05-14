@@ -90,6 +90,72 @@ else
   ((FAIL++))
 fi
 
+# 6. Check .ai-context.md exists
+if [ -f ".ai-context.md" ]; then
+  echo -e "${GREEN}✅ .ai-context.md: found (compact rules for AI)${RESET}"
+  ((PASS++))
+else
+  if [ -f ".ai-context.template.md" ]; then
+    echo -e "${YELLOW}⚠️  .ai-context.md: not generated yet${RESET}"
+    echo "   → Chạy: ./scripts/generate-ai-context.sh"
+    ((WARN++))
+  else
+    echo -e "${YELLOW}⚠️  .ai-context.md: not available${RESET}"
+    ((WARN++))
+  fi
+fi
+
+# 7. Check lint config exists
+if [ -f "eslint.config.mjs" ] || [ -f ".eslintrc.json" ] || [ -f ".eslintrc.js" ]; then
+  echo -e "${GREEN}✅ ESLint config: found${RESET}"
+  ((PASS++))
+else
+  echo -e "${YELLOW}⚠️  ESLint config: not found${RESET}"
+  echo "   → Sẽ được tạo trong Phase 0 từ configs/ templates"
+  ((WARN++))
+fi
+
+if [ -f ".prettierrc" ] || [ -f ".prettierrc.json" ] || [ -f "prettier.config.mjs" ]; then
+  echo -e "${GREEN}✅ Prettier config: found${RESET}"
+  ((PASS++))
+else
+  echo -e "${YELLOW}⚠️  Prettier config: not found${RESET}"
+  ((WARN++))
+fi
+
+# 8. Check scaffolds available
+if [ -d "scaffolds" ] && [ "$(ls scaffolds/*.tmpl 2>/dev/null | wc -l)" -gt 0 ]; then
+  SCAFFOLD_COUNT=$(ls scaffolds/*.tmpl 2>/dev/null | wc -l | xargs)
+  echo -e "${GREEN}✅ Scaffolds: ${SCAFFOLD_COUNT} templates available${RESET}"
+  ((PASS++))
+else
+  echo -e "${YELLOW}⚠️  Scaffolds: not available${RESET}"
+  ((WARN++))
+fi
+
+# ── Quick Context (AI reads this instead of opening 6+ files) ──
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📋 Quick Context:"
+
+# Current phase & layer
+if [ -f "AGENTS.md" ]; then
+  PHASE=$(grep -m1 '\*\*Current Phase:\*\*' AGENTS.md 2>/dev/null | sed 's/.*\*\*Current Phase:\*\* *//' || echo "?")
+  LAYER=$(grep -m1 '\*\*Current Layer:\*\*' AGENTS.md 2>/dev/null | sed 's/.*\*\*Current Layer:\*\* *//' || echo "?")
+  echo "  Phase: $PHASE"
+  echo "  Layer: $LAYER"
+fi
+
+# Recent changes
+echo "  Recent:"
+git log -3 --oneline 2>/dev/null | sed 's/^/    /' || echo "    (no git history)"
+
+# Codebase stats
+if [ -d "src" ]; then
+  TS_COUNT=$(find src -name "*.ts" -o -name "*.tsx" 2>/dev/null | wc -l | xargs)
+  echo "  Files: ${TS_COUNT} TypeScript files in src/"
+fi
+
 # Summary
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

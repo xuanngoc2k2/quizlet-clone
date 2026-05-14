@@ -1,10 +1,14 @@
 # Claude Code / Opencode Instructions
 
-> **Đọc `AGENTS.md` trước** — đó là source of truth cho project này.
+> **Regular tasks:** Chạy `./scripts/ai-preflight.sh` → đọc `.ai-context.md` → bắt đầu.
+> **Phase 0 / architecture:** Đọc `AGENTS.md` đầy đủ.
 > File này chỉ chứa Claude-specific notes.
 
 ## How To Start
-Đọc `AGENTS.md` → section "AUTO-START" → follow state detection logic.
+1. Chạy `./scripts/ai-preflight.sh` → Quick Context
+2. Đọc `.ai-context.md` → Compact rules (51 dòng)
+3. Đọc `tasks/layer-N-todo.md` → Task hiện tại
+4. Nếu Phase 0 hoặc architecture → đọc thêm `AGENTS.md`
 
 ## Claude-Specific Notes
 - Ưu tiên Sonnet cho regular tasks (feature, bugfix, test)
