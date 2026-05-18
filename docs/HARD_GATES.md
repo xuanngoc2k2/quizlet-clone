@@ -62,6 +62,7 @@ Sau khi code xong, PHẢI hoàn thành TRƯỚC KHI báo done:
 - Test: `rtk npm test` (nếu có)
 - Build: `rtk npm run build` (nếu có)
 - UI/React: `rtk npx react-doctor` (bắt buộc nếu là project React)
+- **UI Visual Check (nếu có `chrome-devtools-mcp`):** Dùng MCP tools để screenshot trang vừa sửa, inspect DOM, đọc console errors. Báo lỗi nếu layout bị vỡ.
 - Nếu bất kỳ lệnh nào fail → SỬA cho đến khi pass
 - ⚠️ **PHẢI paste raw output** (hoặc trích dẫn key lines). KHÔNG chỉ ghi "pass".
 

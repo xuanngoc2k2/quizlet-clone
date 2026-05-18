@@ -286,6 +286,27 @@ if ! command -v rtk &> /dev/null; then
   fi
 fi
 
+# ── Suggest chrome-devtools-mcp ─────────────────────────────
+if ! command -v chrome-devtools-mcp &> /dev/null; then
+  echo ""
+  echo -e "  ${YELLOW}💡 Gợi ý: Cài chrome-devtools-mcp để AI có thể nhìn và debug UI trên trình duyệt.${RESET}"
+  echo -e "  ${YELLOW}   (Screenshot, Console logs, DOM inspect, Lighthouse audit — tất cả qua MCP)${RESET}"
+  read -p "     Bạn có muốn cài đặt chrome-devtools-mcp ngay bây giờ không? (y/n): " INSTALL_CDT
+  if [[ "$INSTALL_CDT" =~ ^[Yy]$ ]]; then
+    echo -e "     ${CYAN}Đang cài đặt chrome-devtools-mcp...${RESET}"
+    npm install -g chrome-devtools-mcp
+    if command -v chrome-devtools-mcp &> /dev/null; then
+        echo -e "     ${GREEN}✅ chrome-devtools-mcp đã được cài đặt.${RESET}"
+        echo -e "     ${CYAN}📝 Thêm vào MCP config (.mcp.json) để AI tool kết nối:${RESET}"
+        echo -e "     ${CYAN}   {\"mcpServers\":{\"chrome-devtools\":{\"command\":\"chrome-devtools-mcp\"}}}${RESET}"
+    else
+        echo -e "     ${RED}❌ Lỗi cài đặt. Cài thủ công: npm install -g chrome-devtools-mcp${RESET}"
+    fi
+  else
+    echo -e "     ${YELLOW}⏭️  Bỏ qua. Cài sau: npm install -g chrome-devtools-mcp${RESET}"
+  fi
+fi
+
 # ── Done ────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"

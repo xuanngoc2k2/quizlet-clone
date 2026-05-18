@@ -12,6 +12,7 @@ Hệ thống này không chỉ là cấu trúc thư mục, mà là một **bộ 
 - 📉 **Token Optimization**: Giảm 80% rác nhờ `.ai-context.md`. Tích hợp sẵn [RTK](https://github.com/rtk-ai/rtk) để nén output Terminal (giảm 60-90% log rác).
 - 🛡️ **Iron Law Verification**: Cấm AI tự ý báo "pass". Bắt buộc có Raw Evidence. Chạy tự động `react-doctor` để audit UI.
 - 🗺️ **Code Navigation**: Ép AI dùng `code-review-graph` (MCP) thay vì `grep`/`find` mù quáng.
+- 👁️ **Visual UI Debugging**: Tích hợp [`chrome-devtools-mcp`](https://github.com/ChromeDevTools/chrome-devtools-mcp) để AI tự screenshot, inspect DOM, đọc console errors trên trình duyệt.
 - 🚫 **Anti-Rationalization**: Bảng *Red Flags* chặn các thói quen xấu của AI (Lười, Xin lỗi, Hard-code, Placeholder).
 
 ---
@@ -28,7 +29,7 @@ cd my-project
 ```bash
 ./scripts/start-project.sh
 ```
-Script sẽ giúp bạn: tạo repo mới, cài đặt `code-review-graph`, gợi ý cài đặt `rtk`, và setup cấu trúc cơ bản.
+Script sẽ giúp bạn: tạo repo mới, cài đặt `code-review-graph`, gợi ý cài `rtk` và `chrome-devtools-mcp`, setup cấu trúc cơ bản.
 
 ### 3. Mở bằng AI tool, nói "bắt đầu"
 Mở terminal bằng AI CLI (Antigravity/Claude Code) hoặc editor (Cursor/Windsurf) và chat:

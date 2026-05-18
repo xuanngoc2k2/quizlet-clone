@@ -133,6 +133,16 @@ else
   ((WARN++))
 fi
 
+# 9. Check chrome-devtools-mcp (visual UI debugging)
+if command -v chrome-devtools-mcp &> /dev/null; then
+  echo -e "${GREEN}✅ chrome-devtools-mcp: installed (AI can screenshot & inspect browser)${RESET}"
+  ((PASS++))
+else
+  echo -e "${YELLOW}⚠️  chrome-devtools-mcp: not installed${RESET}"
+  echo "   → Cài để AI nhìn được UI: npm install -g chrome-devtools-mcp"
+  ((WARN++))
+fi
+
 # ── Quick Context (AI reads this instead of opening 6+ files) ──
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
