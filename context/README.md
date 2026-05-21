@@ -10,16 +10,16 @@ Knowledge Graph tự động. AI dùng qua MCP tools, không cần đọc file t
 
 ```bash
 # Cài đặt (1 lần duy nhất)
-npm install -g @colbymchenry/codegraph && codegraph init -i
+npm install -g @colbymchenry/codegraph && codegraph init
 
-# Update (tự động qua git hook, hoặc thủ công)
-codegraph update
+# Thủ công build/re-index toàn bộ project
+codegraph index
 
-# Xem trạng thái graph
+# Xem trạng thái graph & thống kê
 codegraph status
 
-# Vẽ sơ đồ tương tác
-codegraph visualize
+# Tìm kiếm ký hiệu trong codebase
+codegraph query "search_term"
 ```
 
 ### MCP Tools (AI tự dùng):

@@ -251,13 +251,13 @@ if ! command -v codegraph &> /dev/null; then
     
     if command -v codegraph &> /dev/null; then
         echo -e "     ${CYAN}Đang build knowledge graph...${RESET}"
-        codegraph init -i
+        codegraph init
         echo -e "     ${GREEN}✅ codegraph đã được cài đặt và build thành công.${RESET}"
     else
-        echo -e "     ${RED}❌ Lỗi cài đặt codegraph. Vui lòng cài đặt thủ công: npm install -g @colbymchenry/codegraph && codegraph init -i${RESET}"
+        echo -e "     ${RED}❌ Lỗi cài đặt codegraph. Vui lòng cài đặt thủ công: npm install -g @colbymchenry/codegraph && codegraph init${RESET}"
     fi
   else
-    echo -e "     ${YELLOW}⏭️  Bỏ qua cài đặt codegraph. Bạn có thể cài sau bằng lệnh: npm install -g @colbymchenry/codegraph && codegraph init -i${RESET}"
+    echo -e "     ${YELLOW}⏭️  Bỏ qua cài đặt codegraph. Bạn có thể cài sau bằng lệnh: npm install -g @colbymchenry/codegraph && codegraph init${RESET}"
   fi
 fi
 

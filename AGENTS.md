@@ -10,14 +10,13 @@
 > **🚨 MANDATORY NAVIGATION RULE:**
 > 1. KHÔNG BAO GIỜ được tự ý đoán mò file hoặc grep lùng sục lung tung.
 > 2. Dùng **codegraph MCP tools** để navigate codebase:
->    - `codegraph_context` — Lấy đúng files cần thiết cho task hiện tại
->    - `codegraph_explore` — Khi sửa file, biết files nào bị ảnh hưởng
->    - `codegraph_context` — Hiểu kiến trúc tổng quan
->    - `codegraph_search` — Tìm function/class theo tên
+>    - `codegraph_context` — Lấy đúng files cần thiết + kiến trúc tổng quan
+>    - `codegraph_explore` — Khi sửa file, biết files nào bị ảnh hưởng (impact radius)
+>    - `codegraph_search` — Tìm function/class theo tên (full-text search)
 > 3. Nếu MCP tools không khả dụng (chưa cài codegraph):
 >    → Đọc `docs/ARCHITECTURE.md` + Folder Structure trong file này
 >    → Dùng file tree để navigate
->    → Gợi ý user cài: `npm install -g @colbymchenry/codegraph && codegraph init -i`
+>    → Gợi ý user cài: `npm install -g @colbymchenry/codegraph && codegraph init`
 
 ### Session Resume (BẮT BUỘC mỗi session mới)
 Khi bắt đầu session mới hoặc đổi AI tool, PHẢI đọc theo thứ tự:
@@ -250,10 +249,10 @@ Khi có architecture/tech decision quan trọng:
 ### Primary: Codegraph (MCP — tự động)
 ```bash
 # Cài đặt (1 lần)
-npm install -g @colbymchenry/codegraph && codegraph init -i
+npm install -g @colbymchenry/codegraph && codegraph init
 
-# Update (tự động qua git hook, hoặc thủ công)
-codegraph update
+# Graph tự động sync qua file watcher (FSEvents/inotify)
+# Không cần chạy update thủ công.
 ```
 
 ### Pre-Code / Post-Code Scripts

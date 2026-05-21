@@ -23,7 +23,7 @@ if command -v codegraph &> /dev/null; then
   ((PASS++))
 else
   echo -e "${RED}❌ codegraph: NOT installed${RESET}"
-  echo "   → Cài đặt: npm install -g @colbymchenry/codegraph && codegraph init -i"
+  echo "   → Cài đặt: npm install -g @colbymchenry/codegraph && codegraph init"
   ((FAIL++))
 fi
 
@@ -52,7 +52,7 @@ done
 if [ "$GRAPH_FOUND" = false ]; then
   if command -v codegraph &> /dev/null; then
     echo -e "${YELLOW}⚠️  Graph data: not built yet${RESET}"
-    echo "   → Chạy: codegraph init -i"
+    echo "   → Chạy: codegraph init"
     ((WARN++))
   else
     echo -e "${YELLOW}⚠️  Graph data: not available (codegraph chưa cài)${RESET}"
