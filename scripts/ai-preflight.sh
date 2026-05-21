@@ -17,13 +17,13 @@ echo ""
 echo "🔍 AI Preflight Check"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 1. Check code-review-graph installed
-if command -v code-review-graph &> /dev/null; then
-  echo -e "${GREEN}✅ code-review-graph: installed${RESET}"
+# 1. Check codegraph installed
+if command -v codegraph &> /dev/null; then
+  echo -e "${GREEN}✅ codegraph: installed${RESET}"
   ((PASS++))
 else
-  echo -e "${RED}❌ code-review-graph: NOT installed${RESET}"
-  echo "   → Cài đặt: pipx install code-review-graph && code-review-graph install"
+  echo -e "${RED}❌ codegraph: NOT installed${RESET}"
+  echo "   → Cài đặt: npm install -g @colbymchenry/codegraph && codegraph init -i"
   ((FAIL++))
 fi
 
@@ -38,7 +38,7 @@ else
 fi
 
 # 3. Check graph has been built
-GRAPH_DIRS=(".code-review-graph" "context" ".crg")
+GRAPH_DIRS=(".codegraph" "context" ".crg")
 GRAPH_FOUND=false
 for dir in "${GRAPH_DIRS[@]}"; do
   if [ -d "$dir" ]; then
@@ -50,12 +50,12 @@ for dir in "${GRAPH_DIRS[@]}"; do
 done
 
 if [ "$GRAPH_FOUND" = false ]; then
-  if command -v code-review-graph &> /dev/null; then
+  if command -v codegraph &> /dev/null; then
     echo -e "${YELLOW}⚠️  Graph data: not built yet${RESET}"
-    echo "   → Chạy: code-review-graph build"
+    echo "   → Chạy: codegraph init -i"
     ((WARN++))
   else
-    echo -e "${YELLOW}⚠️  Graph data: not available (code-review-graph chưa cài)${RESET}"
+    echo -e "${YELLOW}⚠️  Graph data: not available (codegraph chưa cài)${RESET}"
     ((WARN++))
   fi
 fi
@@ -72,7 +72,7 @@ if [ "$GRAPH_FOUND" = true ]; then
   
   if [ "$LAST_COMMIT_TIME" -gt "$GRAPH_TIME" ] 2>/dev/null; then
     echo -e "${YELLOW}⚠️  Graph: outdated (code mới hơn graph)${RESET}"
-    echo "   → Chạy: code-review-graph update"
+    echo "   → Chạy: codegraph init -i"
     ((WARN++))
   else
     echo -e "${GREEN}✅ Graph: up to date${RESET}"

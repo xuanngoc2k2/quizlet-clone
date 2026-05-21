@@ -1,9 +1,8 @@
 {
   "mcpServers": {
-    "code-review-graph": {
-      "command": "code-review-graph",
-      "args": ["serve"],
-      "env": {}
+    "codegraph": {
+      "command": "codegraph",
+      "args": ["--serve"]
     }
   }
 }

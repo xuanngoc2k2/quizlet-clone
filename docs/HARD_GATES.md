@@ -7,14 +7,14 @@
 Trước khi viết BẤT KỲ dòng code nào, PHẢI hoàn thành:
 
 **1. Graph Context Summary**
-- Gọi `get_minimal_context_tool(task_description)` → liệt kê files liên quan
-- Gọi `semantic_search_nodes_tool(keyword)` → tìm component/hook/service đã tồn tại
+- Gọi `codegraph_context(task_description)` → liệt kê files liên quan
+- Gọi `codegraph_search(keyword)` → tìm component/hook/service đã tồn tại
 - Nếu MCP tools không khả dụng → đọc `docs/ARCHITECTURE.md` + dùng file tree
 - ⚠️ **PHẢI ghi rõ trong output:** "📊 Graph Context: [danh sách files liên quan]"
 - ⚠️ **Nếu đã có component/hook/service tương tự → TÁI SỬ DỤNG, không tạo mới**
 
 **2. Impact Analysis**
-- Gọi `get_impact_radius_tool(file)` cho MỖI file định sửa
+- Gọi `codegraph_explore(file)` cho MỖI file định sửa
 - OUTPUT BẮT BUỘC (ghi rõ trong response):
   ```
   ✅ Allowed files: [files sẽ create/modify — chỉ sửa những file này]
@@ -38,7 +38,7 @@ Trong khi code, PHẢI tuân theo:
 2. Nếu cần sửa file ngoài scope → **DỪNG LẠI**, update Impact Analysis, giải thích lý do
 3. **Component-First**: Không nhét >50 dòng JSX vào 1 component
 4. Mỗi file mới phải đúng vị trí trong folder structure
-5. **Verify graph usage**: Khi không chắc file nào bị ảnh hưởng → gọi `get_impact_radius_tool` NGAY, không đoán
+5. **Verify graph usage**: Khi không chắc file nào bị ảnh hưởng → gọi `codegraph_explore` NGAY, không đoán
 </HARD-GATE>
 
 <HARD-GATE: POST-CODE>
@@ -51,7 +51,7 @@ Sau khi code xong, PHẢI hoàn thành TRƯỚC KHI báo done:
 - ⚠️ "Tests pass" ≠ "Spec compliant". Kiểm tra cả hai.
 
 **2. Post-Code Impact Check**
-- Gọi `get_impact_radius_tool` cho các files ĐÃ SỬA
+- Gọi `codegraph_explore` cho các files ĐÃ SỬA
 - So sánh với Impact Analysis ban đầu
 - Nếu có file bị ảnh hưởng ngoài dự kiến → kiểm tra + sửa
 

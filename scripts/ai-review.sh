@@ -35,11 +35,11 @@ else
   RTK=""
 fi
 
-# 1. Update code-review-graph
+# 1. Update codegraph
 echo ""
 echo "📊 Step 1: Update Graph"
-if command -v code-review-graph &> /dev/null; then
-  if code-review-graph update 2>/dev/null; then
+if command -v codegraph &> /dev/null; then
+  if codegraph init -i 2>/dev/null; then
     echo -e "  ${GREEN}✅ Graph updated${RESET}"
     ((PASS++))
   else
@@ -47,7 +47,7 @@ if command -v code-review-graph &> /dev/null; then
     ((SKIP++))
   fi
 else
-  echo -e "  ${YELLOW}⏭️  Skipped — code-review-graph not installed${RESET}"
+  echo -e "  ${YELLOW}⏭️  Skipped — codegraph not installed${RESET}"
   ((SKIP++))
 fi
 

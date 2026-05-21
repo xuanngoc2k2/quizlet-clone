@@ -9,7 +9,7 @@ Read `AGENTS.md` → section "AUTO-START" → follow state detection logic.
 ## Cursor-Specific Notes
 - Use @codebase for broad context questions
 - Use @docs to reference project documentation
-- **code-review-graph MCP** is configured — use its tools to navigate codebase
+- **codegraph MCP** is configured — use its tools to navigate codebase
 - Prefer Composer for multi-file changes
 - Use @file to reference specific files in prompts
 - Read `docs/knowledge/INDEX.md` before starting any feature work

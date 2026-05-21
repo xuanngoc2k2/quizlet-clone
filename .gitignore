@@ -21,8 +21,8 @@ __pycache__/
 memory/*.md
 !memory/.gitkeep
 
-# Code-Review-Graph (knowledge graph cache — regenerate with code-review-graph build)
-.code-review-graph/
+# CodeGraph (knowledge graph cache — regenerate with codegraph build)
+.codegraph/
 
 
 # IDE

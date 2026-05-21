@@ -8,6 +8,6 @@ Read `AGENTS.md` → section "AUTO-START" → follow state detection logic.
 
 ## Windsurf-Specific Notes
 - Use Cascade for complex multi-step tasks
-- **code-review-graph MCP** is configured — use its tools to navigate codebase
+- **codegraph MCP** is configured — use its tools to navigate codebase
 - Reference project docs via file paths in prompts
 - Read `docs/knowledge/INDEX.md` before starting any feature work

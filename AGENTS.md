@@ -9,15 +9,15 @@
 
 > **🚨 MANDATORY NAVIGATION RULE:**
 > 1. KHÔNG BAO GIỜ được tự ý đoán mò file hoặc grep lùng sục lung tung.
-> 2. Dùng **code-review-graph MCP tools** để navigate codebase:
->    - `get_minimal_context_tool` — Lấy đúng files cần thiết cho task hiện tại
->    - `get_impact_radius_tool` — Khi sửa file, biết files nào bị ảnh hưởng
->    - `get_architecture_overview_tool` — Hiểu kiến trúc tổng quan
->    - `semantic_search_nodes_tool` — Tìm function/class theo tên
-> 3. Nếu MCP tools không khả dụng (chưa cài code-review-graph):
+> 2. Dùng **codegraph MCP tools** để navigate codebase:
+>    - `codegraph_context` — Lấy đúng files cần thiết cho task hiện tại
+>    - `codegraph_explore` — Khi sửa file, biết files nào bị ảnh hưởng
+>    - `codegraph_context` — Hiểu kiến trúc tổng quan
+>    - `codegraph_search` — Tìm function/class theo tên
+> 3. Nếu MCP tools không khả dụng (chưa cài codegraph):
 >    → Đọc `docs/ARCHITECTURE.md` + Folder Structure trong file này
 >    → Dùng file tree để navigate
->    → Gợi ý user cài: `pip install code-review-graph && code-review-graph build`
+>    → Gợi ý user cài: `npm install -g @colbymchenry/codegraph && codegraph init -i`
 
 ### Session Resume (BẮT BUỘC mỗi session mới)
 Khi bắt đầu session mới hoặc đổi AI tool, PHẢI đọc theo thứ tự:
@@ -128,8 +128,8 @@ KHÔNG viết code, KHÔNG scaffold, KHÔNG implement cho đến khi có file sp
 Flow: **Task → Pre-Code → Code → Post-Code → Commit**
 
 **PRE-CODE** (trước khi viết code):
-1. Graph Context — `get_minimal_context_tool` + `semantic_search_nodes_tool`
-2. Impact Analysis — `get_impact_radius_tool` → Allowed/Forbidden/Risk files
+1. Graph Context — `codegraph_context` + `codegraph_search`
+2. Impact Analysis — `codegraph_explore` → Allowed/Forbidden/Risk files
 3. Component Plan (UI tasks) — liệt kê components
 
 **DURING-CODE:**
@@ -247,17 +247,13 @@ Khi có architecture/tech decision quan trọng:
 
 ## Codebase Navigation
 
-### Primary: Code-Review-Graph (MCP — tự động)
+### Primary: Codegraph (MCP — tự động)
 ```bash
-# Cài đặt (1 lần — dùng pipx để tránh conflict Python)
-pipx install code-review-graph && code-review-graph install
-# hoặc: uv tool install code-review-graph
-
-# Build lần đầu (chạy trong root project)
-code-review-graph build
+# Cài đặt (1 lần)
+npm install -g @colbymchenry/codegraph && codegraph init -i
 
 # Update (tự động qua git hook, hoặc thủ công)
-code-review-graph update
+codegraph update
 ```
 
 ### Pre-Code / Post-Code Scripts
@@ -272,7 +268,7 @@ code-review-graph update
 Sau khi build, AI tự động dùng MCP tools để navigate — không cần đọc file thủ công.
 
 ### Verify AI Đang Dùng Graph
-Nếu user muốn kiểm tra AI có thực sự dùng code-review-graph:
+Nếu user muốn kiểm tra AI có thực sự dùng codegraph:
 - Hỏi AI: "List các tool MCP bạn đang có"
 - Kiểm tra Completion Report có dòng "Graph tools used: ✅" không
 - Trong Cursor: Settings → MCP Servers → kiểm tra chấm xanh

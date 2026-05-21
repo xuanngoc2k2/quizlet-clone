@@ -223,8 +223,8 @@ chmod +x .git/hooks/pre-commit
 cat << 'POSTHOOK' > .git/hooks/post-commit
 #!/bin/bash
 # Auto-update code knowledge graph after each commit
-if command -v code-review-graph &> /dev/null; then
-  code-review-graph update > /dev/null 2>&1 &
+if command -v codegraph &> /dev/null; then
+  codegraph init -i > /dev/null 2>&1 &
 fi
 
 # Auto-regenerate .ai-context.md if template exists
@@ -238,31 +238,24 @@ git add .
 git commit -m "feat: init $PROJECT_NAME project" -q
 echo -e "  ${GREEN}✅ Fresh git repo initialized with auto-context hook${RESET}"
 
-# ── Suggest code-review-graph ───────────────────────────────
-if ! command -v code-review-graph &> /dev/null; then
+# ── Suggest codegraph ───────────────────────────────────────
+if ! command -v codegraph &> /dev/null; then
   echo ""
-  echo -e "  ${YELLOW}💡 Gợi ý: Cài code-review-graph để AI navigate code thông minh hơn.${RESET}"
-  read -p "     Bạn có muốn cài đặt code-review-graph ngay bây giờ không? (y/n): " INSTALL_CRG
+  echo -e "  ${YELLOW}💡 Gợi ý: Cài codegraph để AI navigate code thông minh hơn.${RESET}"
+  read -p "     Bạn có muốn cài đặt codegraph ngay bây giờ không? (y/n): " INSTALL_CRG
   if [[ "$INSTALL_CRG" =~ ^[Yy]$ ]]; then
-    echo -e "     ${CYAN}Đang cài đặt code-review-graph...${RESET}"
-    if command -v pipx &> /dev/null; then
-        pipx install code-review-graph
-    elif command -v uv &> /dev/null; then
-        uv tool install code-review-graph
-    else
-        pip install code-review-graph
-    fi
+    echo -e "     ${CYAN}Đang cài đặt codegraph...${RESET}"
+    npm install -g @colbymchenry/codegraph
     
-    if command -v code-review-graph &> /dev/null; then
-        code-review-graph install
+    if command -v codegraph &> /dev/null; then
         echo -e "     ${CYAN}Đang build knowledge graph...${RESET}"
-        code-review-graph build
-        echo -e "     ${GREEN}✅ code-review-graph đã được cài đặt và build thành công.${RESET}"
+        codegraph init -i
+        echo -e "     ${GREEN}✅ codegraph đã được cài đặt và build thành công.${RESET}"
     else
-        echo -e "     ${RED}❌ Lỗi cài đặt code-review-graph. Vui lòng cài đặt thủ công: pip install code-review-graph && code-review-graph build${RESET}"
+        echo -e "     ${RED}❌ Lỗi cài đặt codegraph. Vui lòng cài đặt thủ công: npm install -g @colbymchenry/codegraph && codegraph init -i${RESET}"
     fi
   else
-    echo -e "     ${YELLOW}⏭️  Bỏ qua cài đặt code-review-graph. Bạn có thể cài sau bằng lệnh: pip install code-review-graph && code-review-graph build${RESET}"
+    echo -e "     ${YELLOW}⏭️  Bỏ qua cài đặt codegraph. Bạn có thể cài sau bằng lệnh: npm install -g @colbymchenry/codegraph && codegraph init -i${RESET}"
   fi
 fi
 
