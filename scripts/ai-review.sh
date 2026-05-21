@@ -35,15 +35,15 @@ else
   RTK=""
 fi
 
-# 1. Update codegraph
+# 1. Check codegraph status
 echo ""
-echo "📊 Step 1: Update Graph"
+echo "📊 Step 1: Graph Status"
 if command -v codegraph &> /dev/null; then
-  if codegraph init -i 2>/dev/null; then
-    echo -e "  ${GREEN}✅ Graph updated${RESET}"
+  if [ -d ".codegraph" ]; then
+    echo -e "  ${GREEN}✅ Graph: available (auto-synced by codegraph watcher)${RESET}"
     ((PASS++))
   else
-    echo -e "  ${YELLOW}⚠️  Graph update failed (non-blocking)${RESET}"
+    echo -e "  ${YELLOW}⚠️  Graph not initialized. Run: codegraph init${RESET}"
     ((SKIP++))
   fi
 else

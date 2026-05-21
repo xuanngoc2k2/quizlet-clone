@@ -223,8 +223,10 @@ chmod +x .git/hooks/pre-commit
 cat << 'POSTHOOK' > .git/hooks/post-commit
 #!/bin/bash
 # Auto-update code knowledge graph after each commit
-if command -v codegraph &> /dev/null; then
-  codegraph init -i > /dev/null 2>&1 &
+# codegraph uses native file watcher (FSEvents/inotify) for auto-sync.
+# No manual update needed — graph stays fresh automatically.
+if command -v codegraph &> /dev/null && [ ! -d ".codegraph" ]; then
+  codegraph init > /dev/null 2>&1 &
 fi
 
 # Auto-regenerate .ai-context.md if template exists

@@ -1,35 +1,35 @@
 #!/bin/bash
 
 # ============================================================
-# generate-map.sh — Build/Update Code Knowledge Graph
+# generate-map.sh — Initialize CodeGraph Knowledge Graph
 # Uses codegraph (colbymchenry/codegraph)
+# codegraph auto-syncs via native file watcher after init.
 # ============================================================
 
 set -e
 
-echo "🗺️ Building Code Knowledge Graph..."
+echo "🗺️ Initializing Code Knowledge Graph..."
 
 # Check if codegraph is installed
 if command -v codegraph &> /dev/null; then
-  # Check if graph already exists → incremental update
   if [ -d ".codegraph" ]; then
-    echo "📡 Incremental update (only changed files)..."
-    codegraph init -i
+    echo "✅ Graph already initialized. Auto-syncing via file watcher."
+    echo "📊 Stats:"
+    codegraph status 2>/dev/null || true
   else
-    echo "🔨 First build (full parse)..."
-    codegraph init -i
+    echo "🔨 First-time init..."
+    codegraph init
+    echo ""
+    echo "✅ Knowledge Graph initialized: .codegraph/"
+    echo "📊 Stats:"
+    codegraph status 2>/dev/null || true
   fi
-
-  echo ""
-  echo "✅ Knowledge Graph updated: .codegraph/"
-  echo "📊 Stats:"
-  codegraph status 2>/dev/null || true
   echo ""
   echo "AI sẽ tự động dùng graph qua MCP tools."
+  echo "Graph tự cập nhật khi bạn code (file watcher)."
 
 else
   echo "⚠️ codegraph chưa cài đặt!"
-  echo "Cài đặt ngay: npm install -g @colbymchenry/codegraph && codegraph init -i"
+  echo "Cài đặt ngay: npm install -g @colbymchenry/codegraph && codegraph init"
   exit 1
 fi
-

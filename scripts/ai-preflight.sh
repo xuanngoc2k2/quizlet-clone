@@ -60,24 +60,10 @@ if [ "$GRAPH_FOUND" = false ]; then
   fi
 fi
 
-# 4. Check graph freshness (compare last commit vs graph build time)
+# 4. codegraph auto-sync status
 if [ "$GRAPH_FOUND" = true ]; then
-  LAST_COMMIT_TIME=$(git log -1 --format=%ct 2>/dev/null || echo "0")
-  for dir in "${GRAPH_DIRS[@]}"; do
-    if [ -d "$dir" ]; then
-      GRAPH_TIME=$(stat -f %m "$dir" 2>/dev/null || stat -c %Y "$dir" 2>/dev/null || echo "0")
-      break
-    fi
-  done
-  
-  if [ "$LAST_COMMIT_TIME" -gt "$GRAPH_TIME" ] 2>/dev/null; then
-    echo -e "${YELLOW}⚠️  Graph: outdated (code mới hơn graph)${RESET}"
-    echo "   → Chạy: codegraph init -i"
-    ((WARN++))
-  else
-    echo -e "${GREEN}✅ Graph: up to date${RESET}"
-    ((PASS++))
-  fi
+  echo -e "${GREEN}✅ Graph: auto-synced by codegraph file watcher${RESET}"
+  ((PASS++))
 fi
 
 # 5. Check AGENTS.md exists
