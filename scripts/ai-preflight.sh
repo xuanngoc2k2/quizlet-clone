@@ -37,19 +37,13 @@ else
   ((WARN++))
 fi
 
-# 3. Check graph has been built
-GRAPH_DIRS=(".codegraph" "context" ".crg")
-GRAPH_FOUND=false
-for dir in "${GRAPH_DIRS[@]}"; do
-  if [ -d "$dir" ]; then
-    GRAPH_FOUND=true
-    echo -e "${GREEN}✅ Graph data: found ($dir/)${RESET}"
-    ((PASS++))
-    break
-  fi
-done
-
-if [ "$GRAPH_FOUND" = false ]; then
+# 3. Check graph has been built (.codegraph/ is the only valid graph dir)
+if [ -d ".codegraph" ]; then
+  GRAPH_FOUND=true
+  echo -e "${GREEN}✅ Graph data: found (.codegraph/)${RESET}"
+  ((PASS++))
+else
+  GRAPH_FOUND=false
   if command -v codegraph &> /dev/null; then
     echo -e "${YELLOW}⚠️  Graph data: not built yet${RESET}"
     echo "   → Chạy: codegraph init"
@@ -60,10 +54,14 @@ if [ "$GRAPH_FOUND" = false ]; then
   fi
 fi
 
-# 4. codegraph auto-sync status
-if [ "$GRAPH_FOUND" = true ]; then
+# 4. codegraph auto-sync status (only if codegraph is installed AND graph exists)
+if [ "$GRAPH_FOUND" = true ] && command -v codegraph &> /dev/null; then
   echo -e "${GREEN}✅ Graph: auto-synced by codegraph file watcher${RESET}"
   ((PASS++))
+elif [ "$GRAPH_FOUND" = true ]; then
+  echo -e "${YELLOW}⚠️  Graph: .codegraph/ exists but codegraph not installed — sync disabled${RESET}"
+  echo "   → Cài đặt: npm install -g @colbymchenry/codegraph"
+  ((WARN++))
 fi
 
 # 5. Check AGENTS.md exists
