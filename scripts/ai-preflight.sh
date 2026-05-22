@@ -17,14 +17,15 @@ echo ""
 echo "🔍 AI Preflight Check"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 1. Check codegraph installed
+# 1. Check codegraph installed (optional — AI works without it, just less efficient)
 if command -v codegraph &> /dev/null; then
   echo -e "${GREEN}✅ codegraph: installed${RESET}"
   ((PASS++))
 else
-  echo -e "${RED}❌ codegraph: NOT installed${RESET}"
-  echo "   → Cài đặt: npm install -g @colbymchenry/codegraph && codegraph init"
-  ((FAIL++))
+  echo -e "${YELLOW}⚠️  codegraph: not installed${RESET}"
+  echo "   → Khuyên cài: npm install -g @colbymchenry/codegraph && codegraph init"
+  echo "   → AI vẫn hoạt động (dùng grep/read), nhưng tốn token hơn ~35%"
+  ((WARN++))
 fi
 
 # 2. Check .mcp.json exists (MCP config)
