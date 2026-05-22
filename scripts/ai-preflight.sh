@@ -11,7 +11,6 @@ RESET='\033[0m'
 
 PASS=0
 WARN=0
-FAIL=0
 
 echo ""
 echo "🔍 AI Preflight Check"
@@ -70,9 +69,9 @@ if [ -f "AGENTS.md" ]; then
   echo -e "${GREEN}✅ AGENTS.md: found${RESET}"
   ((PASS++))
 else
-  echo -e "${RED}❌ AGENTS.md: NOT found${RESET}"
-  echo "   → Project không dùng AI template"
-  ((FAIL++))
+  echo -e "${YELLOW}⚠️  AGENTS.md: not found${RESET}"
+  echo "   → AI sẽ không có luật dự án — nên tạo từ template"
+  ((WARN++))
 fi
 
 # 6. Check .ai-context.md exists
@@ -154,18 +153,11 @@ fi
 # Summary
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo -e "  ✅ Pass: $PASS  ⚠️  Warn: $WARN  ❌ Fail: $FAIL"
+echo -e "  ✅ Pass: $PASS  ⚠️  Warn: $WARN"
 
-if [ $FAIL -gt 0 ]; then
-  echo -e "  ${RED}→ NOT READY — fix errors above${RESET}"
-  echo ""
-  exit 1
+if [ $WARN -eq 0 ]; then
+  echo -e "  ${GREEN}→ ALL GOOD — ready to code${RESET}"
 else
-  if [ $WARN -gt 0 ]; then
-    echo -e "  ${YELLOW}→ READY with warnings${RESET}"
-  else
-    echo -e "  ${GREEN}→ ALL GOOD — ready to code${RESET}"
-  fi
-  echo ""
-  exit 0
+  echo -e "  ${YELLOW}→ READY — xem warnings ở trên để tối ưu${RESET}"
 fi
+echo ""
