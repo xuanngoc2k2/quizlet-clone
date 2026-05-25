@@ -103,6 +103,7 @@ KHÔNG viết code, KHÔNG scaffold, KHÔNG implement cho đến khi có file sp
 ## Coding Principles (BẮT BUỘC)
 
 > Chi tiết đầy đủ: `docs/CODING_RULES.md`
+> Hướng dẫn thiết kế giao diện động (Magic & Aceternity): `docs/UI_UX_GUIDELINES.md`
 > Compact version: `.ai-context.md`
 
 **6 nguyên tắc cốt lõi:**
@@ -117,6 +118,22 @@ KHÔNG viết code, KHÔNG scaffold, KHÔNG implement cho đến khi có file sp
 - **Verification Iron Law:** KHÔNG claim "done/pass" nếu chưa CHẠY command + XEM raw output.
 - **No Placeholder:** Tasks phải có exact file paths + actual code + exact commands.
 - **Red Flags:** Nếu đang nghĩ "chắc pass rồi" hoặc "lần này ngoại lệ" → DỪNG LẠI.
+
+---
+
+## 🤖 Multi-Agent Collaboration Protocol (BẮT BUỘC)
+
+Khi người dùng giao tiếp với **Agent Tổng** (Main Agent), Agent Tổng sẽ tự động phân tích và ủy quyền cho các **Subagents chuyên biệt** để xử lý các phần việc phù hợp:
+
+1. **Tự động Nhận diện & Giao việc:**
+   - **Tác vụ UI/UX, Frontend:** Gọi `UI_UX_Frontend_Agent` (tích hợp `ui-ux-pro-max` skill).
+   - **Tác vụ API, Database, Backend:** Gọi `Backend_Architect_Agent` (tích hợp `api-design`, `database-design` skills).
+   - **Tác vụ Viết Test, Kiểm thử, Debug:** Gọi `QA_Tester_Agent` (tích hợp `testing-patterns`, `error-handling-patterns` skills).
+2. **Quy trình hoạt động:**
+   - Agent Tổng phân tách công việc lớn thành các sub-tasks.
+   - Dùng `invoke_subagent` để gọi Subagent xử lý song song hoặc tuần tự.
+   - Nhận kết quả từ Subagent, tự mình chạy kiểm thử/đánh giá chất lượng cuối cùng.
+   - Báo cáo kết quả gọn gàng cho người dùng.
 
 ---
 
@@ -150,11 +167,12 @@ Flow: **Task → Pre-Code → Code → Post-Code → Commit**
 > Nếu cùng 1 skill có ở cả 2 nơi → **BẮT BUỘC dùng bản template**.
 
 Đọc `skills/[tên-skill]/SKILL.md` trước khi thực hiện task thuộc danh mục tương ứng.
-**⚠️ Task Type=ui → PHẢI đọc UI skills TRƯỚC khi viết code. Không skip.**
+**⚠️ Task Type=ui → PHẢI đọc UI/UX Guidelines và các UI skills TRƯỚC khi viết code. Không skip.**
 
 | Trigger | Skill | BẮT BUỘC? |
 |---------|-------|-----------|
 | **Task Type=ui** | `ui-ux-pro-max` (palette, typo, layout) | ✅ BẮT BUỘC |
+| **Task Type=ui** | `docs/UI_UX_GUIDELINES.md` (Hiệu ứng hoạt họa Magic/Aceternity) | ✅ BẮT BUỘC |
 | **Task Type=ui** | `frontend-dev-guidelines` (component arch) | ✅ BẮT BUỘC |
 | **Task Type=ui + React** | `react-best-practices` (perf, patterns) | ✅ BẮT BUỘC |
 | **Task Type=ui + React** | `react-ui-patterns` (loading, error, fetch) | ✅ BẮT BUỘC |
