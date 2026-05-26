@@ -173,6 +173,7 @@ Flow: **Task → Pre-Code → Code → Post-Code → Commit**
 |---------|-------|-----------|
 | **Task Type=ui** | `ui-ux-pro-max` (palette, typo, layout) | ✅ BẮT BUỘC |
 | **Task Type=ui** | `docs/UI_UX_GUIDELINES.md` (Hiệu ứng hoạt họa Magic/Aceternity) | ✅ BẮT BUỘC |
+| **Task Type=ui + animation** | `skills/gsap/SKILL.md` (Hoạt họa GSAP chuẩn hiệu năng, React useGSAP) | ✅ BẮT BUỘC |
 | **Task Type=ui** | `frontend-dev-guidelines` (component arch) | ✅ BẮT BUỘC |
 | **Task Type=ui + React** | `react-best-practices` (perf, patterns) | ✅ BẮT BUỘC |
 | **Task Type=ui + React** | `react-ui-patterns` (loading, error, fetch) | ✅ BẮT BUỘC |
