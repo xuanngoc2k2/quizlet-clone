@@ -1,0 +1,17 @@
+{
+  "name": "Quizlet Clone",
+  "short_name": "Quizlet",
+  "description": "Study with flashcards, quizzes, and more",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563EB",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

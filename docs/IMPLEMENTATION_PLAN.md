@@ -24,7 +24,7 @@
 - **Definition of Done:** Each mode playable, progress saved to localStorage
 - **Details:** `docs/phases/phase-2.md`
 
-### Phase 3 — Polish & Launch ⬜
+### Phase 3 — Polish & Launch ✅
 - **Goal:** PWA, animations, tests, performance
 - **Layers:** 4 layers
 - **Definition of Done:** Lighthouse ≥ 90, PWA installable, tests pass
