@@ -230,8 +230,8 @@ Flow: **Task → Pre-Code → Code → Post-Code → Commit**
 
 ## Phase & Task
 
-- **Current Phase:** Phase 1 — Core Platform
-- **Current Layer:** Layer 0 — Foundation
+- **Current Phase:** All phases completed — Refinement mode
+- **Current Layer:** Layer Refinement
 - **Implementation Plan:** xem `docs/IMPLEMENTATION_PLAN.md`
 - **Phase details:** xem `docs/phases/phase-1.md`
 - **Tasks:** xem `tasks/layer-0-todo.md`
