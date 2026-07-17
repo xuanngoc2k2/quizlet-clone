@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { updateSetProgress } from "@/lib/local-storage"
 import { shuffleArray } from "@/lib/utils"
+import { CheckCircle2, XCircle, Sparkles, RotateCw } from "lucide-react"
 
 function generateQuestions(cards: { id: string; term: string; definition: string }[], count = 10) {
   const shuffled = shuffleArray(cards).slice(0, count)
@@ -79,7 +80,7 @@ export default function QuizPage() {
       <div className="flex min-h-screen-safe flex-col">
         <Header />
         <main className="flex flex-1 items-center justify-center px-4">
-          <p className="text-gray-500">No cards in this set</p>
+          <p className="text-primary-500">No cards in this set</p>
         </main>
         <BottomNav />
       </div>
@@ -91,18 +92,32 @@ export default function QuizPage() {
       <div className="flex min-h-screen-safe flex-col">
         <Header />
         <main className="flex flex-1 flex-col items-center justify-center px-4 pb-24">
-          <h2 className="mb-2 text-2xl font-bold">Quiz Complete!</h2>
-          <p className="mb-1 text-gray-600">
-            {correct} / {questions.length} correct
-          </p>
-          <p className="mb-8 text-sm text-gray-400">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-emerald-500 shadow-lg">
+            <Sparkles className="h-8 w-8 text-white" />
+          </div>
+          <h2 className="font-display text-2xl font-bold text-primary-900">Quiz Complete!</h2>
+          <div className="mt-4 flex items-center gap-4">
+            <span className="flex items-center gap-1.5 text-emerald-600">
+              <CheckCircle2 className="h-5 w-5" />
+              <span className="text-lg font-bold">{correct}</span>
+            </span>
+            <span className="text-primary-300">/</span>
+            <span className="flex items-center gap-1.5 text-red-500">
+              <XCircle className="h-5 w-5" />
+              <span className="text-lg font-bold">{incorrect}</span>
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-primary-400">
             Time: {Math.floor(elapsed / 60)}m {elapsed % 60}s
           </p>
-          <div className="flex gap-3">
+          <div className="mt-8 flex gap-3">
             <Button onClick={() => { setCurrentQ(0); setCorrect(0); setIncorrect(0); setFinished(false); setSelected(null); setElapsed(0) }} variant="secondary">
+              <RotateCw className="h-4 w-4" />
               Retry
             </Button>
-            <Button onClick={() => router.push(`/set/${id}`)}>Back to Set</Button>
+            <Button onClick={() => router.push(`/set/${id}`)} variant="gradient">
+              Back to Set
+            </Button>
           </div>
         </main>
         <BottomNav />
@@ -116,28 +131,28 @@ export default function QuizPage() {
     <div className="flex min-h-screen-safe flex-col">
       <Header />
       <main className="flex-1 px-4 pb-24 pt-4">
-        <div className="mb-4 text-center text-xs text-gray-400">
+        <div className="mb-4 text-center text-xs font-medium text-primary-400">
           {currentQ + 1} / {questions.length}
         </div>
 
-        <div className="mb-6 rounded-2xl border bg-white p-8 text-center">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">Term</p>
-          <p className="text-xl font-semibold">{q.prompt}</p>
-          <p className="mt-2 text-xs text-gray-400">Choose the correct definition</p>
+        <div className="mb-6 rounded-2xl border border-primary-100 bg-white p-8 text-center shadow-sm">
+          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">Term</p>
+          <p className="text-xl font-semibold text-primary-900">{q.prompt}</p>
+          <p className="mt-2 text-xs text-primary-400">Choose the correct definition</p>
         </div>
 
         <div className="flex flex-col gap-3">
           {q.options.map((option, i) => {
-            let style = "border-gray-200 bg-white"
+            let style = "border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm"
             if (selected) {
-              if (option === q.correctAnswer) style = "border-green-500 bg-green-50"
-              else if (option === selected) style = "border-red-500 bg-red-50"
+              if (option === q.correctAnswer) style = "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-500/20"
+              else if (option === selected) style = "border-red-400 bg-red-50 ring-2 ring-red-500/20"
             }
             return (
               <button
                 key={i}
                 onClick={() => handleSelect(option)}
-                className={`w-full rounded-xl border p-4 text-left text-sm transition-all ${style} touch-target`}
+                className={`w-full rounded-xl border p-4 text-left text-sm transition-all duration-200 ${style} touch-target`}
               >
                 {option}
               </button>
@@ -146,7 +161,7 @@ export default function QuizPage() {
         </div>
 
         {selected && (
-          <Button onClick={handleNext} className="mt-6 w-full">
+          <Button onClick={handleNext} variant="gradient" className="mt-6 w-full">
             {currentQ + 1 >= questions.length ? "See Results" : "Next"}
           </Button>
         )}

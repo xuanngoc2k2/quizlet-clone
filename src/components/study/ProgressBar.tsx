@@ -1,5 +1,7 @@
 "use client"
 
+import { CheckCircle2, XCircle } from "lucide-react"
+
 type ProgressBarProps = {
   current: number
   total: number
@@ -12,17 +14,24 @@ export function ProgressBar({ current, total, correct, incorrect }: ProgressBarP
 
   return (
     <div className="mb-6">
-      <div className="mb-1 flex items-center justify-between text-xs text-gray-500">
-        <span>
+      <div className="mb-1.5 flex items-center justify-between text-xs font-medium">
+        <span className="text-primary-500">
           {current} / {total}
         </span>
-        <span>
-          ✅ {correct} ❌ {incorrect}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1 text-emerald-600">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            {correct}
+          </span>
+          <span className="flex items-center gap-1 text-red-500">
+            <XCircle className="h-3.5 w-3.5" />
+            {incorrect}
+          </span>
+        </div>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+      <div className="h-2.5 overflow-hidden rounded-full bg-primary-100">
         <div
-          className="h-full rounded-full bg-blue-500 transition-all duration-300"
+          className="h-full rounded-full bg-gradient-to-r from-primary-500 to-emerald-500 transition-all duration-500 ease-out"
           style={{ width: `${pct}%` }}
         />
       </div>

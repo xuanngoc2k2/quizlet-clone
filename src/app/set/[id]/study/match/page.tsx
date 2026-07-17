@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { updateSetProgress } from "@/lib/local-storage"
 import { shuffleArray } from "@/lib/utils"
+import { Sparkles, RotateCw, Clock } from "lucide-react"
 
 type MatchCard = {
   id: string
@@ -99,19 +100,32 @@ export default function MatchPage() {
     <div className="flex min-h-screen-safe flex-col">
       <Header />
       <main className="flex-1 px-4 pb-24 pt-4">
-        <div className="mb-4 flex items-center justify-between text-sm text-gray-500">
-          <span>Match terms & definitions</span>
-          <span>{elapsed}s</span>
+        <div className="mb-4 flex items-center justify-between text-sm font-medium">
+          <span className="text-primary-500">Match terms &amp; definitions</span>
+          <span className="flex items-center gap-1 text-primary-400">
+            <Clock className="h-4 w-4" />
+            {elapsed}s
+          </span>
         </div>
 
         {isComplete ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <h2 className="mb-2 text-2xl font-bold">Match Complete!</h2>
-            <p className="mb-1 text-gray-600">Time: {Math.floor(elapsed / 60)}m {elapsed % 60}s</p>
-            <p className="mb-8 text-sm text-gray-400">{matchedIds.size / 2} pairs matched</p>
-            <div className="flex gap-3">
-              <Button onClick={handleRetry} variant="secondary">Play Again</Button>
-              <Button onClick={() => router.push(`/set/${id}`)}>Back to Set</Button>
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-emerald-500 shadow-lg">
+              <Sparkles className="h-8 w-8 text-white" />
+            </div>
+            <h2 className="font-display text-2xl font-bold text-primary-900">Match Complete!</h2>
+            <p className="mt-2 text-sm text-primary-400">
+              Time: {Math.floor(elapsed / 60)}m {elapsed % 60}s
+            </p>
+            <p className="text-sm text-primary-400">{matchedIds.size / 2} pairs matched</p>
+            <div className="mt-8 flex gap-3">
+              <Button onClick={handleRetry} variant="secondary">
+                <RotateCw className="h-4 w-4" />
+                Play Again
+              </Button>
+              <Button onClick={() => router.push(`/set/${id}`)} variant="gradient">
+                Back to Set
+              </Button>
             </div>
           </div>
         ) : (
@@ -119,16 +133,16 @@ export default function MatchPage() {
             {gameCards.map((card) => {
               const isSelected = selectedId === card.id
               const isMatched = matchedIds.has(card.id)
-              let style = "border-gray-200 bg-white"
-              if (isSelected) style = "border-blue-500 bg-blue-50 ring-2 ring-blue-500"
-              if (isMatched) style = "border-green-300 bg-green-50 opacity-50"
+              let style = "border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm"
+              if (isSelected) style = "border-primary-500 bg-primary-50 ring-2 ring-primary-500/20"
+              if (isMatched) style = "border-emerald-300 bg-emerald-50 opacity-50"
 
               return (
                 <button
                   key={card.id}
                   onClick={() => handleSelect(card)}
                   disabled={isMatched}
-                  className={`flex min-h-[60px] items-center justify-center rounded-xl border p-3 text-center text-sm transition-all ${style} touch-target`}
+                  className={`flex min-h-[60px] items-center justify-center rounded-xl border p-3 text-center text-sm font-medium transition-all duration-200 ${style} touch-target`}
                 >
                   {card.text}
                 </button>

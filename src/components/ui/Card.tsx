@@ -1,13 +1,15 @@
 import { HTMLAttributes, forwardRef } from "react"
 
-type CardProps = HTMLAttributes<HTMLDivElement>
+type CardProps = HTMLAttributes<HTMLDivElement> & {
+  hover?: boolean
+}
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ className, ...props }, ref) => {
+  ({ hover, className, ...props }, ref) => {
     return (
       <div
         ref={ref}
-        className={`rounded-xl border bg-white p-4 shadow-sm ${className ?? ""}`}
+        className={`rounded-2xl border border-primary-100 bg-white p-5 shadow-sm transition-all duration-200 ${hover ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-md" : ""} ${className ?? ""}`}
         {...props}
       />
     )

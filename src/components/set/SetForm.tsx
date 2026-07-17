@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
+import { Plus, X } from "lucide-react"
 
 type CardRow = { term: string; definition: string }
 
@@ -51,35 +52,41 @@ export function SetForm({
       <div className="flex flex-col gap-4">
         <Input
           label="Title"
-          placeholder="e.g. Japanese N5 Vocabulary"
+          placeholder="e.g. TOPIK II Vocabulary"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
         />
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-700">Description (optional)</label>
+          <label className="text-sm font-medium text-primary-700">Description (optional)</label>
           <textarea
             placeholder="Describe your set..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            className="rounded-xl border bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-blue-500"
+            className="rounded-xl border border-primary-200 bg-white px-4 py-2.5 text-sm outline-none transition-all duration-200 placeholder:text-primary-300 focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20 resize-none"
           />
         </div>
       </div>
 
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-700">Cards ({cards.length})</h2>
+          <h2 className="font-display text-sm font-semibold text-primary-700">
+            Cards ({cards.length})
+          </h2>
           <Button type="button" variant="ghost" size="sm" onClick={addCard}>
-            + Add Card
+            <Plus className="h-4 w-4" />
+            Add Card
           </Button>
         </div>
 
         <div className="flex flex-col gap-3">
           {cards.map((card, i) => (
-            <div key={i} className="flex items-start gap-2 rounded-xl border bg-white p-3">
-              <span className="mt-2.5 min-w-[20px] text-center text-xs font-medium text-gray-400">
+            <div
+              key={i}
+              className="group flex items-start gap-2 rounded-2xl border border-primary-100 bg-white p-3 shadow-sm transition-all duration-200 hover:shadow-md"
+            >
+              <span className="mt-2.5 min-w-[22px] text-center text-xs font-bold text-primary-400">
                 {i + 1}
               </span>
               <div className="flex flex-1 flex-col gap-2">
@@ -87,25 +94,23 @@ export function SetForm({
                   placeholder="Term (enter to confirm)"
                   value={card.term}
                   onChange={(e) => updateCard(i, "term", e.target.value)}
-                  className="rounded-lg border bg-gray-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="rounded-xl border border-primary-100 bg-primary-50/50 px-3 py-2 text-sm outline-none transition-all duration-200 placeholder:text-primary-300 focus:border-primary-300 focus:bg-white focus:ring-2 focus:ring-primary-500/20"
                 />
                 <textarea
                   placeholder="Definition"
                   value={card.definition}
                   onChange={(e) => updateCard(i, "definition", e.target.value)}
                   rows={2}
-                  className="rounded-lg border bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="rounded-xl border border-primary-100 bg-primary-50/50 px-3 py-2 text-sm outline-none transition-all duration-200 placeholder:text-primary-300 focus:border-primary-300 focus:bg-white focus:ring-2 focus:ring-primary-500/20 resize-none"
                 />
               </div>
               {cards.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeCard(i)}
-                  className="mt-2 touch-target text-gray-400 hover:text-red-500"
+                  className="mt-2 touch-target rounded-lg p-1.5 text-primary-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
                 >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <X className="h-4 w-4" />
                 </button>
               )}
             </div>
@@ -113,7 +118,12 @@ export function SetForm({
         </div>
       </div>
 
-      <Button type="submit" loading={loading} disabled={!title.trim() || cards.every((c) => !c.term.trim())}>
+      <Button
+        type="submit"
+        variant="gradient"
+        loading={loading}
+        disabled={!title.trim() || cards.every((c) => !c.term.trim())}
+      >
         {submitLabel}
       </Button>
     </form>

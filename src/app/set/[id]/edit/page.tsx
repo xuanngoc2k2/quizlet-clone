@@ -39,7 +39,7 @@ export default function EditSetPage() {
       <div className="flex min-h-screen-safe flex-col">
         <Header />
         <main className="flex-1 px-4 pb-24 pt-4">
-          <div className="h-8 w-48 animate-pulse rounded bg-gray-200" />
+          <div className="h-8 w-48 animate-pulse rounded-lg bg-primary-100" />
         </main>
         <BottomNav />
       </div>
@@ -50,7 +50,7 @@ export default function EditSetPage() {
     <div className="flex min-h-screen-safe flex-col">
       <Header />
       <main className="flex-1 px-4 pb-24 pt-4">
-        <h1 className="mb-6 text-2xl font-bold">Edit Set</h1>
+        <h1 className="mb-6 font-display text-2xl font-bold text-primary-900">Edit Set</h1>
         <SetForm
           initialTitle={set.title}
           initialDescription={set.description ?? ""}

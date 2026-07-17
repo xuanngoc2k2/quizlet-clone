@@ -28,7 +28,7 @@ export default function CreateSetPage() {
     <div className="flex min-h-screen-safe flex-col">
       <Header />
       <main className="flex-1 px-4 pb-24 pt-4">
-        <h1 className="mb-6 text-2xl font-bold">Create Set</h1>
+        <h1 className="mb-6 font-display text-2xl font-bold text-primary-900">Create Set</h1>
         <SetForm onSubmit={handleSubmit} submitLabel="Create Set" loading={loading} />
       </main>
       <BottomNav />

@@ -11,6 +11,7 @@ import { ProgressBar } from "@/components/study/ProgressBar"
 import { Button } from "@/components/ui/Button"
 import { MathText } from "@/components/ui/MathText"
 import { useEffect, useRef, useState } from "react"
+import { RotateCw, CheckCircle2, XCircle, Sparkles } from "lucide-react"
 
 export default function FlashcardPage() {
   const { id } = useParams<{ id: string }>()
@@ -48,7 +49,7 @@ export default function FlashcardPage() {
       <div className="flex min-h-screen-safe flex-col">
         <Header />
         <main className="flex flex-1 items-center justify-center px-4">
-          <p className="text-gray-500">No cards in this set</p>
+          <p className="text-primary-500">No cards in this set</p>
         </main>
         <BottomNav />
       </div>
@@ -60,18 +61,30 @@ export default function FlashcardPage() {
       <div className="flex min-h-screen-safe flex-col">
         <Header />
         <main className="flex flex-1 flex-col items-center justify-center px-4 pb-24">
-          <h2 className="mb-2 text-2xl font-bold">Complete!</h2>
-          <p className="mb-1 text-gray-600">
-            {engine.correctCount} / {engine.total} correct
-          </p>
-          <p className="mb-8 text-sm text-gray-400">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-emerald-500 shadow-lg">
+            <Sparkles className="h-8 w-8 text-white" />
+          </div>
+          <h2 className="font-display text-2xl font-bold text-primary-900">Complete!</h2>
+          <div className="mt-4 flex items-center gap-4">
+            <span className="flex items-center gap-1.5 text-emerald-600">
+              <CheckCircle2 className="h-5 w-5" />
+              <span className="text-lg font-bold">{engine.correctCount}</span>
+            </span>
+            <span className="text-primary-300">/</span>
+            <span className="flex items-center gap-1.5 text-red-500">
+              <XCircle className="h-5 w-5" />
+              <span className="text-lg font-bold">{engine.incorrectCount}</span>
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-primary-400">
             Time: {Math.floor(timer.elapsed / 60)}m {timer.elapsed % 60}s
           </p>
-          <div className="flex gap-3">
+          <div className="mt-8 flex gap-3">
             <Button onClick={engine.reset} variant="secondary">
+              <RotateCw className="h-4 w-4" />
               Study Again
             </Button>
-            <Button onClick={() => router.push(`/set/${id}`)}>
+            <Button onClick={() => router.push(`/set/${id}`)} variant="gradient">
               Back to Set
             </Button>
           </div>
@@ -95,22 +108,26 @@ export default function FlashcardPage() {
         <div className="flex flex-1 flex-col items-center justify-center">
           <button onClick={() => setFlipped(!flipped)} className="w-full max-w-md perspective">
             <div
-              className={`relative min-h-[280px] w-full transition-transform duration-500 preserve-3d ${
+              className={`relative min-h-[300px] w-full transition-transform duration-500 preserve-3d ${
                 flipped ? "rotate-y-180" : ""
               }`}
             >
-              <div className="absolute inset-0 backface-hidden rounded-2xl border bg-white p-8 shadow-sm">
+              <div className="absolute inset-0 backface-hidden rounded-2xl border border-primary-100 bg-white p-8 shadow-lg">
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">Term</p>
-                  <p className="text-xl font-semibold whitespace-pre-wrap"><MathText text={engine.currentCard?.term ?? ""} /></p>
-                  <p className="mt-4 text-xs text-gray-400">Tap to flip</p>
+                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">
+                    {flipped ? "Definition" : "Term"}
+                  </p>
+                  <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.term ?? ""} /></p>
+                  <p className="mt-6 text-xs text-primary-300">Tap to flip</p>
                 </div>
               </div>
-              <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl border bg-white p-8 shadow-sm">
+              <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl border border-primary-100 bg-white p-8 shadow-lg">
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">Definition</p>
-                  <p className="text-xl font-semibold whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
-                  <p className="mt-4 text-xs text-gray-400">Tap to flip back</p>
+                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">
+                    {flipped ? "Term" : "Definition"}
+                  </p>
+                  <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
+                  <p className="mt-6 text-xs text-primary-300">Tap to flip back</p>
                 </div>
               </div>
             </div>
@@ -126,16 +143,18 @@ export default function FlashcardPage() {
               setFlipped(false)
             }}
           >
+            <XCircle className="h-4 w-4" />
             Still Learning
           </Button>
           <Button
-            variant="primary"
+            variant="gradient"
             className="flex-1"
             onClick={() => {
               engine.markCorrect()
               setFlipped(false)
             }}
           >
+            <CheckCircle2 className="h-4 w-4" />
             Got It
           </Button>
         </div>

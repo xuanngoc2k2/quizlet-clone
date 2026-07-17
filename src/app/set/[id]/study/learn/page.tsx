@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { MathText } from "@/components/ui/MathText"
 import { useEffect, useRef, useState } from "react"
+import { CheckCircle2, XCircle, Sparkles, RotateCw } from "lucide-react"
 
 function normalize(str: string) {
   return str.toLowerCase().trim().replace(/\s+/g, " ")
@@ -85,7 +86,7 @@ export default function LearnPage() {
       <div className="flex min-h-screen-safe flex-col">
         <Header />
         <main className="flex flex-1 items-center justify-center px-4">
-          <p className="text-gray-500">No cards in this set</p>
+          <p className="text-primary-500">No cards in this set</p>
         </main>
         <BottomNav />
       </div>
@@ -97,16 +98,32 @@ export default function LearnPage() {
       <div className="flex min-h-screen-safe flex-col">
         <Header />
         <main className="flex flex-1 flex-col items-center justify-center px-4 pb-24">
-          <h2 className="mb-2 text-2xl font-bold">Complete!</h2>
-          <p className="mb-1 text-gray-600">
-            {engine.correctCount} / {engine.total} correct
-          </p>
-          <p className="mb-8 text-sm text-gray-400">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-emerald-500 shadow-lg">
+            <Sparkles className="h-8 w-8 text-white" />
+          </div>
+          <h2 className="font-display text-2xl font-bold text-primary-900">Complete!</h2>
+          <div className="mt-4 flex items-center gap-4">
+            <span className="flex items-center gap-1.5 text-emerald-600">
+              <CheckCircle2 className="h-5 w-5" />
+              <span className="text-lg font-bold">{engine.correctCount}</span>
+            </span>
+            <span className="text-primary-300">/</span>
+            <span className="flex items-center gap-1.5 text-red-500">
+              <XCircle className="h-5 w-5" />
+              <span className="text-lg font-bold">{engine.incorrectCount}</span>
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-primary-400">
             Time: {Math.floor(timer.elapsed / 60)}m {timer.elapsed % 60}s
           </p>
-          <div className="flex gap-3">
-            <Button onClick={engine.reset} variant="secondary">Study Again</Button>
-            <Button onClick={() => router.push(`/set/${id}`)}>Back to Set</Button>
+          <div className="mt-8 flex gap-3">
+            <Button onClick={engine.reset} variant="secondary">
+              <RotateCw className="h-4 w-4" />
+              Study Again
+            </Button>
+            <Button onClick={() => router.push(`/set/${id}`)} variant="gradient">
+              Back to Set
+            </Button>
           </div>
         </main>
         <BottomNav />
@@ -125,18 +142,18 @@ export default function LearnPage() {
           incorrect={engine.incorrectCount}
         />
 
-        <div className="mb-6 rounded-2xl border bg-white p-8 text-center">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">Term</p>
-          <p className="text-xl font-semibold whitespace-pre-wrap"><MathText text={engine.currentCard?.term ?? ""} /></p>
+        <div className="mb-6 rounded-2xl border border-primary-100 bg-white p-8 text-center shadow-sm">
+          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">Term</p>
+          <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.term ?? ""} /></p>
         </div>
 
         {showResult ? (
           <div className="flex flex-col items-center gap-4">
-            <div className={`rounded-xl p-4 text-center ${lastCorrect ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+            <div className={`w-full rounded-xl p-4 text-center ${lastCorrect ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
               <p className="font-medium">{lastCorrect ? "Correct!" : "Incorrect"}</p>
-              <p className="mt-1 text-sm"><MathText text={engine.currentCard?.definition ?? ""} /></p>
+              <p className="mt-1 text-sm whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
             </div>
-            <Button onClick={handleNext} className="w-full">
+            <Button onClick={handleNext} variant="gradient" className="w-full">
               {lastCorrect ? "Next" : "Try Again Later"}
             </Button>
           </div>
@@ -149,7 +166,7 @@ export default function LearnPage() {
               onChange={(e) => setAnswer(e.target.value)}
               autoFocus
             />
-            <Button type="submit" disabled={!answer.trim()}>
+            <Button type="submit" variant="gradient" disabled={!answer.trim()}>
               Check Answer
             </Button>
           </form>
