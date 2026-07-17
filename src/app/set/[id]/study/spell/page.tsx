@@ -10,6 +10,7 @@ import { BottomNav } from "@/components/layout/BottomNav"
 import { ProgressBar } from "@/components/study/ProgressBar"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
+import { MathText } from "@/components/ui/MathText"
 import { useEffect, useRef, useState } from "react"
 
 export default function SpellPage() {
@@ -106,7 +107,7 @@ export default function SpellPage() {
 
         <div className="mb-6 rounded-2xl border bg-white p-8 text-center">
           <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">Definition</p>
-          <p className="text-xl font-semibold">{engine.currentCard?.definition}</p>
+          <p className="text-xl font-semibold whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
           <p className="mt-4 text-xs text-gray-400">Type the term</p>
         </div>
 

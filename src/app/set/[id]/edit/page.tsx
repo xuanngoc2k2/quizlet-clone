@@ -13,19 +13,23 @@ export default function EditSetPage() {
   const [loading, setLoading] = useState(false)
   const { data: set, isLoading } = api.sets.getById.useQuery({ id })
   const updateSet = api.sets.update.useMutation()
+  const utils = api.useUtils()
 
   async function handleSubmit(data: { title: string; description: string; cards: { term: string; definition: string }[] }) {
     if (!set) return
     setLoading(true)
     try {
-      await updateSet.mutateAsync({
+      const updated = await updateSet.mutateAsync({
         id: set.id,
         title: data.title,
         description: data.description,
         cards: data.cards,
       })
+      await utils.sets.getById.invalidate({ id: set.id })
+      await utils.sets.list.invalidate()
       router.push(`/set/${set.id}`)
-    } catch {
+    } catch (e) {
+      console.error("Save failed", e)
       setLoading(false)
     }
   }

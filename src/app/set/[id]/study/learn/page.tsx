@@ -10,6 +10,7 @@ import { BottomNav } from "@/components/layout/BottomNav"
 import { ProgressBar } from "@/components/study/ProgressBar"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
+import { MathText } from "@/components/ui/MathText"
 import { useEffect, useRef, useState } from "react"
 
 function normalize(str: string) {
@@ -126,14 +127,14 @@ export default function LearnPage() {
 
         <div className="mb-6 rounded-2xl border bg-white p-8 text-center">
           <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">Term</p>
-          <p className="text-xl font-semibold">{engine.currentCard?.term}</p>
+          <p className="text-xl font-semibold whitespace-pre-wrap"><MathText text={engine.currentCard?.term ?? ""} /></p>
         </div>
 
         {showResult ? (
           <div className="flex flex-col items-center gap-4">
             <div className={`rounded-xl p-4 text-center ${lastCorrect ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
               <p className="font-medium">{lastCorrect ? "Correct!" : "Incorrect"}</p>
-              <p className="mt-1 text-sm">{engine.currentCard?.definition}</p>
+              <p className="mt-1 text-sm"><MathText text={engine.currentCard?.definition ?? ""} /></p>
             </div>
             <Button onClick={handleNext} className="w-full">
               {lastCorrect ? "Next" : "Try Again Later"}

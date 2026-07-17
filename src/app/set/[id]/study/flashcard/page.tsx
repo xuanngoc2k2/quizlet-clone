@@ -9,6 +9,7 @@ import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { ProgressBar } from "@/components/study/ProgressBar"
 import { Button } from "@/components/ui/Button"
+import { MathText } from "@/components/ui/MathText"
 import { useEffect, useRef, useState } from "react"
 
 export default function FlashcardPage() {
@@ -92,23 +93,25 @@ export default function FlashcardPage() {
         />
 
         <div className="flex flex-1 flex-col items-center justify-center">
-          <button
-            onClick={() => setFlipped(!flipped)}
-            className="w-full max-w-md"
-          >
+          <button onClick={() => setFlipped(!flipped)} className="w-full max-w-md perspective">
             <div
-              className={`min-h-[280px] rounded-2xl border bg-white p-8 shadow-sm transition-all duration-300 ${
+              className={`relative min-h-[280px] w-full transition-transform duration-500 preserve-3d ${
                 flipped ? "rotate-y-180" : ""
               }`}
             >
-              <div className="flex h-full flex-col items-center justify-center text-center">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">
-                  {flipped ? "Definition" : "Term"}
-                </p>
-                <p className="text-xl font-semibold">
-                  {flipped ? engine.currentCard?.definition : engine.currentCard?.term}
-                </p>
-                <p className="mt-4 text-xs text-gray-400">Tap to flip</p>
+              <div className="absolute inset-0 backface-hidden rounded-2xl border bg-white p-8 shadow-sm">
+                <div className="flex h-full flex-col items-center justify-center text-center">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">Term</p>
+                  <p className="text-xl font-semibold whitespace-pre-wrap"><MathText text={engine.currentCard?.term ?? ""} /></p>
+                  <p className="mt-4 text-xs text-gray-400">Tap to flip</p>
+                </div>
+              </div>
+              <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl border bg-white p-8 shadow-sm">
+                <div className="flex h-full flex-col items-center justify-center text-center">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">Definition</p>
+                  <p className="text-xl font-semibold whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
+                  <p className="mt-4 text-xs text-gray-400">Tap to flip back</p>
+                </div>
               </div>
             </div>
           </button>

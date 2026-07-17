@@ -17,7 +17,6 @@ tsconfig.tsbuildinfo
 
 # Database
 *.db
-prisma/dev.db
 
 # OS
 .DS_Store

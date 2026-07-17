@@ -1,3 +1,5 @@
+@import "katex/dist/katex.min.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,14 +39,17 @@
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  .rotate-y-180 {
-    transform: rotateY(180deg);
+  .perspective {
+    perspective: 1000px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
   }
   .backface-hidden {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
   }
-  .preserve-3d {
-    transform-style: preserve-3d;
+  .rotate-y-180 {
+    transform: rotateY(180deg);
   }
 }

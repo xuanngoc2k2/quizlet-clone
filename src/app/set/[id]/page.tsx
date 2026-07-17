@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
 import { Modal } from "@/components/ui/Modal"
+import { MathText } from "@/components/ui/MathText"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -95,8 +96,8 @@ export default function ViewSetPage() {
                 {i + 1}
               </span>
               <div className="flex flex-1 gap-4">
-                <span className="flex-1 font-medium">{card.term}</span>
-                <span className="flex-1 text-gray-600">{card.definition}</span>
+                  <span className="flex-1 font-medium whitespace-pre-wrap"><MathText text={card.term} /></span>
+                  <span className="flex-1 text-gray-600 whitespace-pre-wrap"><MathText text={card.definition} /></span>
               </div>
             </div>
           ))}

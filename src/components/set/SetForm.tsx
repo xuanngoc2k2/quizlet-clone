@@ -84,16 +84,17 @@ export function SetForm({
               </span>
               <div className="flex flex-1 flex-col gap-2">
                 <input
-                  placeholder="Term"
+                  placeholder="Term (enter to confirm)"
                   value={card.term}
                   onChange={(e) => updateCard(i, "term", e.target.value)}
                   className="rounded-lg border bg-gray-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <input
+                <textarea
                   placeholder="Definition"
                   value={card.definition}
                   onChange={(e) => updateCard(i, "definition", e.target.value)}
-                  className="rounded-lg border bg-gray-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={2}
+                  className="rounded-lg border bg-gray-50 px-3 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-blue-500 resize-none"
                 />
               </div>
               {cards.length > 1 && (
