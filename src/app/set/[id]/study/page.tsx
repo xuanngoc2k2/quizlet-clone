@@ -2,11 +2,9 @@
 
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { useState } from "react"
 import { api } from "@/lib/trpc-provider"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
-import { Modal } from "@/components/ui/Modal"
 import { getProgress } from "@/lib/local-storage"
 
 const modes = [
@@ -20,7 +18,6 @@ const modes = [
 export default function StudyHubPage() {
   const { id } = useParams<{ id: string }>()
   const { data: set } = api.sets.getById.useQuery({ id })
-  const [showComing, setShowComing] = useState<string | null>(null)
   const progress = getProgress()
   const setProgress = progress[id]
 
@@ -49,10 +46,10 @@ export default function StudyHubPage() {
           {modes.map((mode) => {
             const modeProgress = progress[id]?.mode === mode.key ? progress[id] : null
             return (
-              <button
+              <Link
                 key={mode.key}
-                onClick={() => setShowComing(mode.label)}
-                className="flex items-center gap-4 rounded-xl border bg-white p-4 text-left transition-all active:scale-[0.98]"
+                href={`/set/${id}/study/${mode.key}`}
+                className="flex items-center gap-4 rounded-xl border bg-white p-4 transition-all active:scale-[0.98]"
               >
                 <span className="text-2xl">{mode.icon}</span>
                 <div className="flex-1">
@@ -67,18 +64,12 @@ export default function StudyHubPage() {
                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
+              </Link>
             )
           })}
         </div>
       </main>
       <BottomNav />
-
-      <Modal open={!!showComing} onClose={() => setShowComing(null)} title={showComing ?? ""}>
-        <p className="text-sm text-gray-600">
-          Study modes are coming soon! This feature will be available in the next update.
-        </p>
-      </Modal>
     </div>
   )
 }

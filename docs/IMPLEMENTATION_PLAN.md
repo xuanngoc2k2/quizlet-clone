@@ -12,13 +12,13 @@
 - Output: Design spec, ADRs, phases, tasks
 - Details: `docs/phases/phase-0.md`
 
-### Phase 1 — Core Platform 🔄
+### Phase 1 — Core Platform ✅
 - **Goal:** Project scaffolding, DB, tRPC API, pages (Home, Create, View, Edit), responsive layout
-- **Layers:** 3 layers
-- **Definition of Done:** All CRUD operations work, browse/create/edit sets, mobile-responsive
+- **Layers:** 3 layers — Foundation, API+Pages, Progress Tracking
+- **Definition of Done:** All CRUD operations work, browse/create/edit sets, mobile-responsive ✅
 - **Details:** `docs/phases/phase-1.md`
 
-### Phase 2 — Study Modes ⬜
+### Phase 2 — Study Modes ✅
 - **Goal:** All 5 study modes (Flashcard, Learn, Quiz, Match, Spell) + progress tracking
 - **Layers:** 4 layers
 - **Definition of Done:** Each mode playable, progress saved to localStorage
