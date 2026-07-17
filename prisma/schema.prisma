@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model FlashcardSet {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  cards       Flashcard[]
+}
+
+model Flashcard {
+  id         String       @id @default(cuid())
+  setId      String
+  term       String
+  definition String
+  order      Int          @default(0)
+  createdAt  DateTime     @default(now())
+  set        FlashcardSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  @@index([setId])
+}
