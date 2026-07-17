@@ -1,58 +1,44 @@
-# Implementation Plan: [PROJECT_NAME]
+# Implementation Plan: Quizlet Clone
 
-> Bản đồ TỔNG của project. Tạo trong Phase 0, **KHÔNG BAO GIỜ XÓA**.
-> Chỉ update status khi hoàn thành phase/layer.
-
----
-
-## Project Overview
-
-**Objective:** [Mô tả ngắn gọn mục tiêu project]
-**Stack:** [Điền sau khi chọn approach]
-**Timeline:** [Ước tính]
+> **Objective:** Mobile-first Quizlet clone cho iPad & phone — public, no auth, 5 study modes
+> **Stack:** Next.js 14+ App Router + TypeScript + Prisma + tRPC + Tailwind CSS
+> **Timeline:** 3 phases
 
 ---
 
 ## Phases
 
-<!-- 
-Status: ⬜ Todo | 🔄 In Progress | ✅ Done
-Update status khi bắt đầu/kết thúc phase.
--->
-
-### Phase 0 — Planning ⬜
+### Phase 0 — Planning ✅
 - Output: Design spec, ADRs, phases, tasks
 - Details: `docs/phases/phase-0.md`
 
-### Phase 1 — [Tên Phase] ⬜
-- Scope: [Mô tả ngắn]
-- Layers: [Số layer dự kiến]
-- Definition of Done: [Tiêu chí hoàn thành]
-- Details: `docs/phases/phase-1.md`
+### Phase 1 — Core Platform 🔄
+- **Goal:** Project scaffolding, DB, tRPC API, pages (Home, Create, View, Edit), responsive layout
+- **Layers:** 3 layers
+- **Definition of Done:** All CRUD operations work, browse/create/edit sets, mobile-responsive
+- **Details:** `docs/phases/phase-1.md`
 
-<!-- Thêm phases theo scope project:
+### Phase 2 — Study Modes ⬜
+- **Goal:** All 5 study modes (Flashcard, Learn, Quiz, Match, Spell) + progress tracking
+- **Layers:** 4 layers
+- **Definition of Done:** Each mode playable, progress saved to localStorage
+- **Details:** `docs/phases/phase-2.md`
 
-### Phase 2 — [Tên Phase] ⬜
-- Scope: [Mô tả]
-- Layers: [Số layer]
-- Definition of Done: [Tiêu chí]
-- Details: `docs/phases/phase-2.md`
-
-### Phase 3 — [Tên Phase] ⬜
-...
--->
+### Phase 3 — Polish & Launch ⬜
+- **Goal:** PWA, animations, tests, performance
+- **Layers:** 4 layers
+- **Definition of Done:** Lighthouse ≥ 90, PWA installable, tests pass
+- **Details:** `docs/phases/phase-3.md`
 
 ---
 
-## Layer Overview (Phase hiện tại)
-
-> Section này được **overwrite** mỗi khi chuyển phase.
-> Xem chi tiết layer tại `tasks/layer-N-todo.md`.
+## Layer Overview (Phase 1)
 
 | Layer | Mô tả | Status |
-|-------|--------|--------|
-| Layer 0 | Foundation | ⬜ |
-| Layer 1 | [Tùy scope] | ⬜ |
+|-------|-------|--------|
+| Layer 0 | Project setup, Prisma schema, env, base UI components | ⬜ |
+| Layer 1 | tRPC API, pages (Home, Create, View, Edit), responsive layout | ⬜ |
+| Layer 2 | localStorage progress, "my sets" management | ⬜ |
 
 ---
 
@@ -60,18 +46,15 @@ Update status khi bắt đầu/kết thúc phase.
 
 | # | Decision | Rationale | ADR |
 |---|----------|-----------|-----|
-| 1 | [Quyết định] | [Lý do] | `docs/decisions/001-xxx.md` |
+| 1 | Next.js + Prisma + tRPC + Tailwind | Full type safety, no auth needed, mobile-first | `docs/decisions/001-full-nextjs-stack.md` |
+| 2 | Public + localStorage progress | No auth complexity, per-device tracking | spec |
+| 3 | No image/rich text in MVP | Keep scope small, add later | spec |
 
 ---
 
 ## Risks & Assumptions
 
-- **Risk:** [Mô tả risk] → **Mitigation:** [Cách giảm thiểu]
-- **Assumption:** [Giả định đang dùng]
-
----
-
-> ℹ️ File này là **bản đồ tổng** — luôn giữ nguyên, chỉ update status.
-> Chi tiết từng phase → `docs/phases/phase-N.md`
-> Tasks đang làm → `tasks/layer-N-todo.md`
-> Lịch sử → `tasks/done.md`
+- **Risk:** tRPC learning curve → **Mitigation:** tRPC docs + code examples
+- **Risk:** localStorage bị xóa (clear cache, private mode) → **Mitigation:** Toast warning khi progress mất
+- **Assumption:** Web Speech API available cho Spell mode (fallback to input-only)
+- **Risk:** Match game performance trên mobile → **Mitigation:** Limit cards to 12 per game, use hardware-accelerated CSS

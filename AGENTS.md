@@ -93,10 +93,47 @@ KHÔNG viết code, KHÔNG scaffold, KHÔNG implement cho đến khi có file sp
 ---
 
 ## Stack
-[Điền sau Phase 0]
+- **Framework:** Next.js 14+ (App Router)
+- **Language:** TypeScript (strict)
+- **Styling:** Tailwind CSS
+- **Database:** SQLite (dev) / PostgreSQL (prod) via Prisma
+- **API:** tRPC
+- **Animation:** Framer Motion
+- **PWA:** @serwist/next
+- **Client State:** React Query (tRPC React)
+- **Test:** Vitest + Playwright
+- **Lint:** ESLint + Prettier
 
 ## Folder Structure
-[Điền sau Phase 0]
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── layout.tsx
+│   ├── page.tsx            # Home — browse sets
+│   ├── set/
+│   │   ├── [id]/
+│   │   │   ├── page.tsx    # View set
+│   │   │   ├── study/page.tsx
+│   │   │   └── edit/page.tsx
+│   │   └── new/page.tsx    # Create set
+│   └── search/page.tsx
+├── components/
+│   ├── ui/                 # Base UI (Button, Input, Card, Modal)
+│   ├── layout/             # Header, BottomNav, Shell
+│   ├── set/                # SetCard, SetList, SetForm
+│   └── study/              # FlashcardView, QuizView, MatchGame, etc.
+├── server/
+│   ├── db.ts               # Prisma client singleton
+│   ├── trpc.ts             # tRPC context + router
+│   └── routers/            # sets.ts, cards.ts
+├── lib/
+│   ├── local-storage.ts
+│   └── utils.ts
+├── types/
+│   └── index.ts
+└── styles/
+    └── globals.css
+```
 
 ---
 
@@ -193,10 +230,10 @@ Flow: **Task → Pre-Code → Code → Post-Code → Commit**
 
 ## Phase & Task
 
-- **Current Phase:** Phase 0 — Planning (chưa bắt đầu)
-- **Current Layer:** Layer 0 — Foundation (chưa bắt đầu)
+- **Current Phase:** Phase 1 — Core Platform
+- **Current Layer:** Layer 0 — Foundation
 - **Implementation Plan:** xem `docs/IMPLEMENTATION_PLAN.md`
-- **Phase details:** xem `docs/phases/phase-0.md`
+- **Phase details:** xem `docs/phases/phase-1.md`
 - **Tasks:** xem `tasks/layer-0-todo.md`
 - **Scope breakdown:** xem `docs/SCOPE_BREAKDOWN.md`
 
