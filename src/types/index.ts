@@ -30,3 +30,13 @@ export interface StudyProgress {
     timeSpent: number
   }
 }
+
+export interface CardProgressData {
+  [setId: string]: {
+    [cardId: string]: {
+      rememberedCount: number
+    }
+  }
+}
+
+export type RememberedFilter = "all" | "0" | "1" | "2" | "3"

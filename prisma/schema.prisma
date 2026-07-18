@@ -27,3 +27,17 @@ model Flashcard {
 
   @@index([setId])
 }
+
+model CardProgress {
+  id              String   @id @default(cuid())
+  deviceId        String
+  cardId          String
+  setId           String
+  rememberedCount Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([deviceId, cardId])
+  @@index([setId, deviceId])
+  @@index([deviceId])
+}

@@ -1,10 +1,10 @@
 "use client"
 
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { api } from "@/lib/trpc-provider"
 import { useStudyEngine } from "@/hooks/useStudyEngine"
 import { useTimer } from "@/hooks/useTimer"
-import { updateSetProgress } from "@/lib/local-storage"
+import { updateSetProgress, filterCardsByRemembered } from "@/lib/local-storage"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { ProgressBar } from "@/components/study/ProgressBar"
@@ -12,14 +12,21 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { MathText } from "@/components/ui/MathText"
 import { SpeakerButton } from "@/components/ui/SpeakerButton"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { CheckCircle2, XCircle, Sparkles, RotateCw } from "lucide-react"
 
 export default function SpellPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { data: set } = api.sets.getById.useQuery({ id })
-  const cards = set?.cards ?? []
+  const rememberedFilter = (searchParams.get("remembered") ?? "all") as "all" | "0" | "1" | "2" | "3"
+  const { data: cardProgress = {} } = api.cardProgress.getBySet.useQuery({ setId: id })
+  const incrementMutation = api.cardProgress.increment.useMutation()
+  const cards = useMemo(
+    () => filterCardsByRemembered(set?.cards ?? [], cardProgress, rememberedFilter),
+    [set?.cards, cardProgress, rememberedFilter],
+  )
   const engine = useStudyEngine(cards)
   const timer = useTimer()
   const [answer, setAnswer] = useState("")
@@ -57,8 +64,12 @@ export default function SpellPage() {
   }
 
   function handleNext() {
-    if (lastCorrect) engine.markCorrect()
-    else engine.markIncorrect()
+    if (lastCorrect) {
+      if (engine.currentCard) incrementMutation.mutate({ setId: id, cardId: engine.currentCard.id })
+      engine.markCorrect()
+    } else {
+      engine.markIncorrect()
+    }
     setAnswer("")
     setShowResult(false)
     inputRef.current?.focus()

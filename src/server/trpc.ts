@@ -3,9 +3,11 @@ import superjson from "superjson"
 import { ZodError } from "zod"
 import { prisma } from "./db"
 
-export const createTRPCContext = async () => {
+export const createTRPCContext = async (opts?: { req: Request }) => {
+  const deviceId = opts?.req?.headers?.get("x-device-id") ?? ""
   return {
     prisma,
+    deviceId,
   }
 }
 

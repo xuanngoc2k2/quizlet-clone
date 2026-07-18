@@ -1,12 +1,12 @@
 "use client"
 
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { api } from "@/lib/trpc-provider"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { updateSetProgress } from "@/lib/local-storage"
+import { updateSetProgress, filterCardsByRemembered } from "@/lib/local-storage"
 import { shuffleArray } from "@/lib/utils"
 import { Sparkles, RotateCw, Clock } from "lucide-react"
 
@@ -30,8 +30,15 @@ function prepareCards(cards: { id: string; term: string; definition: string }[])
 export default function MatchPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { data: set } = api.sets.getById.useQuery({ id })
-  const cardItems = useMemo(() => set?.cards ?? [], [set?.cards])
+  const rememberedFilter = (searchParams.get("remembered") ?? "all") as "all" | "0" | "1" | "2" | "3"
+  const { data: cardProgress = {} } = api.cardProgress.getBySet.useQuery({ setId: id })
+  const incrementMutation = api.cardProgress.increment.useMutation()
+  const cardItems = useMemo(
+    () => filterCardsByRemembered(set?.cards ?? [], cardProgress, rememberedFilter),
+    [set?.cards, cardProgress, rememberedFilter],
+  )
   const [gameCards, setGameCards] = useState<MatchCard[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set())
@@ -84,9 +91,10 @@ export default function MatchPage() {
 
     if (first.pairId === matchCard.pairId && first.type !== matchCard.type) {
       setMatchedIds((prev) => new Set([...Array.from(prev), first.id, matchCard.id]))
+      incrementMutation.mutate({ setId: id, cardId: matchCard.pairId })
     }
     setSelectedId(null)
-  }, [selectedId, gameCards, matchedIds])
+  }, [selectedId, gameCards, matchedIds, id, incrementMutation])
 
   function handleRetry() {
     setGameCards(prepareCards(cardItems))

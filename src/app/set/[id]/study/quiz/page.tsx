@@ -1,12 +1,12 @@
 "use client"
 
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { api } from "@/lib/trpc-provider"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { updateSetProgress } from "@/lib/local-storage"
+import { updateSetProgress, filterCardsByRemembered } from "@/lib/local-storage"
 import { shuffleArray } from "@/lib/utils"
 import { CheckCircle2, XCircle, Sparkles, RotateCw } from "lucide-react"
 
@@ -31,8 +31,15 @@ function generateQuestions(cards: { id: string; term: string; definition: string
 export default function QuizPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { data: set } = api.sets.getById.useQuery({ id })
-  const cardItems = useMemo(() => set?.cards ?? [], [set?.cards])
+  const rememberedFilter = (searchParams.get("remembered") ?? "all") as "all" | "0" | "1" | "2" | "3"
+  const { data: cardProgress = {} } = api.cardProgress.getBySet.useQuery({ setId: id })
+  const incrementMutation = api.cardProgress.increment.useMutation()
+  const cardItems = useMemo(
+    () => filterCardsByRemembered(set?.cards ?? [], cardProgress, rememberedFilter),
+    [set?.cards, cardProgress, rememberedFilter],
+  )
   const [currentQ, setCurrentQ] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [correct, setCorrect] = useState(0)
@@ -54,9 +61,13 @@ export default function QuizPage() {
     if (selected) return
     setSelected(option)
     const isCorrect = option === questions[currentQ].correctAnswer
-    if (isCorrect) setCorrect((p) => p + 1)
-    else setIncorrect((p) => p + 1)
-  }, [selected, currentQ, questions])
+    if (isCorrect) {
+      setCorrect((p) => p + 1)
+      incrementMutation.mutate({ setId: id, cardId: questions[currentQ].cardId })
+    } else {
+      setIncorrect((p) => p + 1)
+    }
+  }, [selected, currentQ, questions, id, incrementMutation])
 
   function handleNext() {
     if (currentQ + 1 >= questions.length) {

@@ -6,6 +6,7 @@ import { createTRPCReact } from "@trpc/react-query"
 import { useState } from "react"
 import superjson from "superjson"
 import type { AppRouter } from "@/server/routers/_app"
+import { getDeviceId } from "./local-storage"
 
 export const api = createTRPCReact<AppRouter>()
 
@@ -33,6 +34,9 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
       links: [
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
+          headers: () => ({
+            "x-device-id": getDeviceId(),
+          }),
         }),
       ],
       transformer: superjson,
