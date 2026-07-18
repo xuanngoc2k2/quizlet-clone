@@ -10,6 +10,7 @@ import { BottomNav } from "@/components/layout/BottomNav"
 import { ProgressBar } from "@/components/study/ProgressBar"
 import { Button } from "@/components/ui/Button"
 import { MathText } from "@/components/ui/MathText"
+import { SpeakerButton } from "@/components/ui/SpeakerButton"
 import { useEffect, useRef, useState } from "react"
 import { RotateCw, CheckCircle2, XCircle, Sparkles } from "lucide-react"
 
@@ -114,21 +115,27 @@ export default function FlashcardPage() {
             >
               <div className="absolute inset-0 backface-hidden rounded-2xl border border-primary-100 bg-white p-8 shadow-lg">
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">
-                    {flipped ? "Definition" : "Term"}
-                  </p>
+                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">Term</p>
                   <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.term ?? ""} /></p>
                   <p className="mt-6 text-xs text-primary-300">Tap to flip</p>
                 </div>
+                {engine.currentCard && (
+                  <div className="absolute bottom-4 right-4">
+                    <SpeakerButton text={engine.currentCard.term} lang="ko-KR" />
+                  </div>
+                )}
               </div>
               <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl border border-primary-100 bg-white p-8 shadow-lg">
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">
-                    {flipped ? "Term" : "Definition"}
-                  </p>
+                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">Definition</p>
                   <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
                   <p className="mt-6 text-xs text-primary-300">Tap to flip back</p>
                 </div>
+                {engine.currentCard && (
+                  <div className="absolute bottom-4 right-4">
+                    <SpeakerButton text={engine.currentCard.definition} lang="en-US" />
+                  </div>
+                )}
               </div>
             </div>
           </button>

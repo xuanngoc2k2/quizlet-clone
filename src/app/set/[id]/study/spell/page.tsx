@@ -11,6 +11,7 @@ import { ProgressBar } from "@/components/study/ProgressBar"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { MathText } from "@/components/ui/MathText"
+import { SpeakerButton } from "@/components/ui/SpeakerButton"
 import { useEffect, useRef, useState } from "react"
 import { CheckCircle2, XCircle, Sparkles, RotateCw } from "lucide-react"
 
@@ -125,7 +126,10 @@ export default function SpellPage() {
         />
 
         <div className="mb-6 rounded-2xl border border-primary-100 bg-white p-8 text-center shadow-sm">
-          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">Definition</p>
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <p className="text-xs font-bold uppercase tracking-widest text-primary-400">Definition</p>
+            {engine.currentCard && <SpeakerButton text={engine.currentCard.definition} lang="en-US" />}
+          </div>
           <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
           <p className="mt-4 text-xs text-primary-400">Type the term</p>
         </div>

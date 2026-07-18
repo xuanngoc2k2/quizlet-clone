@@ -9,6 +9,7 @@ import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
 import { Modal } from "@/components/ui/Modal"
 import { MathText } from "@/components/ui/MathText"
+import { SpeakerButton } from "@/components/ui/SpeakerButton"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { GraduationCap, PenLine, Trash2 } from "lucide-react"
@@ -108,7 +109,10 @@ export default function ViewSetPage() {
                 {i + 1}
               </span>
               <div className="flex flex-1 gap-4">
-                  <span className="flex-1 font-medium text-primary-900 whitespace-pre-wrap"><MathText text={card.term} /></span>
+                  <span className="flex flex-1 items-center gap-2 font-medium text-primary-900 whitespace-pre-wrap">
+                    <SpeakerButton text={card.term} lang="ko-KR" />
+                    <MathText text={card.term} />
+                  </span>
                   <span className="flex-1 text-primary-600 whitespace-pre-wrap"><MathText text={card.definition} /></span>
               </div>
             </div>
