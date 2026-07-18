@@ -3,7 +3,7 @@ import { router, publicProcedure } from "../trpc"
 import { env } from "@/lib/env"
 
 const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent"
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent"
 
 const langLabels = {
   en: { name: "English", flag: "en" },
@@ -88,8 +88,15 @@ async function callGemini(systemPrompt: string, userText: string, temperature = 
   }
 
   const data = await res.json()
-  let text = data?.candidates?.[0]?.content?.parts?.[0]?.text
-  if (!text) throw new Error("Empty response from Gemini")
+  const candidate = data?.candidates?.[0]
+  if (!candidate) {
+    const finishReason = data?.candidates?.[0]?.finishReason ?? "unknown"
+    const safetyRatings = JSON.stringify(data?.candidates?.[0]?.safetyRatings ?? [])
+    const promptFeedback = JSON.stringify(data?.promptFeedback ?? {})
+    throw new Error(`Empty Gemini response (finishReason: ${finishReason}, safety: ${safetyRatings}, promptFeedback: ${promptFeedback})`)
+  }
+  let text = candidate?.content?.parts?.[0]?.text
+  if (!text) throw new Error("Empty content from Gemini")
 
   text = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim()
   const firstBrace = text.indexOf("{")
@@ -101,7 +108,7 @@ async function callGemini(systemPrompt: string, userText: string, temperature = 
   try {
     return JSON.parse(text)
   } catch {
-    throw new Error(`Invalid JSON from Gemini: ${text.slice(0, 300)}`)
+    throw new Error(`Invalid JSON from Gemini (${text.length} chars): ${text.slice(0, 500)}`)
   }
 }
 
