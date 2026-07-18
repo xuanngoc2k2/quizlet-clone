@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button"
 import { Modal } from "@/components/ui/Modal"
 import { MathText } from "@/components/ui/MathText"
 import { SpeakerButton } from "@/components/ui/SpeakerButton"
+import { SentenceChecker } from "@/components/ui/SentenceChecker"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { GraduationCap, PenLine, Trash2 } from "lucide-react"
@@ -117,6 +118,10 @@ export default function ViewSetPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-6">
+          <SentenceChecker />
         </div>
       </main>
       <BottomNav />
