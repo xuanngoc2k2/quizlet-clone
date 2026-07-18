@@ -12,7 +12,8 @@ type SpeakerButtonProps = {
 export function SpeakerButton({ text, lang = "ko-KR", size = "sm" }: SpeakerButtonProps) {
   const [playing, setPlaying] = useState(false)
 
-  const speak = useCallback(() => {
+  const speak = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
     if (!text.trim() || playing) return
     if (!("speechSynthesis" in window)) return
 
