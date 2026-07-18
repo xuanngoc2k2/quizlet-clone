@@ -3,7 +3,7 @@ import { router, publicProcedure } from "../trpc"
 import { env } from "@/lib/env"
 
 const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent"
 
 const langLabels = {
   en: { name: "English", flag: "en" },
