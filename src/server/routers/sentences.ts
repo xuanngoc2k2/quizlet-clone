@@ -14,49 +14,48 @@ type Lang = keyof typeof langLabels
 
 function buildCheckPrompt(lang: Lang) {
   const instr = lang === "vi"
-    ? "Giải thích bằng tiếng Việt."
-    : "Explain in English."
-  return `You are a Korean language teacher. Given a Korean sentence, evaluate it and respond in valid JSON only (no markdown, no code fences). ${instr}
+    ? "Tất cả giải thích và nhận xét phải bằng tiếng Việt."
+    : "All explanations and notes must be in English."
+  return `You are a Korean language teacher. Given a Korean sentence, evaluate it and respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 
-Evaluate these aspects:
-1. grammar_score (1-10): How grammatically correct is the sentence?
-2. naturalness_score (1-10): How natural does it sound to a native speaker?
-3. errors: Array of { error: string, explanation: string, correction: string }
-4. improved_sentence: A corrected/natural version of the sentence
-5. translation: English translation
-6. vocabulary_notes: Brief notes on key vocabulary usage (max 2 sentences)`
+${instr}
+{
+  "grammar_score": <1-10>,
+  "naturalness_score": <1-10>,
+  "errors": [{"error": "<name>", "explanation": "<why wrong>", "correction": "<fixed version>"}],
+  "improved_sentence": "<corrected Korean sentence>",
+  "translation": "<English translation>",
+  "vocabulary_notes": "<brief notes>"
+}`
 }
 
 function buildExplainPrompt(lang: Lang) {
   const instr = lang === "vi"
-    ? "Giải thích bằng tiếng Việt."
-    : "Explain in English."
-  return `You are a Korean language teacher. Explain the following Korean sentence in detail. Respond in valid JSON only (no markdown, no code fences). ${instr}
+    ? "Tất cả giải thích phải bằng tiếng Việt."
+    : "All explanations must be in English."
+  return `You are a Korean language teacher. Explain the Korean sentence below. Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 
-Explain:
-1. meaning: English translation
-2. grammar: Break down the grammar structure (particles, verb endings, etc.)
-3. vocabulary: List key words with their meanings
-4. usage_notes: When/how to use this sentence naturally (max 3 sentences)`
+${instr}
+{
+  "meaning": "<English translation>",
+  "grammar": "<grammar breakdown>",
+  "vocabulary": "<key words with meanings>",
+  "usage_notes": "<when to use>"
+}`
 }
 
 function buildExamplesPrompt(word: string, definition: string | undefined, lang: Lang) {
   const instr = lang === "vi"
-    ? "Phần dịch và giải thích bằng tiếng Việt."
-    : "Translation and explanation in English."
+    ? "Phần translation và grammar_notes phải bằng tiếng Việt."
+    : "Translation and grammar notes must be in English."
   return `You are a Korean language teacher. Provide example sentences using the word "${word}"${definition ? ` (meaning: ${definition})` : ""}. ${instr}
 
-Respond in valid JSON only (no markdown, no code fences):
+Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 {
   "examples": [
-    {
-      "sentence": "Korean sentence",
-      "translation": "English translation",
-      "grammar_notes": "Brief grammar explanation for this sentence (max 2 sentences)"
-    }
+    {"sentence": "<Korean>", "translation": "<translation>", "grammar_notes": "<notes>"}
   ]
 }
-
 Provide 3 example sentences at different difficulty levels (easy, intermediate, advanced).`
 }
 
@@ -86,10 +85,21 @@ async function callGemini(systemPrompt: string, userText: string, temperature = 
   }
 
   const data = await res.json()
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+  let text = data?.candidates?.[0]?.content?.parts?.[0]?.text
   if (!text) throw new Error("Empty response from Gemini")
 
-  return text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim()
+  text = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim()
+  const firstBrace = text.indexOf("{")
+  const lastBrace = text.lastIndexOf("}")
+  if (firstBrace !== -1 && lastBrace !== -1) {
+    text = text.slice(firstBrace, lastBrace + 1)
+  }
+
+  try {
+    return JSON.parse(text)
+  } catch {
+    throw new Error(`Invalid JSON from Gemini: ${text.slice(0, 300)}`)
+  }
 }
 
 type GeminiResponse = {
@@ -121,11 +131,10 @@ export const sentencesRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      const cleaned = await callGemini(
+      const result = await callGemini(
         buildCheckPrompt(input.language),
         `Sentence: "${input.sentence}"`,
-      )
-      const result: GeminiResponse = JSON.parse(cleaned)
+      ) as GeminiResponse
       return {
         grammarScore: result.grammar_score,
         naturalnessScore: result.naturalness_score,
@@ -144,11 +153,10 @@ export const sentencesRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      const cleaned = await callGemini(
+      const result = await callGemini(
         buildExplainPrompt(input.language),
         `Sentence: "${input.sentence}"`,
-      )
-      const result: ExplainResponse = JSON.parse(cleaned)
+      ) as ExplainResponse
       return {
         meaning: result.meaning,
         grammar: result.grammar,
@@ -166,12 +174,11 @@ export const sentencesRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      const cleaned = await callGemini(
+      const result = await callGemini(
         buildExamplesPrompt(input.word, input.definition, input.language),
         "",
         0.4,
-      )
-      const result: ExamplesResponse = JSON.parse(cleaned)
+      ) as ExamplesResponse
       return { examples: result.examples }
     }),
 })
