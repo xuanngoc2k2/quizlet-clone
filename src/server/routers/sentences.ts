@@ -127,4 +127,60 @@ Explain:
         usageNotes: result.usage_notes,
       }
     }),
+
+  examples: publicProcedure
+    .input(
+      z.object({
+        word: z.string().min(1, "Word is required"),
+        definition: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const res = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `You are a Korean language teacher. Provide example sentences using the word "${input.word}"${input.definition ? ` (meaning: ${input.definition})` : ""}.
+
+Respond in valid JSON only (no markdown, no code fences):
+{
+  "examples": [
+    {
+      "sentence": "Korean sentence",
+      "translation": "English translation",
+      "grammar_notes": "Brief grammar explanation for this sentence (max 2 sentences)"
+    }
+  ]
+}
+
+Provide 3 example sentences at different difficulty levels (easy, intermediate, advanced).`,
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 1024,
+          },
+        }),
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(`Gemini API error (${res.status}): ${errorText}`)
+      }
+
+      const data = await res.json()
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+      if (!text) throw new Error("Empty response from Gemini")
+
+      const cleaned = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim()
+      const result = JSON.parse(cleaned)
+
+      return { examples: result.examples }
+    }),
 })

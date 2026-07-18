@@ -11,6 +11,7 @@ import { Modal } from "@/components/ui/Modal"
 import { MathText } from "@/components/ui/MathText"
 import { SpeakerButton } from "@/components/ui/SpeakerButton"
 import { SentenceChecker } from "@/components/ui/SentenceChecker"
+import { WordPractice } from "@/components/ui/WordPractice"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { GraduationCap, PenLine, Trash2 } from "lucide-react"
@@ -117,6 +118,13 @@ export default function ViewSetPage() {
                   <span className="flex-1 text-primary-600 whitespace-pre-wrap"><MathText text={card.definition} /></span>
               </div>
             </div>
+          ))}
+        </div>
+
+        <div className="mt-8 space-y-3">
+          <h2 className="font-display text-sm font-semibold text-primary-700">Writing Practice</h2>
+          {set.cards.map((card) => (
+            <WordPractice key={card.id} term={card.term} definition={card.definition} />
           ))}
         </div>
 
