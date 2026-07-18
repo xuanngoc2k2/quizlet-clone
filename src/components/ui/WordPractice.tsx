@@ -14,7 +14,10 @@ import {
   AlertCircle,
   CheckCircle2,
   Loader2,
+  Languages,
 } from "lucide-react"
+
+type Lang = "en" | "vi"
 
 type WordPracticeProps = {
   term: string
@@ -25,6 +28,7 @@ export function WordPractice({ term, definition }: WordPracticeProps) {
   const [expanded, setExpanded] = useState(false)
   const [userSentence, setUserSentence] = useState("")
   const [showExamples, setShowExamples] = useState(false)
+  const [lang, setLang] = useState<Lang>("en")
 
   const examplesMutation = api.sentences.examples.useMutation()
   const checkMutation = api.sentences.check.useMutation()
@@ -38,18 +42,18 @@ export function WordPractice({ term, definition }: WordPracticeProps) {
   const handleShowExamples = () => {
     setShowExamples(true)
     if (!examples) {
-      examplesMutation.mutate({ word: term, definition })
+      examplesMutation.mutate({ word: term, definition, language: lang })
     }
   }
 
   const handleCheckSentence = () => {
     if (!userSentence.trim()) return
-    checkMutation.mutate({ sentence: userSentence.trim() })
+    checkMutation.mutate({ sentence: userSentence.trim(), language: lang })
   }
 
   const handleExplain = () => {
     if (!userSentence.trim()) return
-    explainMutation.mutate({ sentence: userSentence.trim() })
+    explainMutation.mutate({ sentence: userSentence.trim(), language: lang })
   }
 
   return (
@@ -82,6 +86,31 @@ export function WordPractice({ term, definition }: WordPracticeProps) {
             <div>
               <p className="font-semibold text-primary-900 whitespace-pre-wrap"><MathText text={term} /></p>
               <p className="text-sm text-primary-500">{definition}</p>
+            </div>
+            <div className="ml-auto flex items-center gap-1">
+              <Languages className="h-3 w-3 text-primary-400" />
+              <button
+                type="button"
+                onClick={() => setLang("en")}
+                className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${
+                  lang === "en"
+                    ? "bg-primary-600 text-white"
+                    : "bg-primary-100 text-primary-600 hover:bg-primary-200"
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang("vi")}
+                className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${
+                  lang === "vi"
+                    ? "bg-primary-600 text-white"
+                    : "bg-primary-100 text-primary-600 hover:bg-primary-200"
+                }`}
+              >
+                VI
+              </button>
             </div>
           </div>
 

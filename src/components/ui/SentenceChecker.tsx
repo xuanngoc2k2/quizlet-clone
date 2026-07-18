@@ -3,27 +3,29 @@
 import { useState } from "react"
 import { api } from "@/lib/trpc-provider"
 import { Button } from "./Button"
-import { Sparkles, ChevronDown, ChevronUp, AlertCircle, CheckCircle2, MessageSquare } from "lucide-react"
+import { Sparkles, ChevronDown, ChevronUp, AlertCircle, CheckCircle2, MessageSquare, Languages } from "lucide-react"
+
+type Lang = "en" | "vi"
 
 type SentenceCheckerProps = {
   defaultSentence?: string
-  onSentenceCheck?: (_sentence: string) => void
 }
 
 export function SentenceChecker({ defaultSentence = "" }: SentenceCheckerProps) {
   const [sentence, setSentence] = useState(defaultSentence)
   const [showChecker, setShowChecker] = useState(false)
+  const [lang, setLang] = useState<Lang>("en")
   const checkMutation = api.sentences.check.useMutation()
   const explainMutation = api.sentences.explain.useMutation()
 
   const handleCheck = () => {
     if (!sentence.trim()) return
-    checkMutation.mutate({ sentence: sentence.trim() })
+    checkMutation.mutate({ sentence: sentence.trim(), language: lang })
   }
 
   const handleExplain = () => {
     if (!sentence.trim()) return
-    explainMutation.mutate({ sentence: sentence.trim() })
+    explainMutation.mutate({ sentence: sentence.trim(), language: lang })
   }
 
   const result = checkMutation.data
@@ -52,6 +54,31 @@ export function SentenceChecker({ defaultSentence = "" }: SentenceCheckerProps) 
 
       {showChecker && (
         <div className="border-t border-primary-100 p-4">
+          <div className="mb-3 flex items-center justify-end gap-1">
+            <Languages className="h-3.5 w-3.5 text-primary-400" />
+            <button
+              type="button"
+              onClick={() => setLang(lang === "en" ? "vi" : "en")}
+              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+                lang === "en"
+                  ? "bg-primary-600 text-white"
+                  : "bg-primary-100 text-primary-600 hover:bg-primary-200"
+              }`}
+            >
+              EN
+            </button>
+            <button
+              type="button"
+              onClick={() => setLang(lang === "vi" ? "en" : "vi")}
+              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+                lang === "vi"
+                  ? "bg-primary-600 text-white"
+                  : "bg-primary-100 text-primary-600 hover:bg-primary-200"
+              }`}
+            >
+              VI
+            </button>
+          </div>
           <div className="flex gap-2">
             <input
               type="text"
