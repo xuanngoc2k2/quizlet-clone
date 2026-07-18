@@ -3,7 +3,7 @@ import { router, publicProcedure } from "../trpc"
 import { env } from "@/lib/env"
 
 const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
 const prompt = `You are a Korean language teacher. Given a Korean sentence, evaluate it and respond in valid JSON only (no markdown, no code fences).
 
