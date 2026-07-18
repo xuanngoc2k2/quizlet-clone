@@ -74,10 +74,7 @@ export function SetForm({
           <h2 className="font-display text-sm font-semibold text-primary-700">
             Cards ({cards.length})
           </h2>
-          <Button type="button" variant="ghost" size="sm" onClick={addCard}>
-            <Plus className="h-4 w-4" />
-            Add Card
-          </Button>
+          <span className="text-xs text-primary-400">Swipe left on card to delete</span>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -118,14 +115,20 @@ export function SetForm({
         </div>
       </div>
 
-      <Button
-        type="submit"
-        variant="gradient"
-        loading={loading}
-        disabled={!title.trim() || cards.every((c) => !c.term.trim())}
-      >
-        {submitLabel}
-      </Button>
+      <div className="flex flex-col gap-3 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/50 p-4">
+        <Button type="button" variant="secondary" onClick={addCard} className="w-full">
+          <Plus className="h-4 w-4" />
+          Add Card
+        </Button>
+        <Button
+          type="submit"
+          variant="gradient"
+          loading={loading}
+          disabled={!title.trim() || cards.every((c) => !c.term.trim())}
+        >
+          {submitLabel}
+        </Button>
+      </div>
     </form>
   )
 }
