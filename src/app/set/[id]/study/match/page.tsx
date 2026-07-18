@@ -34,7 +34,10 @@ export default function MatchPage() {
   const { data: set } = api.sets.getById.useQuery({ id })
   const rememberedFilter = (searchParams.get("remembered") ?? "all") as "all" | "0" | "1" | "2" | "3"
   const { data: cardProgress = {} } = api.cardProgress.getBySet.useQuery({ setId: id })
-  const incrementMutation = api.cardProgress.increment.useMutation()
+  const utils = api.useUtils()
+  const incrementMutation = api.cardProgress.increment.useMutation({
+    onSuccess: () => utils.cardProgress.getBySet.invalidate({ setId: id }),
+  })
   const cardItems = useMemo(
     () => filterCardsByRemembered(set?.cards ?? [], cardProgress, rememberedFilter),
     [set?.cards, cardProgress, rememberedFilter],
