@@ -3,7 +3,7 @@ import { router, publicProcedure } from "../trpc"
 import { env } from "@/lib/env"
 
 const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent"
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
 const langLabels = {
   en: { name: "English", flag: "en" },
@@ -81,6 +81,9 @@ async function callGemini(systemPrompt: string, userText: string, temperature = 
 
   if (!res.ok) {
     const errorText = await res.text()
+    if (res.status === 429) {
+      throw new Error("AI quota exceeded. Please wait a moment and try again, or add billing at https://ai.google.dev.")
+    }
     throw new Error(`Gemini API error (${res.status}): ${errorText}`)
   }
 
