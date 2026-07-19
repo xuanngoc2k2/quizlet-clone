@@ -193,20 +193,36 @@ Student's answers:
 ${userAnswers}
 
 Grade each answer. Rules:
-- Part 1-3 (multiple-choice, conjugation, synonym): strict grading — exact match required. Short explanation.
-- Part 4 (translation Vi→Ko): Grade generously but thoroughly. For Part 4, the "explanation" field MUST contain ALL of the following sections with Vietnamese section headers:
+- Part 1-3 (multiple-choice, conjugation, synonym): strict grading — exact match required. Short explanation. Set score to 10 if correct, 0 if wrong.
+- Part 4 (translation Vi→Ko): Grade generously but thoroughly. Assign a score from 0-10 based on accuracy, grammar, vocab, and style. The "explanation" field MUST contain detailed feedback in this EXACT format:
 
-[Phân tích lỗi] — If wrong/empty, explain what went wrong in Vietnamese. If correct, say "잘했습니다!"
+Trong kỳ thi TOPIK II (đặc biệt là phần Viết), việc sử dụng đúng ngữ pháp, văn phong (trang trọng/văn viết) và chính tả là yếu tố then chốt để đạt điểm cao.
 
-[Giải thích ngữ pháp] — Explain the key grammar structures needed in Vietnamese (e.g., -(으)니까, -자마자, -(으)ㄹ 줄 알다). Mention politeness level/style (văn nói vs văn viết TOPIK).
+---
 
-[Từ vựng] — Key vocabulary breakdown in Vietnamese.
+### **Câu {questionId}**
+**Đề bài:** "{question text}"
+**Học sinh dịch:** "{user answer or (Để trống)}"
 
-[Câu mẫu] — Provide 2 model answers:
-Cách 1 (tự nhiên): <natural spoken version with -아요/어요>
-Cách 2 (văn viết TOPIK): <formal written version with -습니다/ㅂ니다 or -다/ㄴ다>
+1. **Đáp án của bạn:** **{score}/10 điểm.**
+2. **Nhận xét/Sửa lỗi:**
+- **Về ngữ pháp:** <analyze grammar usage, point out specific errors>
+- **Về văn phong:** <analyze politeness level, suggest TOPIK-appropriate style>
+- **Lưu ý:** <any additional notes, common mistakes, spelling issues>
+3. **Câu mẫu đề xuất (Văn phong TOPIK):**
+- **Văn nói trang trọng:** <natural polite version>
+- **Văn viết (Dạng văn xuôi/biểu đồ):** <formal written TOPIK version>
 
-[Mẹo học] — Specific study tip related to this grammar point in Vietnamese.
+Also include a final section at the end of the LAST question's explanation:
+
+---
+
+### **Tổng kết lời khuyên cho học sinh:**
+1. <tip 1>
+2. <tip 2>
+3. <tip 3>
+
+This overall advice should only appear in the last question (highest questionId) of Part 4.
 
 Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 {
@@ -214,6 +230,7 @@ Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
     {
       "questionId": 1,
       "isCorrect": true/false,
+      "score": 0-10,
       "userAnswer": "<what the student wrote>",
       "correctAnswer": "<the correct answer>",
       "explanation": "<For Part 4: full structured feedback with all sections above. For Parts 1-3: short explanation.>"
@@ -309,6 +326,7 @@ export const testRouter = router({
         results: z.array(z.object({
           questionId: z.number(),
           isCorrect: z.boolean(),
+          score: z.number().min(0).max(10).optional(),
           userAnswer: z.string(),
           correctAnswer: z.string(),
           explanation: z.string(),

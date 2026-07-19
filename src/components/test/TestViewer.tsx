@@ -32,6 +32,7 @@ type GradeResult = {
   results: {
     questionId: number
     isCorrect: boolean
+    score?: number
     userAnswer: string
     correctAnswer: string
     explanation: string
@@ -271,26 +272,11 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                 if (!q) return null
                 const isPart4 = q.part === 4
                 if (isPart4) {
-                  const sections = r.explanation.split(/\[Phân tích lỗi\]|\[Giải thích ngữ pháp\]|\[Từ vựng\]|\[Câu mẫu\]|\[Mẹo học\]/).filter(Boolean)
-                  const labels = ["Phân tích lỗi", "Giải thích ngữ pháp", "Từ vựng", "Câu mẫu", "Mẹo học"]
-                  const parts: { label: string; content: string }[] = []
-                  let idx = 0
-                  labels.forEach((label) => {
-                    const regex = new RegExp(`\\[${label}\\]`)
-                    const match = r.explanation.match(regex)
-                    if (match) {
-                      const startIdx = match.index! + match[0].length
-                      const nextLabel = labels.slice(labels.indexOf(label) + 1).find((l) => {
-                        const nr = new RegExp(`\\[${l}\\]`).exec(r.explanation)
-                        return nr
-                      })
-                      const endIdx = nextLabel
-                        ? new RegExp(`\\[${nextLabel}\\]`).exec(r.explanation)!.index!
-                        : r.explanation.length
-                      const content = r.explanation.slice(startIdx, endIdx).trim()
-                      parts.push({ label, content })
-                    }
-                  })
+                  const scoreColor = r.score !== undefined
+                    ? r.score >= 8 ? "text-emerald-600 bg-emerald-100"
+                    : r.score >= 5 ? "text-amber-600 bg-amber-100"
+                    : "text-red-600 bg-red-100"
+                    : "text-amber-600 bg-amber-100"
                   return (
                     <div
                       key={r.questionId}
@@ -302,33 +288,17 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
                             Phần 4
                           </span>
-                          {r.isCorrect ? (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-red-500" />
+                          {r.score !== undefined && (
+                            <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold ${scoreColor}`}>
+                              {r.score}/10
+                            </span>
                           )}
                         </div>
-                        <p className="text-sm font-medium text-amber-900">{q.question}</p>
-                        <div className="mt-3 flex flex-col gap-1 text-xs">
-                          <p>
-                            <span className="font-medium text-red-600">Đáp án của bạn: </span>
-                            <span className="text-red-500">{r.userAnswer || "(Để trống)"}</span>
-                          </p>
-                          <p>
-                            <span className="font-medium text-emerald-600">Câu mẫu: </span>
-                            <span className="text-emerald-700">{r.correctAnswer}</span>
-                          </p>
-                        </div>
                       </div>
-                      <div className="divide-y divide-amber-100">
-                        {parts.map((p) => (
-                          <div key={p.label} className="px-4 py-3">
-                            <p className="mb-1 text-[11px] font-bold text-amber-700">{p.label}</p>
-                            <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-primary-700">
-                              {p.content}
-                            </p>
-                          </div>
-                        ))}
+                      <div className="px-4 py-3">
+                        <p className="whitespace-pre-wrap text-xs leading-relaxed text-primary-700">
+                          {r.explanation}
+                        </p>
                       </div>
                     </div>
                   )
