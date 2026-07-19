@@ -234,7 +234,7 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
     1: "Phần 1: Trắc nghiệm khách quan",
     2: "Phần 2: Chia dạng từ",
     3: "Phần 3: Tìm câu đồng nghĩa",
-    4: "Phần 4: Dịch câu",
+    4: "Phần 4: Viết (Dịch Việt→Hàn)",
   }
 
   const groupedResults: Record<number, GradeResult["results"]> = { 1: [], 2: [], 3: [], 4: [] }
@@ -272,32 +272,41 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                 if (!q) return null
                 const isPart4 = q.part === 4
                 if (isPart4) {
-                  const scoreColor = r.score !== undefined
-                    ? r.score >= 8 ? "text-emerald-600 bg-emerald-100"
-                    : r.score >= 5 ? "text-amber-600 bg-amber-100"
-                    : "text-red-600 bg-red-100"
-                    : "text-amber-600 bg-amber-100"
+                  const isFirst = r.questionId === partResults[0]?.questionId
+                  if (!isFirst) return null
+                  const combinedText = partResults.map((pr) => {
+                    const pq = questionsByPart[pr.questionId]
+                    if (!pq) return pr.explanation
+                    return pr.explanation
+                  }).filter(Boolean).join("\n\n---\n\n")
+                  const totalScore = partResults.reduce((sum, pr) => sum + (pr.score ?? 0), 0)
+                  const maxScore = partResults.length * 10
+                  const avgColor = (totalScore / maxScore) >= 0.7
+                    ? "text-emerald-600"
+                    : (totalScore / maxScore) >= 0.4
+                    ? "text-amber-600"
+                    : "text-red-600"
                   return (
                     <div
-                      key={r.questionId}
+                      key="part4"
                       className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm"
                     >
                       <div className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50 p-4">
-                        <div className="mb-2 flex items-center gap-2">
-                          <span className="text-xs font-bold text-amber-500">Q{r.questionId}.</span>
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                            Phần 4
-                          </span>
-                          {r.score !== undefined && (
-                            <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold ${scoreColor}`}>
-                              {r.score}/10
+                        <div className="mb-1 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                              Phần 4
                             </span>
-                          )}
+                            <span className="text-xs text-amber-500">5 câu</span>
+                          </div>
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${avgColor} bg-amber-50`}>
+                            {totalScore}/{maxScore}
+                          </span>
                         </div>
                       </div>
                       <div className="px-4 py-3">
                         <p className="whitespace-pre-wrap text-xs leading-relaxed text-primary-700">
-                          {r.explanation}
+                          {combinedText}
                         </p>
                       </div>
                     </div>

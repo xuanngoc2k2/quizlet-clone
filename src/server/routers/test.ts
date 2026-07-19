@@ -194,7 +194,8 @@ ${userAnswers}
 
 Grade each answer. Rules:
 - Part 1-3 (multiple-choice, conjugation, synonym): strict grading — exact match required. Short explanation. Set score to 10 if correct, 0 if wrong.
-- Part 4 (translation Vi→Ko): Grade generously but thoroughly. Assign a score from 0-10 based on accuracy, grammar, vocab, and style. The "explanation" field MUST contain detailed feedback in this EXACT format:
+- Part 4 (translation Vi→Ko): Grade generously but thoroughly. Assign a score from 0-10 based on accuracy, grammar, vocab, and style.
+- For Part 4: put ALL feedback (analysis for ALL 5 questions + overall advice) into the explanation field of the FIRST Part 4 question (lowest questionId). Set explanation to "" for the other 4 Part 4 questions.
 
 Trong kỳ thi TOPIK II (đặc biệt là phần Viết), việc sử dụng đúng ngữ pháp, văn phong (trang trọng/văn viết) và chính tả là yếu tố then chốt để đạt điểm cao.
 
@@ -213,16 +214,14 @@ Trong kỳ thi TOPIK II (đặc biệt là phần Viết), việc sử dụng đ
 - **Văn nói trang trọng:** <natural polite version>
 - **Văn viết (Dạng văn xuôi/biểu đồ):** <formal written TOPIK version>
 
-Also include a final section at the end of the LAST question's explanation:
-
+Also include a final section at the end:
+ 
 ---
-
+ 
 ### **Tổng kết lời khuyên cho học sinh:**
 1. <tip 1>
 2. <tip 2>
 3. <tip 3>
-
-This overall advice should only appear in the last question (highest questionId) of Part 4.
 
 Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 {
@@ -233,7 +232,7 @@ Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
       "score": 0-10,
       "userAnswer": "<what the student wrote>",
       "correctAnswer": "<the correct answer>",
-      "explanation": "<For Part 4: full structured feedback with all sections above. For Parts 1-3: short explanation.>"
+      "explanation": "<For Part 4: put everything here for ALL 5 questions + overall advice. Other Part 4 results: \"\". For Parts 1-3: short explanation.>"
     }
   ],
   "totalCorrect": 0,
