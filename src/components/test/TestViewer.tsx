@@ -272,6 +272,8 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                 if (!q) return null
                 const isPart4 = q.part === 4
                 if (isPart4) {
+                  const isFirst = r.questionId === partResults[0]?.questionId
+                  if (!isFirst) return null
                   const totalScore = partResults.reduce((sum, pr) => sum + (pr.score ?? 0), 0)
                   const maxScore = partResults.length * 10
                   const avgColor = (totalScore / maxScore) >= 0.7
@@ -279,6 +281,9 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                     : (totalScore / maxScore) >= 0.4
                     ? "text-amber-600"
                     : "text-red-600"
+                  const firstExplanation = partResults[0]?.explanation || ""
+                  const otherExplanations = partResults.slice(1).map((pr) => pr.explanation || "").filter(Boolean)
+                  const combinedExplanation = [firstExplanation, ...otherExplanations].filter(Boolean).join("\n\n---\n\n")
                   return (
                     <div key="part4" className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
                       <div className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50 p-4">
@@ -293,43 +298,46 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                         </div>
                       </div>
                       <div className="divide-y divide-amber-100">
-                        {partResults.map((pr) => {
-                          const pq = questionsByPart[pr.questionId]
-                          if (!pq) return null
-                          const qScoreColor = pr.score !== undefined
-                            ? pr.score >= 8 ? "text-emerald-600 bg-emerald-100"
-                            : pr.score >= 5 ? "text-amber-600 bg-amber-100"
-                            : "text-red-600 bg-red-100"
-                            : "text-amber-600 bg-amber-100"
-                          return (
-                            <div key={pr.questionId} className="p-4">
-                              <div className="mb-2 flex items-center gap-2">
-                                <span className="text-xs font-bold text-amber-500">Q{pr.questionId}.</span>
-                                {pr.score !== undefined && (
-                                  <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${qScoreColor}`}>
-                                    {pr.score}/10
-                                  </span>
-                                )}
-                              </div>
-                              <p className="mb-1 text-sm font-medium text-primary-900">{pq.question}</p>
-                              <div className="mb-2 flex flex-col gap-0.5 text-xs">
-                                <p>
-                                  <span className="font-medium text-primary-600">Câu trả lời của bạn: </span>
-                                  <span className={pr.userAnswer ? "text-primary-700" : "text-red-400 italic"}>
-                                    {pr.userAnswer || "(Để trống)"}
-                                  </span>
-                                </p>
-                              </div>
-                              {pr.explanation && (
-                                <div className="rounded-lg bg-amber-50/50 px-3 py-2">
-                                  <p className="whitespace-pre-wrap text-xs leading-relaxed text-primary-700">
-                                    {pr.explanation}
+                        <div className="p-4">
+                          <p className="mb-3 text-[11px] font-bold text-amber-700">Câu hỏi & Câu trả lời</p>
+                          <div className="flex flex-col gap-3">
+                            {partResults.map((pr) => {
+                              const pq = questionsByPart[pr.questionId]
+                              if (!pq) return null
+                              return (
+                                <div key={pr.questionId} className="rounded-lg border border-amber-100 bg-amber-50/30 px-3 py-2">
+                                  <div className="mb-1 flex items-center gap-2">
+                                    <span className="text-[11px] font-bold text-amber-600">Q{pr.questionId}.</span>
+                                    {pr.score !== undefined && (
+                                      <span className={`ml-auto text-[10px] font-bold ${
+                                        pr.score >= 8 ? "text-emerald-600" : pr.score >= 5 ? "text-amber-600" : "text-red-600"
+                                      }`}>
+                                        {pr.score}/10
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="mb-1 text-xs font-medium text-primary-900">{pq.question}</p>
+                                  <p className="text-xs text-primary-600">
+                                    <span className="font-medium">Bạn: </span>
+                                    <span className={pr.userAnswer ? "text-primary-700" : "text-red-400 italic"}>
+                                      {pr.userAnswer || "(Để trống)"}
+                                    </span>
                                   </p>
                                 </div>
-                              )}
+                              )
+                            })}
+                          </div>
+                        </div>
+                        {combinedExplanation && (
+                          <div className="p-4">
+                            <p className="mb-2 text-[11px] font-bold text-amber-700">Chấm điểm & Nhận xét</p>
+                            <div className="rounded-lg bg-amber-50/50 px-3 py-2">
+                              <p className="whitespace-pre-wrap text-xs leading-relaxed text-primary-700">
+                                {combinedExplanation}
+                              </p>
                             </div>
-                          )
-                        })}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )
