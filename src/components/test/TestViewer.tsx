@@ -99,8 +99,8 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
           {grade.error.message}
         </div>
-        <Button onClick={onReset} variant="secondary" className="mt-4">
-          Try Again
+        <Button onClick={() => grade.reset()} variant="secondary" className="mt-4">
+          Thử lại
         </Button>
       </div>
     )
