@@ -197,31 +197,53 @@ Grade each answer. Rules:
 - Part 4 (translation Vi→Ko): Grade generously but thoroughly. Assign a score from 0-10 based on accuracy, grammar, vocab, and style.
 - For Part 4: put ALL feedback (analysis for ALL 5 questions + overall advice) into the explanation field of the FIRST Part 4 question (lowest questionId). Set explanation to "" for the other 4 Part 4 questions.
 
+For Part 4, the FIRST question's "explanation" field MUST contain the EXACT text format below. Copy this template VERBATIM and fill in the placeholders:
+
+BẢN PHÂN TÍCH CHUYÊN SÂU TỪ AI GEMINI:
+Chào bạn, tôi là giảng viên chuyên luyện thi TOPIK II. Dưới đây là phần chấm điểm và nhận xét chi tiết bài dịch của bạn.
+
 Trong kỳ thi TOPIK II (đặc biệt là phần Viết), việc sử dụng đúng ngữ pháp, văn phong (trang trọng/văn viết) và chính tả là yếu tố then chốt để đạt điểm cao.
 
 ---
 
-### **Câu {questionId}**
-**Đề bài:** "{question text}"
+### **Câu 1**
+**Đề bài:** "{question 1 text}"
 **Học sinh dịch:** "{user answer or (Để trống)}"
 
 1. **Đáp án của bạn:** **{score}/10 điểm.**
 2. **Nhận xét/Sửa lỗi:**
-- **Về ngữ pháp:** <analyze grammar usage, point out specific errors>
-- **Về văn phong:** <analyze politeness level, suggest TOPIK-appropriate style>
-- **Lưu ý:** <any additional notes, common mistakes, spelling issues>
+- **Về ngữ pháp:** <specific grammar analysis>
+- **Về văn phong:** <politeness/style notes>
+- **Lưu ý:** <spelling, common mistakes, extra tips>
 3. **Câu mẫu đề xuất (Văn phong TOPIK):**
-- **Văn nói trang trọng:** <natural polite version>
-- **Văn viết (Dạng văn xuôi/biểu đồ):** <formal written TOPIK version>
+- **Văn nói trang trọng:** "<polite spoken version>"
+- **Văn viết (Dạng văn xuôi/biểu đồ):** "<formal written version>"
 
-Also include a final section at the end:
- 
 ---
- 
+
+### **Câu 2**
+**Đề bài:** "{question 2 text}"
+**Học sinh dịch:** "{user answer or (Để trống)}"
+
+1. **Đáp án của bạn:** **{score}/10 điểm.**
+2. **Nhận xét/Sửa lỗi:**
+- **Lỗi ngữ pháp:** <specific error analysis>
+- **Lỗi chính tả:** <spelling error analysis>
+- **Về từ vựng:** <vocabulary notes>
+3. **Câu mẫu đề xuất (Văn phong TOPIK):**
+- **Văn viết chuẩn:** "<written version>"
+- **Văn nói trang trọng:** "<polite spoken version>"
+
+[Repeat this block for ALL 5 Part 4 questions — Câu 3, Câu 4, Câu 5]
+
+---
+
 ### **Tổng kết lời khuyên cho học sinh:**
-1. <tip 1>
-2. <tip 2>
-3. <tip 3>
+1. **<topic 1>:** <advice>
+2. **<topic 2>:** <advice>
+3. **<topic 3>:** <advice>
+
+Chúc bạn học tốt và đạt kết quả cao trong kỳ thi TOPIK sắp tới!
 
 Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 {
@@ -232,7 +254,7 @@ Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
       "score": 0-10,
       "userAnswer": "<what the student wrote>",
       "correctAnswer": "<the correct answer>",
-      "explanation": "<For Part 4: put everything here for ALL 5 questions + overall advice. Other Part 4 results: \"\". For Parts 1-3: short explanation.>"
+      "explanation": "<For Part 4: EXACT template above with all 5 questions + overall advice. Other Part 4 results: \"\". For Parts 1-3: short explanation.>"
     }
   ],
   "totalCorrect": 0,
