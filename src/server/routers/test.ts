@@ -35,9 +35,9 @@ Generate a test with EXACTLY 4 sections and 30 total questions.
 
 ### Phần 4: Dịch câu tự luận (5 câu)
 - Type: "translation"
-- Show a Korean sentence
-- User writes a full translation in Vietnamese
-- Accept any reasonable translation
+- Show a Vietnamese sentence
+- User writes a full translation in Korean
+- Accept any reasonable Korean translation
 
 Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 {
@@ -96,8 +96,8 @@ Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
           "id": 26,
           "type": "translation",
           "part": 4,
-          "question": "<Korean sentence to translate>",
-          "correctAnswer": "<reference translation in Vietnamese>",
+          "question": "<Vietnamese sentence to translate into Korean>",
+          "correctAnswer": "<reference translation in Korean>",
           "explanation": "<grammar notes or alternative translations>"
         }
       ]
@@ -107,7 +107,8 @@ Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 
 Rules:
 - Question IDs must be sequential across all sections: Part 1 = 1-10, Part 2 = 11-20, Part 3 = 21-25, Part 4 = 26-30
-- All question text and options must be in Korean (except translation answers)
+- Parts 1-3: question text and options must be in Korean only
+- Part 4: question text in Vietnamese, correctAnswer in Korean
 - Part 1 options: Korean only, NO Vietnamese/English translations
 - Explanations can be in Vietnamese or English (learner's preferred language)
 - Use TOPIK level-appropriate grammar and vocabulary
@@ -190,7 +191,7 @@ ${userAnswers}
 
 Grade each answer. Rules:
 - Part 1-3 (multiple-choice, conjugation, synonym): strict grading — exact match required
-- Part 4 (translation): GENEROUS — accept any reasonable Vietnamese translation that captures the meaning
+- Part 4 (translation Vi→Ko): GENEROUS — accept any reasonable Korean translation that captures the meaning of the Vietnamese sentence. Check for correct grammar particles, verb endings, and sentence structure
 - If wrong: explain WHY the answer is wrong and give a hint
 - If correct: brief confirmation
 

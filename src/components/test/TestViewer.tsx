@@ -162,7 +162,7 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                     />
                   ) : q.type === "translation" ? (
                     <textarea
-                      placeholder="Viết bản dịch của bạn..."
+                      placeholder="Viết câu tiếng Hàn..."
                       value={answers[q.id] ?? ""}
                       onChange={(e) => setAnswer(q.id, e.target.value)}
                       rows={3}

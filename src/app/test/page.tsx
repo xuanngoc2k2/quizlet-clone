@@ -41,7 +41,7 @@ export default function TestPage() {
               </div>
               <h1 className="font-display text-2xl font-bold text-primary-900">Test Generator</h1>
               <p className="mt-1 text-sm text-primary-500">
-                30 câu — 4 phần: Trắc nghiệm, Chia từ, Đồng nghĩa, Dịch thuật
+                30 câu — 4 phần: Trắc nghiệm, Chia từ, Đồng nghĩa, Dịch Việt→Hàn
               </p>
             </div>
 
@@ -70,7 +70,7 @@ export default function TestPage() {
                 { icon: BookOpen, label: "Trắc nghiệm", desc: "10 câu", color: "text-blue-600 bg-blue-50" },
                 { icon: PenTool, label: "Chia từ", desc: "10 câu", color: "text-emerald-600 bg-emerald-50" },
                 { icon: BookMarked, label: "Đồng nghĩa", desc: "5 câu", color: "text-violet-600 bg-violet-50" },
-                { icon: Languages, label: "Dịch thuật", desc: "5 câu", color: "text-amber-600 bg-amber-50" },
+                { icon: Languages, label: "Dịch Việt→Hàn", desc: "5 câu", color: "text-amber-600 bg-amber-50" },
               ].map((item) => (
                 <div key={item.label} className={`flex items-center gap-2 rounded-xl border p-3 ${item.color}`}>
                   <item.icon className="h-4 w-4 shrink-0" />
