@@ -272,13 +272,6 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                 if (!q) return null
                 const isPart4 = q.part === 4
                 if (isPart4) {
-                  const isFirst = r.questionId === partResults[0]?.questionId
-                  if (!isFirst) return null
-                  const combinedText = partResults.map((pr) => {
-                    const pq = questionsByPart[pr.questionId]
-                    if (!pq) return pr.explanation
-                    return pr.explanation
-                  }).filter(Boolean).join("\n\n---\n\n")
                   const totalScore = partResults.reduce((sum, pr) => sum + (pr.score ?? 0), 0)
                   const maxScore = partResults.length * 10
                   const avgColor = (totalScore / maxScore) >= 0.7
@@ -287,16 +280,11 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                     ? "text-amber-600"
                     : "text-red-600"
                   return (
-                    <div
-                      key="part4"
-                      className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm"
-                    >
+                    <div key="part4" className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
                       <div className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50 p-4">
                         <div className="mb-1 flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                              Phần 4
-                            </span>
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Phần 4</span>
                             <span className="text-xs text-amber-500">5 câu</span>
                           </div>
                           <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${avgColor} bg-amber-50`}>
@@ -304,10 +292,44 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                           </span>
                         </div>
                       </div>
-                      <div className="px-4 py-3">
-                        <p className="whitespace-pre-wrap text-xs leading-relaxed text-primary-700">
-                          {combinedText}
-                        </p>
+                      <div className="divide-y divide-amber-100">
+                        {partResults.map((pr) => {
+                          const pq = questionsByPart[pr.questionId]
+                          if (!pq) return null
+                          const qScoreColor = pr.score !== undefined
+                            ? pr.score >= 8 ? "text-emerald-600 bg-emerald-100"
+                            : pr.score >= 5 ? "text-amber-600 bg-amber-100"
+                            : "text-red-600 bg-red-100"
+                            : "text-amber-600 bg-amber-100"
+                          return (
+                            <div key={pr.questionId} className="p-4">
+                              <div className="mb-2 flex items-center gap-2">
+                                <span className="text-xs font-bold text-amber-500">Q{pr.questionId}.</span>
+                                {pr.score !== undefined && (
+                                  <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${qScoreColor}`}>
+                                    {pr.score}/10
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mb-1 text-sm font-medium text-primary-900">{pq.question}</p>
+                              <div className="mb-2 flex flex-col gap-0.5 text-xs">
+                                <p>
+                                  <span className="font-medium text-primary-600">Câu trả lời của bạn: </span>
+                                  <span className={pr.userAnswer ? "text-primary-700" : "text-red-400 italic"}>
+                                    {pr.userAnswer || "(Để trống)"}
+                                  </span>
+                                </p>
+                              </div>
+                              {pr.explanation && (
+                                <div className="rounded-lg bg-amber-50/50 px-3 py-2">
+                                  <p className="whitespace-pre-wrap text-xs leading-relaxed text-primary-700">
+                                    {pr.explanation}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                   )
