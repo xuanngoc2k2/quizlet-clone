@@ -6,17 +6,31 @@ import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
 import { TestViewer } from "@/components/test/TestViewer"
-import { Sparkles, Loader2, BookOpen, PenTool, BookMarked, Languages } from "lucide-react"
+import { Sparkles, Loader2, BookOpen, PenTool, BookMarked, Languages, Wand2, X } from "lucide-react"
 
 export default function TestPage() {
   const [prompt, setPrompt] = useState("")
+  const [refinedPrompt, setRefinedPrompt] = useState<string | null>(null)
+  const [editingPrompt, setEditingPrompt] = useState("")
   const [testData, setTestData] = useState<unknown>(null)
   const generate = api.test.generate.useMutation()
+  const refine = api.test.refinePrompt.useMutation()
 
-  async function handleGenerate() {
+  async function handleRefine() {
     if (!prompt.trim()) return
     try {
-      const result = await generate.mutateAsync({ prompt: prompt.trim() })
+      const result = await refine.mutateAsync({ prompt: prompt.trim() })
+      setRefinedPrompt(result.refined)
+      setEditingPrompt(result.refined)
+    } catch {
+      // error displayed via refine.error
+    }
+  }
+
+  async function handleGenerate() {
+    if (!editingPrompt.trim()) return
+    try {
+      const result = await generate.mutateAsync({ prompt: editingPrompt.trim() })
       setTestData(result)
     } catch {
       // error displayed via generate.error
@@ -25,8 +39,11 @@ export default function TestPage() {
 
   function handleReset() {
     setTestData(null)
+    setRefinedPrompt(null)
+    setEditingPrompt("")
     setPrompt("")
     generate.reset()
+    refine.reset()
   }
 
   return (
@@ -45,73 +62,125 @@ export default function TestPage() {
               </p>
             </div>
 
-            <div className="mb-4 space-y-2">
-              <p className="text-xs font-medium text-primary-400">Ví dụ:</p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  "TOPIK II ngữ pháp trung cấp",
-                  "Từ vựng chủ đề cuộc sống hàng ngày TOPIK I",
-                  "Ngữ pháp ~지만, ~고, ~서",
-                  "Luyện thi TOPIK II đọc hiểu",
-                ].map((ex) => (
-                  <button
-                    key={ex}
-                    onClick={() => setPrompt(ex)}
-                    className="rounded-full border border-primary-200 bg-white px-3 py-1 text-[11px] text-primary-500 transition-colors hover:border-primary-300 hover:text-primary-700"
-                  >
-                    {ex}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-6 grid grid-cols-2 gap-2">
-              {[
-                { icon: BookOpen, label: "Trắc nghiệm", desc: "10 câu", color: "text-blue-600 bg-blue-50" },
-                { icon: PenTool, label: "Chia từ", desc: "10 câu", color: "text-emerald-600 bg-emerald-50" },
-                { icon: BookMarked, label: "Đồng nghĩa", desc: "5 câu", color: "text-violet-600 bg-violet-50" },
-                { icon: Languages, label: "Dịch Việt→Hàn", desc: "5 câu", color: "text-amber-600 bg-amber-50" },
-              ].map((item) => (
-                <div key={item.label} className={`flex items-center gap-2 rounded-xl border p-3 ${item.color}`}>
-                  <item.icon className="h-4 w-4 shrink-0" />
-                  <div>
-                    <p className="text-xs font-semibold">{item.label}</p>
-                    <p className="text-[10px] opacity-70">{item.desc}</p>
+            {!refinedPrompt ? (
+              <>
+                <div className="mb-4 space-y-2">
+                  <p className="text-xs font-medium text-primary-400">Ví dụ:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      "TOPIK II ngữ pháp trung cấp",
+                      "Từ vựng chủ đề cuộc sống hàng ngày TOPIK I",
+                      "Ngữ pháp ~지만, ~고, ~서",
+                      "Unit 4-7 Korean Grammar in Use Beginning",
+                    ].map((ex) => (
+                      <button
+                        key={ex}
+                        onClick={() => setPrompt(ex)}
+                        className="rounded-full border border-primary-200 bg-white px-3 py-1 text-[11px] text-primary-500 transition-colors hover:border-primary-300 hover:text-primary-700"
+                      >
+                        {ex}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
 
-            <div className="mb-3 flex gap-2">
-              <input
-                placeholder="VD: Tạo đề thi TOPIK II ngữ pháp trung cấp..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
-                className="flex-1 rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm outline-none transition-all placeholder:text-primary-300 focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
-              />
-              <Button
-                onClick={handleGenerate}
-                variant="gradient"
-                disabled={!prompt.trim() || generate.isLoading}
-                loading={generate.isLoading}
-              >
-                {generate.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                Generate
-              </Button>
-            </div>
+                <div className="mb-6 grid grid-cols-2 gap-2">
+                  {[
+                    { icon: BookOpen, label: "Trắc nghiệm", desc: "10 câu", color: "text-blue-600 bg-blue-50" },
+                    { icon: PenTool, label: "Chia từ", desc: "10 câu", color: "text-emerald-600 bg-emerald-50" },
+                    { icon: BookMarked, label: "Đồng nghĩa", desc: "5 câu", color: "text-violet-600 bg-violet-50" },
+                    { icon: Languages, label: "Dịch Việt→Hàn", desc: "5 câu", color: "text-amber-600 bg-amber-50" },
+                  ].map((item) => (
+                    <div key={item.label} className={`flex items-center gap-2 rounded-xl border p-3 ${item.color}`}>
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <div>
+                        <p className="text-xs font-semibold">{item.label}</p>
+                        <p className="text-[10px] opacity-70">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-            {generate.isLoading && (
-              <div className="flex flex-col items-center py-12">
-                <Loader2 className="mb-3 h-8 w-8 animate-spin text-primary-400" />
-                <p className="text-sm text-primary-500">Generating your test...</p>
-              </div>
-            )}
+                <div className="mb-3 flex gap-2">
+                  <input
+                    placeholder="VD: Unit 4-7 Korean Grammar in Use Beginning..."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleRefine()}
+                    className="flex-1 rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm outline-none transition-all placeholder:text-primary-300 focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
+                  />
+                  <Button
+                    onClick={handleRefine}
+                    variant="gradient"
+                    disabled={!prompt.trim() || refine.isLoading}
+                    loading={refine.isLoading}
+                  >
+                    {refine.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+                    Optimize
+                  </Button>
+                </div>
 
-            {generate.error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-                {generate.error.message}
-              </div>
+                {refine.isLoading && (
+                  <div className="flex flex-col items-center py-8">
+                    <Loader2 className="mb-3 h-6 w-6 animate-spin text-primary-400" />
+                    <p className="text-sm text-primary-500">Optimizing prompt...</p>
+                  </div>
+                )}
+
+                {refine.error && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+                    {refine.error.message}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="mb-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-xs font-semibold text-primary-400">
+                      Refined Prompt — bạn có thể chỉnh sửa trước khi Generate
+                    </p>
+                    <button
+                      onClick={() => { setRefinedPrompt(null); setEditingPrompt(""); refine.reset() }}
+                      className="text-xs font-medium text-primary-500 hover:text-primary-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <textarea
+                    value={editingPrompt}
+                    onChange={(e) => setEditingPrompt(e.target.value)}
+                    rows={6}
+                    className="w-full resize-none rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleGenerate}
+                    variant="gradient"
+                    className="flex-1"
+                    disabled={!editingPrompt.trim() || generate.isLoading}
+                    loading={generate.isLoading}
+                  >
+                    {generate.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    Generate
+                  </Button>
+                </div>
+
+                {generate.isLoading && (
+                  <div className="flex flex-col items-center py-8">
+                    <Loader2 className="mb-3 h-8 w-8 animate-spin text-primary-400" />
+                    <p className="text-sm text-primary-500">Generating your test...</p>
+                  </div>
+                )}
+
+                {generate.error && (
+                  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+                    {generate.error.message}
+                  </div>
+                )}
+              </>
             )}
           </>
         ) : (

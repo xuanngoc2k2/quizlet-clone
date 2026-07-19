@@ -210,6 +210,16 @@ Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
   "totalQuestions": 0
 }`
 
+const buildRefinePrompt = (prompt: string) =>
+  `You are a Korean language test prompt optimizer. The user wants a test but their prompt may be vague or refer to textbook units without listing specifics.
+
+User prompt: "${prompt}"
+
+If the prompt mentions a textbook (like "Korean Grammar in Use") and unit numbers, EXPAND with the exact grammar points from those units.
+If the prompt is vague (e.g. "intermediate grammar"), make reasonable assumptions about what topics to include.
+
+Return ONLY the expanded prompt text — a detailed, specific test specification. No JSON, no markdown, no extra text.`
+
 const gradeInputSchema = z.object({
   questions: z.array(
     z.object({
@@ -225,7 +235,45 @@ const gradeInputSchema = z.object({
   answers: z.record(z.string()),
 })
 
+async function callGeminiText(systemPrompt: string) {
+  const res = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: systemPrompt }] }],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 1024,
+      },
+    }),
+  })
+
+  if (!res.ok) {
+    const errorText = await res.text()
+    if (res.status === 429) {
+      throw new Error("AI quota exceeded. Please wait and try again.")
+    }
+    throw new Error(`Gemini API error (${res.status}): ${errorText}`)
+  }
+
+  const data = await res.json()
+  const candidate = data?.candidates?.[0]
+  if (!candidate) {
+    throw new Error(`Empty Gemini response (finishReason: ${candidate?.finishReason ?? "unknown"})`)
+  }
+  const text = candidate?.content?.parts?.[0]?.text
+  if (!text) throw new Error("Empty content from Gemini")
+  return text.trim()
+}
+
 export const testRouter = router({
+  refinePrompt: publicProcedure
+    .input(z.object({ prompt: z.string().min(1, "Prompt is required") }))
+    .mutation(async ({ input }) => {
+      const refined = await callGeminiText(buildRefinePrompt(input.prompt))
+      return { refined }
+    }),
+
   generate: publicProcedure
     .input(z.object({ prompt: z.string().min(1, "Prompt is required") }))
     .mutation(async ({ input }) => {
