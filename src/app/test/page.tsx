@@ -6,7 +6,7 @@ import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
 import { TestViewer } from "@/components/test/TestViewer"
-import { Sparkles, Loader2 } from "lucide-react"
+import { Sparkles, Loader2, BookOpen, PenTool, BookMarked, Languages } from "lucide-react"
 
 export default function TestPage() {
   const [prompt, setPrompt] = useState("")
@@ -41,18 +41,18 @@ export default function TestPage() {
               </div>
               <h1 className="font-display text-2xl font-bold text-primary-900">Test Generator</h1>
               <p className="mt-1 text-sm text-primary-500">
-                Describe the test you want, AI will create it
+                30 câu — 4 phần: Trắc nghiệm, Chia từ, Đồng nghĩa, Dịch thuật
               </p>
             </div>
 
             <div className="mb-4 space-y-2">
-              <p className="text-xs font-medium text-primary-400">Example prompts:</p>
+              <p className="text-xs font-medium text-primary-400">Ví dụ:</p>
               <div className="flex flex-wrap gap-2">
                 {[
-                  "TOPIK II grammar practice intermediate",
-                  "Vocabulary test about daily life TOPIK I",
-                  "Mixed grammar + vocab beginner 20 questions",
-                  "Practice ~지만, ~고, ~서 connectors",
+                  "TOPIK II ngữ pháp trung cấp",
+                  "Từ vựng chủ đề cuộc sống hàng ngày TOPIK I",
+                  "Ngữ pháp ~지만, ~고, ~서",
+                  "Luyện thi TOPIK II đọc hiểu",
                 ].map((ex) => (
                   <button
                     key={ex}
@@ -65,9 +65,26 @@ export default function TestPage() {
               </div>
             </div>
 
+            <div className="mb-6 grid grid-cols-2 gap-2">
+              {[
+                { icon: BookOpen, label: "Trắc nghiệm", desc: "10 câu", color: "text-blue-600 bg-blue-50" },
+                { icon: PenTool, label: "Chia từ", desc: "10 câu", color: "text-emerald-600 bg-emerald-50" },
+                { icon: BookMarked, label: "Đồng nghĩa", desc: "5 câu", color: "text-violet-600 bg-violet-50" },
+                { icon: Languages, label: "Dịch thuật", desc: "5 câu", color: "text-amber-600 bg-amber-50" },
+              ].map((item) => (
+                <div key={item.label} className={`flex items-center gap-2 rounded-xl border p-3 ${item.color}`}>
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold">{item.label}</p>
+                    <p className="text-[10px] opacity-70">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <div className="mb-3 flex gap-2">
               <input
-                placeholder="e.g. Create a grammar test for TOPIK II intermediate..."
+                placeholder="VD: Tạo đề thi TOPIK II ngữ pháp trung cấp..."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
@@ -106,7 +123,7 @@ export default function TestPage() {
               &larr; Back
             </button>
             <TestViewer
-              test={testData as { title: string; description: string; questions: { id: number; type: "multiple-choice" | "conjugation" | "synonym" | "translation"; question: string; options?: string[]; correctAnswer: string; explanation: string }[] }}
+              test={testData as { title: string; description: string; sections: { name: string; instruction: string; questions: { id: number; type: "multiple-choice" | "conjugation" | "synonym" | "translation"; part: number; question: string; options?: string[]; correctAnswer: string; explanation: string }[] }[] }}
               onReset={handleReset}
             />
           </>

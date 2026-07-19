@@ -5,41 +5,113 @@ import { env } from "@/lib/env"
 const GEMINI_API_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent"
 
-const buildTestPrompt = (prompt: string) => `You are a TOPIK II test generator. Create a Korean language test based on the user's request.
+const buildTestPrompt = (prompt: string) => `You are a TOPIK test generator. Create a Korean language test based on the user's request.
 
 User request: "${prompt}"
 
-Generate a test with EXACTLY 12 questions mixing these types:
-- "multiple-choice": Grammar/vocabulary MC with 4 options
-- "conjugation": Fill blank with correct verb conjugation
-- "synonym": Choose the synonym or similar expression
-- "translation": Translate a Korean sentence (English or Vietnamese)
+Generate a test with EXACTLY 4 sections and 30 total questions.
+
+## Section structure
+
+### Phần 1: Trắc nghiệm khách quan (10 câu)
+- Type: "multiple-choice"
+- Grammar/vocabulary gap-fill with 4 options
+- Question text in Korean with ___ for the blank
+- Options in KOREAN ONLY — absolutely NO Vietnamese or English translations next to options
+- The Vietnamese meaning should ONLY appear in the "explanation" field
+
+### Phần 2: Chia dạng từ trong ngoặc (10 câu)
+- Type: "conjugation"
+- Show a Korean sentence with a verb/adjective in parentheses ()
+- User must conjugate the word to fit the sentence
+- Example: "날씨가 점점 (따뜻하다) ___." → correctAnswer: "따뜻해지고 있어요"
+
+### Phần 3: Tìm câu đồng nghĩa (5 câu)
+- Type: "synonym"
+- Show a Korean sentence
+- 4 options are FULL KOREAN SENTENCES
+- User picks the option with the SAME meaning as the original
+- Important for language proficiency exams
+
+### Phần 4: Dịch câu tự luận (5 câu)
+- Type: "translation"
+- Show a Korean sentence
+- User writes a full translation in Vietnamese
+- Accept any reasonable translation
 
 Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 {
   "title": "<test title>",
   "description": "<brief description>",
-  "questions": [
+  "sections": [
     {
-      "id": 1,
-      "type": "multiple-choice" | "conjugation" | "synonym" | "translation",
-      "question": "<question text in Korean, with ___ for blanks>",
-      "options": ["<for multiple-choice: 4 options>"],
-      "correctAnswer": "<correct answer>",
-      "explanation": "<why this answer is correct in English or Vietnamese based on context>"
+      "name": "Phần 1: Trắc nghiệm khách quan",
+      "instruction": "Chọn đáp án đúng nhất điền vào khoảng trống.",
+      "questions": [
+        {
+          "id": 1,
+          "type": "multiple-choice",
+          "part": 1,
+          "question": "<Korean sentence with ___ for blank>",
+          "options": ["<option 1>", "<option 2>", "<option 3>", "<option 4>"],
+          "correctAnswer": "<correct option>",
+          "explanation": "<explain why + include Vietnamese meaning here>"
+        }
+      ]
+    },
+    {
+      "name": "Phần 2: Chia dạng từ trong ngoặc",
+      "instruction": "Chia dạng đúng của từ trong ngoặc.",
+      "questions": [
+        {
+          "id": 11,
+          "type": "conjugation",
+          "part": 2,
+          "question": "<Korean sentence with (word) to conjugate>",
+          "correctAnswer": "<conjugated form>",
+          "explanation": "<explanation in English or Vietnamese>"
+        }
+      ]
+    },
+    {
+      "name": "Phần 3: Tìm câu đồng nghĩa",
+      "instruction": "Chọn câu có nghĩa tương đương với câu đã cho.",
+      "questions": [
+        {
+          "id": 21,
+          "type": "synonym",
+          "part": 3,
+          "question": "<original Korean sentence>",
+          "options": ["<full sentence A>", "<full sentence B>", "<full sentence C>", "<full sentence D>"],
+          "correctAnswer": "<correct full sentence>",
+          "explanation": "<explain why this sentence has the same meaning>"
+        }
+      ]
+    },
+    {
+      "name": "Phần 4: Dịch câu tự luận",
+      "instruction": "Dịch câu sau sang tiếng Việt.",
+      "questions": [
+        {
+          "id": 26,
+          "type": "translation",
+          "part": 4,
+          "question": "<Korean sentence to translate>",
+          "correctAnswer": "<reference translation in Vietnamese>",
+          "explanation": "<grammar notes or alternative translations>"
+        }
+      ]
     }
   ]
 }
 
 Rules:
-- All question text must be in Korean
-- Each question must have a clear single correct answer
-- "translation" questions: show Korean sentence, ask for translation
-- "conjugation" questions: show a sentence with ___ for the blank
-- "synonym" questions: show a phrase, ask for the closest synonym
-- Explanations should help the learner understand WHY
-- Use TOPIK II level appropriate grammar and vocabulary
-- Include a mix of grammar, vocabulary, and expression questions`
+- Question IDs must be sequential across all sections: Part 1 = 1-10, Part 2 = 11-20, Part 3 = 21-25, Part 4 = 26-30
+- All question text and options must be in Korean (except translation answers)
+- Part 1 options: Korean only, NO Vietnamese/English translations
+- Explanations can be in Vietnamese or English (learner's preferred language)
+- Use TOPIK level-appropriate grammar and vocabulary
+- Each question must have a clear single correct answer`
 
 async function callGemini(systemPrompt: string) {
   const res = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
@@ -85,19 +157,71 @@ async function callGemini(systemPrompt: string) {
   }
 }
 
+const questionSchema = z.object({
+  id: z.number(),
+  type: z.enum(["multiple-choice", "conjugation", "synonym", "translation"]),
+  part: z.number().min(1).max(4),
+  question: z.string(),
+  options: z.array(z.string()).optional(),
+  correctAnswer: z.string(),
+  explanation: z.string(),
+})
+
+const sectionSchema = z.object({
+  name: z.string(),
+  instruction: z.string(),
+  questions: z.array(questionSchema),
+})
+
 const testOutputSchema = z.object({
   title: z.string(),
   description: z.string(),
+  sections: z.array(sectionSchema),
+})
+
+const gradePrompt = (questions: string, userAnswers: string) =>
+  `You are a Korean language teacher grading a student's test.
+
+Original test questions:
+${questions}
+
+Student's answers:
+${userAnswers}
+
+Grade each answer. Rules:
+- Part 1-3 (multiple-choice, conjugation, synonym): strict grading — exact match required
+- Part 4 (translation): GENEROUS — accept any reasonable Vietnamese translation that captures the meaning
+- If wrong: explain WHY the answer is wrong and give a hint
+- If correct: brief confirmation
+
+Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
+{
+  "results": [
+    {
+      "questionId": 1,
+      "isCorrect": true/false,
+      "userAnswer": "<what the student wrote>",
+      "correctAnswer": "<the correct answer>",
+      "explanation": "<personalized feedback — detailed if wrong, brief if correct>"
+    }
+  ],
+  "totalCorrect": 0,
+  "totalQuestions": 0
+}`
+
+const gradeInputSchema = z.object({
   questions: z.array(
     z.object({
       id: z.number(),
       type: z.enum(["multiple-choice", "conjugation", "synonym", "translation"]),
+      part: z.number().min(1).max(4),
       question: z.string(),
       options: z.array(z.string()).optional(),
       correctAnswer: z.string(),
       explanation: z.string(),
     }),
   ),
+  answers: z.record(z.string()),
 })
 
 export const testRouter = router({
@@ -106,6 +230,29 @@ export const testRouter = router({
     .mutation(async ({ input }) => {
       const raw = await callGemini(buildTestPrompt(input.prompt))
       const parsed = testOutputSchema.parse(raw)
+      return parsed
+    }),
+
+  grade: publicProcedure
+    .input(gradeInputSchema)
+    .mutation(async ({ input }) => {
+      const questionsStr = JSON.stringify(input.questions.map((q) => ({
+        id: q.id, type: q.type, part: q.part, question: q.question,
+        options: q.options, correctAnswer: q.correctAnswer,
+      })), null, 2)
+      const answersStr = JSON.stringify(input.answers, null, 2)
+      const raw = await callGemini(gradePrompt(questionsStr, answersStr))
+      const parsed = z.object({
+        results: z.array(z.object({
+          questionId: z.number(),
+          isCorrect: z.boolean(),
+          userAnswer: z.string(),
+          correctAnswer: z.string(),
+          explanation: z.string(),
+        })),
+        totalCorrect: z.number(),
+        totalQuestions: z.number(),
+      }).parse(raw)
       return parsed
     }),
 })
