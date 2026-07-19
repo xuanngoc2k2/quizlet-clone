@@ -38,6 +38,7 @@ Generate a test with EXACTLY 4 sections and 30 total questions.
 - Show a Vietnamese sentence
 - User writes a full translation in Korean
 - Accept any reasonable Korean translation
+- Include a "grammarHint" field for each question — suggest relevant grammar structures (e.g. "-자마자", "-(으)ㄹ 줄 알다") to help the learner
 
 Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 {
@@ -97,6 +98,7 @@ Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
           "type": "translation",
           "part": 4,
           "question": "<Vietnamese sentence to translate into Korean>",
+          "grammarHint": "<grammar structure hint e.g. -(으)ㄹ 줄 알다, -자마자>",
           "correctAnswer": "<reference translation in Korean>",
           "explanation": "<grammar notes or alternative translations>"
         }
@@ -164,6 +166,7 @@ const questionSchema = z.object({
   part: z.number().min(1).max(4),
   question: z.string(),
   options: z.array(z.string()).optional(),
+  grammarHint: z.string().optional(),
   correctAnswer: z.string(),
   explanation: z.string(),
 })
@@ -238,6 +241,7 @@ const gradeInputSchema = z.object({
       part: z.number().min(1).max(4),
       question: z.string(),
       options: z.array(z.string()).optional(),
+      grammarHint: z.string().optional(),
       correctAnswer: z.string(),
       explanation: z.string(),
     }),

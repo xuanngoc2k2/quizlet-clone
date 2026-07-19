@@ -192,7 +192,7 @@ export default function TestPage() {
               &larr; Back
             </button>
             <TestViewer
-              test={testData as { title: string; description: string; sections: { name: string; instruction: string; questions: { id: number; type: "multiple-choice" | "conjugation" | "synonym" | "translation"; part: number; question: string; options?: string[]; correctAnswer: string; explanation: string }[] }[] }}
+              test={testData as { title: string; description: string; sections: { name: string; instruction: string; questions: { id: number; type: "multiple-choice" | "conjugation" | "synonym" | "translation"; part: number; question: string; options?: string[]; grammarHint?: string; correctAnswer: string; explanation: string }[] }[] }}
               onReset={handleReset}
             />
           </>

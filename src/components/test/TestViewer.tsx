@@ -11,6 +11,7 @@ type Question = {
   part: number
   question: string
   options?: string[]
+  grammarHint?: string
   correctAnswer: string
   explanation: string
 }
@@ -161,13 +162,26 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                       className="w-full rounded-xl border border-primary-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
                     />
                   ) : q.type === "translation" ? (
-                    <textarea
-                      placeholder="Viết câu tiếng Hàn..."
-                      value={answers[q.id] ?? ""}
-                      onChange={(e) => setAnswer(q.id, e.target.value)}
-                      rows={3}
-                      className="w-full resize-none rounded-xl border border-primary-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
-                    />
+                    <div>
+                      <textarea
+                        placeholder="Viết câu tiếng Hàn..."
+                        value={answers[q.id] ?? ""}
+                        onChange={(e) => setAnswer(q.id, e.target.value)}
+                        rows={3}
+                        className="w-full resize-none rounded-xl border border-primary-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
+                      />
+                      {q.grammarHint && (
+                        <details className="mt-2 group">
+                          <summary className="cursor-pointer text-xs font-medium text-amber-600 hover:text-amber-700 select-none">
+                            <span className="group-open:hidden">Xem gợi ý ngữ pháp</span>
+                            <span className="hidden group-open:inline">Ẩn gợi ý ngữ pháp</span>
+                          </summary>
+                          <p className="mt-1.5 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                            {q.grammarHint}
+                          </p>
+                        </details>
+                      )}
+                    </div>
                   ) : null}
                 </div>
               ))}
