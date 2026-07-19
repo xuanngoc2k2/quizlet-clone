@@ -255,6 +255,70 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
               {partResults.map((r) => {
                 const q = questionsByPart[r.questionId]
                 if (!q) return null
+                const isPart4 = q.part === 4
+                if (isPart4) {
+                  const sections = r.explanation.split(/\[오답 분석\]|\[문법 구조\]|\[어휘\]|\[모범 답안\]|\[학습 팁\]/).filter(Boolean)
+                  const labels = ["오답 분석", "문법 구조", "어휘", "모범 답안", "학습 팁"]
+                  const parts: { label: string; content: string }[] = []
+                  let idx = 0
+                  labels.forEach((label) => {
+                    const regex = new RegExp(`\\[${label}\\]`)
+                    const match = r.explanation.match(regex)
+                    if (match) {
+                      const startIdx = match.index! + match[0].length
+                      const nextLabel = labels.slice(labels.indexOf(label) + 1).find((l) => {
+                        const nr = new RegExp(`\\[${l}\\]`).exec(r.explanation)
+                        return nr
+                      })
+                      const endIdx = nextLabel
+                        ? new RegExp(`\\[${nextLabel}\\]`).exec(r.explanation)!.index!
+                        : r.explanation.length
+                      const content = r.explanation.slice(startIdx, endIdx).trim()
+                      parts.push({ label, content })
+                    }
+                  })
+                  return (
+                    <div
+                      key={r.questionId}
+                      className="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm"
+                    >
+                      <div className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50 p-4">
+                        <div className="mb-2 flex items-center gap-2">
+                          <span className="text-xs font-bold text-amber-500">Q{r.questionId}.</span>
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                            Phần 4
+                          </span>
+                          {r.isCorrect ? (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
+                        <p className="text-sm font-medium text-amber-900">{q.question}</p>
+                        <div className="mt-3 flex flex-col gap-1 text-xs">
+                          <p>
+                            <span className="font-medium text-red-600">Đáp án của bạn: </span>
+                            <span className="text-red-500">{r.userAnswer || "(Để trống)"}</span>
+                          </p>
+                          <p>
+                            <span className="font-medium text-emerald-600">Câu mẫu: </span>
+                            <span className="text-emerald-700">{r.correctAnswer}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="divide-y divide-amber-100">
+                        {parts.map((p) => (
+                          <div key={p.label} className="px-4 py-3">
+                            <p className="mb-1 text-[11px] font-bold text-amber-700">{p.label}</p>
+                            <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-primary-700">
+                              {p.content}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                }
                 return (
                   <div
                     key={r.questionId}

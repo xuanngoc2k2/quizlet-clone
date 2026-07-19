@@ -181,7 +181,7 @@ const testOutputSchema = z.object({
 })
 
 const gradePrompt = (questions: string, userAnswers: string) =>
-  `You are a Korean language teacher grading a student's test.
+  `You are a TOPIK writing teacher (giảng viên chuyên luyện thi TOPIK II). Grade the student's test and give detailed feedback.
 
 Original test questions:
 ${questions}
@@ -190,10 +190,20 @@ Student's answers:
 ${userAnswers}
 
 Grade each answer. Rules:
-- Part 1-3 (multiple-choice, conjugation, synonym): strict grading — exact match required
-- Part 4 (translation Vi→Ko): GENEROUS — accept any reasonable Korean translation that captures the meaning of the Vietnamese sentence. Check for correct grammar particles, verb endings, and sentence structure
-- If wrong: explain WHY the answer is wrong and give a hint
-- If correct: brief confirmation
+- Part 1-3 (multiple-choice, conjugation, synonym): strict grading — exact match required. Short explanation.
+- Part 4 (translation Vi→Ko): Grade generously but thoroughly. For Part 4, the "explanation" field MUST contain ALL of the following sections with Korean section headers:
+
+[오답 분석] — If wrong/empty, explain what went wrong. If correct, say "잘했습니다!"
+
+[문법 구조] — Explain the key grammar structures needed (e.g., -(으)니까, -자마자, -(으)ㄹ 줄 알다). Mention politeness level/style (văn nói vs văn viết TOPIK).
+
+[어휘] — Key vocabulary breakdown.
+
+[모범 답안] — Provide 2 model answers:
+Cách 1 (tự nhiên): <natural spoken version with -아요/어요>
+Cách 2 (văn viết TOPIK): <formal written version with -습니다/ㅂ니다 or -다/ㄴ다>
+
+[학습 팁] — Specific study tip related to this grammar point.
 
 Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 {
@@ -203,7 +213,7 @@ Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
       "isCorrect": true/false,
       "userAnswer": "<what the student wrote>",
       "correctAnswer": "<the correct answer>",
-      "explanation": "<personalized feedback — detailed if wrong, brief if correct>"
+      "explanation": "<For Part 4: full structured feedback with all sections above. For Parts 1-3: short explanation.>"
     }
   ],
   "totalCorrect": 0,
