@@ -334,12 +334,12 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                     </div>
                     <p className="mb-2 whitespace-pre-wrap text-sm font-medium text-primary-900">{q.question}</p>
                     <div className="flex flex-col gap-1 text-xs">
-                      {!r.isCorrect && (
-                        <p>
-                          <span className="font-medium text-red-600">Your answer: </span>
-                          <span className="text-red-500">{r.userAnswer || "(empty)"}</span>
-                        </p>
-                      )}
+                      <p>
+                        <span className="font-medium text-primary-600">Your answer: </span>
+                        <span className={r.isCorrect ? "text-emerald-600" : "text-red-500"}>
+                          {r.userAnswer || "(empty)"}
+                        </span>
+                      </p>
                       <p>
                         <span className="font-medium text-emerald-600">Correct: </span>
                         <span className="text-emerald-700">{r.correctAnswer}</span>
