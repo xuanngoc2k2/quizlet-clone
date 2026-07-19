@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { api } from "@/lib/trpc-provider"
-import { removeOwnSetId, getOwnSetIds } from "@/lib/local-storage"
+import { removeOwnSetId } from "@/lib/local-storage"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
@@ -22,7 +22,6 @@ export default function ViewSetPage() {
   const { data: set, isLoading, error } = api.sets.getById.useQuery({ id })
   const deleteSet = api.sets.delete.useMutation()
   const [showDelete, setShowDelete] = useState(false)
-  const isOwnSet = getOwnSetIds().includes(id)
 
   async function handleDelete() {
     await deleteSet.mutateAsync({ id })
@@ -84,20 +83,16 @@ export default function ViewSetPage() {
               Study
             </Button>
           </Link>
-          {isOwnSet && (
-            <>
-              <Link href={`/set/${id}/edit`}>
-                <Button variant="secondary">
-                  <PenLine className="h-4 w-4" />
-                  Edit
-                </Button>
-              </Link>
-              <Button variant="danger" onClick={() => setShowDelete(true)}>
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </Button>
-            </>
-          )}
+          <Link href={`/set/${id}/edit`}>
+            <Button variant="secondary">
+              <PenLine className="h-4 w-4" />
+              Edit
+            </Button>
+          </Link>
+          <Button variant="danger" onClick={() => setShowDelete(true)}>
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </Button>
         </div>
 
         <h2 className="mb-3 font-display text-sm font-semibold text-primary-700">Cards</h2>
