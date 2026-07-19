@@ -257,8 +257,8 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
                 if (!q) return null
                 const isPart4 = q.part === 4
                 if (isPart4) {
-                  const sections = r.explanation.split(/\[오답 분석\]|\[문법 구조\]|\[어휘\]|\[모범 답안\]|\[학습 팁\]/).filter(Boolean)
-                  const labels = ["오답 분석", "문법 구조", "어휘", "모범 답안", "학습 팁"]
+                  const sections = r.explanation.split(/\[Phân tích lỗi\]|\[Giải thích ngữ pháp\]|\[Từ vựng\]|\[Câu mẫu\]|\[Mẹo học\]/).filter(Boolean)
+                  const labels = ["Phân tích lỗi", "Giải thích ngữ pháp", "Từ vựng", "Câu mẫu", "Mẹo học"]
                   const parts: { label: string; content: string }[] = []
                   let idx = 0
                   labels.forEach((label) => {

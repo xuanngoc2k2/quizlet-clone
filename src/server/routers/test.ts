@@ -191,19 +191,19 @@ ${userAnswers}
 
 Grade each answer. Rules:
 - Part 1-3 (multiple-choice, conjugation, synonym): strict grading — exact match required. Short explanation.
-- Part 4 (translation Vi→Ko): Grade generously but thoroughly. For Part 4, the "explanation" field MUST contain ALL of the following sections with Korean section headers:
+- Part 4 (translation Vi→Ko): Grade generously but thoroughly. For Part 4, the "explanation" field MUST contain ALL of the following sections with Vietnamese section headers:
 
-[오답 분석] — If wrong/empty, explain what went wrong. If correct, say "잘했습니다!"
+[Phân tích lỗi] — If wrong/empty, explain what went wrong in Vietnamese. If correct, say "잘했습니다!"
 
-[문법 구조] — Explain the key grammar structures needed (e.g., -(으)니까, -자마자, -(으)ㄹ 줄 알다). Mention politeness level/style (văn nói vs văn viết TOPIK).
+[Giải thích ngữ pháp] — Explain the key grammar structures needed in Vietnamese (e.g., -(으)니까, -자마자, -(으)ㄹ 줄 알다). Mention politeness level/style (văn nói vs văn viết TOPIK).
 
-[어휘] — Key vocabulary breakdown.
+[Từ vựng] — Key vocabulary breakdown in Vietnamese.
 
-[모범 답안] — Provide 2 model answers:
+[Câu mẫu] — Provide 2 model answers:
 Cách 1 (tự nhiên): <natural spoken version with -아요/어요>
 Cách 2 (văn viết TOPIK): <formal written version with -습니다/ㅂ니다 or -다/ㄴ다>
 
-[학습 팁] — Specific study tip related to this grammar point.
+[Mẹo học] — Specific study tip related to this grammar point in Vietnamese.
 
 Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 {
