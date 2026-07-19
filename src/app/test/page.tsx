@@ -13,8 +13,10 @@ export default function TestPage() {
   const [refinedPrompt, setRefinedPrompt] = useState<string | null>(null)
   const [editingPrompt, setEditingPrompt] = useState("")
   const [testData, setTestData] = useState<unknown>(null)
+  const [testHistoryId, setTestHistoryId] = useState<string | null>(null)
   const generate = api.test.generate.useMutation()
   const refine = api.test.refinePrompt.useMutation()
+  const saveHistory = api.testHistory.save.useMutation()
 
   async function handleRefine() {
     if (!prompt.trim()) return
@@ -32,6 +34,8 @@ export default function TestPage() {
     try {
       const result = await generate.mutateAsync({ prompt: editingPrompt.trim() })
       setTestData(result)
+      const saved = await saveHistory.mutateAsync({ test: result })
+      setTestHistoryId(saved.id)
     } catch {
       // error displayed via generate.error
     }
@@ -39,11 +43,13 @@ export default function TestPage() {
 
   function handleReset() {
     setTestData(null)
+    setTestHistoryId(null)
     setRefinedPrompt(null)
     setEditingPrompt("")
     setPrompt("")
     generate.reset()
     refine.reset()
+    saveHistory.reset()
   }
 
   return (
@@ -193,6 +199,7 @@ export default function TestPage() {
             </button>
             <TestViewer
               test={testData as { title: string; description: string; sections: { name: string; instruction: string; questions: { id: number; type: "multiple-choice" | "conjugation" | "synonym" | "translation"; part: number; question: string; options?: string[]; grammarHint?: string; correctAnswer: string; explanation: string }[] }[] }}
+              testHistoryId={testHistoryId ?? undefined}
               onReset={handleReset}
             />
           </>

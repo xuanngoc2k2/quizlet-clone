@@ -42,3 +42,31 @@ model CardProgress {
   @@index([setId, deviceId])
   @@index([deviceId])
 }
+
+model TestHistory {
+  id          String        @id @default(cuid())
+  deviceId    String
+  title       String
+  description String
+  sections    Json
+  createdAt   DateTime      @default(now())
+  attempts    TestAttempt[]
+
+  @@index([deviceId])
+  @@index([createdAt])
+}
+
+model TestAttempt {
+  id              String      @id @default(cuid())
+  testHistoryId   String
+  deviceId        String
+  answers         Json
+  results         Json
+  totalCorrect    Int
+  totalQuestions  Int
+  createdAt       DateTime    @default(now())
+  testHistory     TestHistory @relation(fields: [testHistoryId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId])
+  @@index([testHistoryId])
+}

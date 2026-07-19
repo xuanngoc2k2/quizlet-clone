@@ -41,12 +41,13 @@ type GradeResult = {
   totalQuestions: number
 }
 
-export function TestViewer({ test, onReset }: { test: TestData; onReset: () => void }) {
+export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; testHistoryId?: string; onReset: () => void }) {
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [submitted, setSubmitted] = useState(false)
   const [showExplanations, setShowExplanations] = useState(false)
   const [gradeResult, setGradeResult] = useState<GradeResult | null>(null)
   const grade = api.test.grade.useMutation()
+  const saveAttempt = api.testHistory.saveAttempt.useMutation()
 
   const allQuestions = test.sections.flatMap((s) => s.questions)
 
@@ -76,6 +77,15 @@ export function TestViewer({ test, onReset }: { test: TestData; onReset: () => v
       })
       setGradeResult(result)
       setSubmitted(true)
+      if (testHistoryId) {
+        saveAttempt.mutate({
+          testHistoryId,
+          answers,
+          results: result.results,
+          totalCorrect: result.totalCorrect,
+          totalQuestions: result.totalQuestions,
+        })
+      }
     } catch {
       // error displayed via grade.error
     }
