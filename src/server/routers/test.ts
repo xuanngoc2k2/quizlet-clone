@@ -163,7 +163,7 @@ async function callGemini(systemPrompt: string) {
 const questionSchema = z.object({
   id: z.number(),
   type: z.enum(["multiple-choice", "conjugation", "synonym", "translation"]),
-  part: z.number().min(1).max(4),
+  part: z.number().min(1).max(4).optional().default(1),
   question: z.string(),
   options: z.array(z.string()).optional(),
   grammarHint: z.string().optional(),
@@ -331,6 +331,12 @@ export const testRouter = router({
     .mutation(async ({ input }) => {
       const raw = await callGemini(buildTestPrompt(input.prompt))
       const parsed = testOutputSchema.parse(raw)
+      parsed.sections.forEach((section, idx) => {
+        const partNum = idx + 1
+        section.questions.forEach((q) => {
+          q.part = partNum
+        })
+      })
       return parsed
     }),
 
