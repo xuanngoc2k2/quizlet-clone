@@ -102,23 +102,43 @@ export default function ViewSetPage() {
 
         <h2 className="mb-3 font-display text-sm font-semibold text-primary-700">Cards</h2>
         <div className="flex flex-col gap-2">
-          {set.cards.map((card, i) => (
-            <div
-              key={card.id}
-              className="flex items-center gap-3 rounded-2xl border border-primary-100 bg-white p-4 shadow-sm transition-all hover:shadow-md"
-            >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-100 text-xs font-bold text-primary-600">
-                {i + 1}
-              </span>
-              <div className="flex flex-1 gap-4">
-                  <span className="flex flex-1 items-center gap-2 font-medium text-primary-900 whitespace-pre-wrap">
-                    <SpeakerButton text={card.term} lang="ko-KR" />
-                    <MathText text={card.term} />
-                  </span>
-                  <span className="flex-1 text-primary-600 whitespace-pre-wrap"><MathText text={card.definition} /></span>
+          {set.cards.map((card, i) => {
+            const isGrammar = card.type === "grammar"
+            return (
+              <div
+                key={card.id}
+                className={`flex items-center gap-3 rounded-2xl border p-4 shadow-sm transition-all hover:shadow-md ${
+                  isGrammar
+                    ? "border-amber-200 bg-amber-50/40"
+                    : "border-primary-100 bg-white"
+                }`}
+              >
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                  isGrammar
+                    ? "bg-amber-200 text-amber-700"
+                    : "bg-primary-100 text-primary-600"
+                }`}>
+                  {i + 1}
+                </span>
+                <div className="flex flex-1 flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="flex flex-1 items-center gap-2 font-medium text-primary-900 whitespace-pre-wrap">
+                      <SpeakerButton text={card.term} lang="ko-KR" />
+                      <MathText text={card.term} />
+                    </span>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                      isGrammar
+                        ? "bg-amber-200/60 text-amber-700"
+                        : "bg-indigo-100 text-indigo-600"
+                    }`}>
+                      {isGrammar ? "Grammar" : "Vocab"}
+                    </span>
+                  </div>
+                  <span className="text-primary-600 whitespace-pre-wrap"><MathText text={card.definition} /></span>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <div className="mt-8 space-y-3">

@@ -52,6 +52,7 @@ export const setsRouter = router({
             z.object({
               term: z.string().min(1),
               definition: z.string().min(1),
+              type: z.enum(["vocabulary", "grammar"]).default("vocabulary"),
             }),
           )
           .min(1, "At least 1 card required"),
@@ -66,6 +67,7 @@ export const setsRouter = router({
             create: input.cards.map((card, i) => ({
               term: card.term,
               definition: card.definition,
+              type: card.type,
               order: i,
             })),
           },
@@ -87,6 +89,7 @@ export const setsRouter = router({
               id: z.string().optional(),
               term: z.string().min(1),
               definition: z.string().min(1),
+              type: z.enum(["vocabulary", "grammar"]).default("vocabulary"),
             }),
           )
           .optional(),
@@ -104,6 +107,7 @@ export const setsRouter = router({
               create: input.cards.map((card, i) => ({
                 term: card.term,
                 definition: card.definition,
+                type: card.type,
                 order: i,
               })),
             },

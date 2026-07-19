@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Plus, X } from "lucide-react"
 
-type CardRow = { term: string; definition: string }
+type CardRow = { term: string; definition: string; type: "vocabulary" | "grammar" }
 
 type SetFormProps = {
   initialTitle?: string
@@ -19,7 +19,7 @@ type SetFormProps = {
 export function SetForm({
   initialTitle = "",
   initialDescription = "",
-  initialCards = [{ term: "", definition: "" }],
+  initialCards = [{ term: "", definition: "", type: "vocabulary" }],
   onSubmit,
   submitLabel,
   loading,
@@ -29,7 +29,7 @@ export function SetForm({
   const [cards, setCards] = useState<CardRow[]>(initialCards)
 
   function addCard() {
-    setCards([...cards, { term: "", definition: "" }])
+    setCards([...cards, { term: "", definition: "", type: "vocabulary" }])
   }
 
   function removeCard(index: number) {
@@ -93,6 +93,30 @@ export function SetForm({
                   onChange={(e) => updateCard(i, "term", e.target.value)}
                   className="rounded-xl border border-primary-100 bg-primary-50/50 px-3 py-2 text-sm outline-none transition-all duration-200 placeholder:text-primary-300 focus:border-primary-300 focus:bg-white focus:ring-2 focus:ring-primary-500/20"
                 />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateCard(i, "type", "vocabulary")}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
+                      card.type === "vocabulary"
+                        ? "bg-indigo-100 text-indigo-700 ring-2 ring-indigo-500/30"
+                        : "bg-primary-50 text-primary-400 hover:bg-indigo-50 hover:text-indigo-500"
+                    }`}
+                  >
+                    Từ vựng
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateCard(i, "type", "grammar")}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
+                      card.type === "grammar"
+                        ? "bg-amber-100 text-amber-700 ring-2 ring-amber-500/30"
+                        : "bg-primary-50 text-primary-400 hover:bg-amber-50 hover:text-amber-500"
+                    }`}
+                  >
+                    Ngữ pháp
+                  </button>
+                </div>
                 <textarea
                   placeholder="Definition"
                   value={card.definition}

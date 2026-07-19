@@ -54,7 +54,7 @@ export default function EditSetPage() {
         <SetForm
           initialTitle={set.title}
           initialDescription={set.description ?? ""}
-          initialCards={set.cards.map((c) => ({ term: c.term, definition: c.definition }))}
+          initialCards={set.cards.map((c) => ({ term: c.term, definition: c.definition, type: c.type === "grammar" ? "grammar" : "vocabulary" }))}
           onSubmit={handleSubmit}
           submitLabel="Save Changes"
           loading={loading}

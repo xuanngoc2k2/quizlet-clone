@@ -13,9 +13,12 @@ export interface Flashcard {
   setId: string
   term: string
   definition: string
+  type: string
   order: number
   createdAt: Date
 }
+
+export type CardType = "vocabulary" | "grammar"
 
 export type StudyMode = "flashcard" | "learn" | "quiz" | "match" | "spell"
 

@@ -21,6 +21,7 @@ model Flashcard {
   setId      String
   term       String
   definition String
+  type       String       @default("vocabulary")
   order      Int          @default(0)
   createdAt  DateTime     @default(now())
   set        FlashcardSet @relation(fields: [setId], references: [id], onDelete: Cascade)
