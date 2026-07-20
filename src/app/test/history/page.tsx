@@ -60,7 +60,8 @@ export default function TestHistoryPage() {
             {tests.map((t) => (
               <div
                 key={t.id}
-                className="rounded-2xl border border-primary-100 bg-white p-4 shadow-sm"
+                onClick={() => router.push(`/test/history/${t.id}`)}
+                className="cursor-pointer rounded-2xl border border-primary-100 bg-white p-4 shadow-sm transition-colors hover:border-primary-200"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -75,7 +76,7 @@ export default function TestHistoryPage() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 flex gap-2">
+                <div className="mt-3 flex gap-2" onClick={(e) => e.stopPropagation()}>
                   <Button
                     onClick={() => router.push(`/test?retake=${t.id}`)}
                     variant="gradient"
