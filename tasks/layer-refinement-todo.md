@@ -29,4 +29,14 @@ Khi user báo bug/feature, thêm task theo format:
 **Commit:** -
 -->
 
-_Chưa có tasks — sẽ được thêm sau khi hoàn thành tất cả layers._
+### [R-01] — Import cards từ file JSON/CSV
+
+**Type:** Feature
+**Description:** Thêm nút Import trong SetForm (dùng chung Create/Edit) cho phép append cards từ file JSON (mảng `{term, definition}`) hoặc CSV (`term,definition[,type]`). Kèm example files để tải trên UI.
+**Acceptance Criteria:**
+- Import append vào cards hiện có, bỏ trùng, bỏ dòng thiếu term/definition
+- JSON + CSV đều parse được; quy chuẩn `type` → vocabulary/grammar
+- Đường link download sample .csv & .json trên UI
+- Unit test cho parser trong `src/lib/set-import.test.ts` pass; lint + typecheck clean
+**Status:** ✅ Done
+**Commit:** -

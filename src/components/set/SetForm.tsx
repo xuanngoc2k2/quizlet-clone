@@ -1,11 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { Plus, X } from "lucide-react"
+import { parseImportFile } from "@/lib/set-import"
+import { Download, Plus, Upload, X } from "lucide-react"
 
 type CardRow = { term: string; definition: string; type: "vocabulary" | "grammar" }
+
+type ImportFeedback = { kind: "success" | "error"; text: string }
 
 type SetFormProps = {
   initialTitle?: string
@@ -27,6 +30,8 @@ export function SetForm({
   const [title, setTitle] = useState(initialTitle)
   const [description, setDescription] = useState(initialDescription)
   const [cards, setCards] = useState<CardRow[]>(initialCards)
+  const [importFeedback, setImportFeedback] = useState<ImportFeedback | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   function addCard() {
     setCards([...cards, { term: "", definition: "", type: "vocabulary" }])
@@ -38,6 +43,40 @@ export function SetForm({
 
   function updateCard(index: number, field: keyof CardRow, value: string) {
     setCards(cards.map((card, i) => (i === index ? { ...card, [field]: value } : card)))
+  }
+
+  async function handleFile(file: File | undefined) {
+    if (!file) return
+    setImportFeedback(null)
+    const content = await file.text()
+    const result = parseImportFile(file.name, content)
+
+    if (result.errors.length > 0) {
+      setImportFeedback({ kind: "error", text: result.errors[0] })
+      return
+    }
+    if (result.cards.length === 0) {
+      setImportFeedback({ kind: "error", text: "Không tìm thấy card hợp lệ nào trong file." })
+      return
+    }
+
+    const existing = new Set(cards.map((c) => c.term.trim().toLowerCase()))
+    let added = 0
+    const merged: CardRow[] = [...cards]
+    for (const card of result.cards) {
+      const key = card.term.trim().toLowerCase()
+      if (existing.has(key)) continue
+      existing.add(key)
+      merged.push(card)
+      added++
+    }
+    setCards(merged)
+
+    const parts = [`Đã import ${added} card${added > 1 ? "s" : ""}`]
+    if (result.skipped > 0) parts.push(`bỏ qua ${result.skipped} dòng`)
+    if (added < result.cards.length) parts.push(`${result.cards.length - added} trùng`)
+    setImportFeedback({ kind: "success", text: parts.join(", ") + "." })
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -140,6 +179,37 @@ export function SetForm({
       </div>
 
       <div className="flex flex-col gap-3 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/50 p-4">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,.json"
+          onChange={(e) => handleFile(e.target.files?.[0])}
+          className="hidden"
+        />
+        <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()} className="w-full">
+          <Upload className="h-4 w-4" />
+          Import from file (.csv / .json)
+        </Button>
+        <div className="flex items-center justify-center gap-3 text-xs text-primary-500">
+          <span>Tải sample:</span>
+          <a href="/examples/example-cards.csv" download className="inline-flex items-center gap-1 text-primary-600 underline-offset-2 hover:underline">
+            <Download className="h-3 w-3" />
+            .csv
+          </a>
+          <a href="/examples/example-cards.json" download className="inline-flex items-center gap-1 text-primary-600 underline-offset-2 hover:underline">
+            <Download className="h-3 w-3" />
+            .json
+          </a>
+        </div>
+        {importFeedback && (
+          <p
+            className={`rounded-lg px-3 py-2 text-xs font-medium ${
+              importFeedback.kind === "success" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"
+            }`}
+          >
+            {importFeedback.text}
+          </p>
+        )}
         <Button type="button" variant="secondary" onClick={addCard} className="w-full">
           <Plus className="h-4 w-4" />
           Add Card

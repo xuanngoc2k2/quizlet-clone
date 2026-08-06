@@ -1,0 +1,9 @@
+[
+  { "term": "Hello", "definition": "Xin chào", "type": "vocabulary" },
+  { "term": "Book", "definition": "Quyển sách", "type": "vocabulary" },
+  { "term": "Dog", "definition": "Con chó", "type": "vocabulary" },
+  { "term": "Cat", "definition": "Con mèo", "type": "vocabulary" },
+  { "term": "Study", "definition": "Học tập, nghiên cứu", "type": "vocabulary" },
+  { "term": "am - is - are", "definition": "Động từ to be thì hiện tại", "type": "grammar" },
+  { "term": "has / have", "definition": "Sở hữu / ăn (have breakfast)", "type": "grammar" }
+]
