@@ -4,6 +4,7 @@ import { prisma } from "../db"
 import { callGeminiJSON } from "../lib/gemini"
 import type { Prisma } from "@prisma/client"
 import { computePartCounts, computeDifficultyCounts } from "@/lib/set-test-distribution"
+import { computeWeakStats, type HistoryInput, type AttemptResult } from "@/lib/set-test-stats"
 
 const PART_NAMES: Record<number, string> = {
   1: "Phần 1: Chọn đáp án đúng để điền vào chỗ trống",
@@ -93,8 +94,9 @@ function buildSetTestPrompt(args: {
   difficultyMix: Record<"easy" | "medium" | "hard", number>
   previousTexts: string[]
   note: string
+  weakBlock?: string
 }): string {
-  const { title, items, counts, difficultyMix, previousTexts, note } = args
+  const { title, items, counts, difficultyMix, previousTexts, note, weakBlock } = args
 
   const countsStr = [
     `Part 1 (multiple-choice, chọn đáp án điền chỗ trống): ${counts[1]} câu`,
@@ -137,6 +139,7 @@ ${countsStr}
 ## Độ khó
 ${diffDescr}
 ${typeNote}
+${weakBlock ? `\n${weakBlock}` : ""}
 
 ## Quy tắc từng part
 ### Part 1 (multiple-choice)
@@ -252,6 +255,25 @@ ${keysToFix.join(", ")}`
   return questions
 }
 
+async function loadSetHistories(deviceId: string, setId: string) {
+  return prisma.testHistory.findMany({
+    where: { deviceId, source: "set-test", setId },
+    orderBy: { createdAt: "desc" },
+    take: 30,
+    include: { attempts: { orderBy: { createdAt: "desc" } } },
+  })
+}
+
+function toHistoryInput(
+  rows: Awaited<ReturnType<typeof loadSetHistories>>,
+): HistoryInput[] {
+  return rows.map((h) => ({
+    sections: h.sections as unknown as HistoryInput["sections"],
+    questionItemMap: (h.questionItemMap as Record<string, string>) ?? {},
+    attempts: (h.attempts as unknown as { results: AttemptResult[] }[]).map((a) => ({ results: a.results ?? [] })),
+  }))
+}
+
 export const setTestRouter = router({
   generate: publicProcedure
     .input(z.object({ setId: z.string().min(1) }))
@@ -278,6 +300,27 @@ export const setTestRouter = router({
       const previousTexts = await getPreviousQuestionTexts(deviceId, input.setId)
       const prevNormalized = new Set(previousTexts.map(normalizeText))
 
+      const histories = await loadSetHistories(deviceId, input.setId)
+      const weakStats = computeWeakStats(toHistoryInput(histories))
+      const itemIdToKey = new Map(items.map((it) => [it.id, it.key]))
+      const weakItems = weakStats.items
+        .filter((it) => weakStats.weakIds.includes(it.itemId))
+        .map((it) => {
+          const key = itemIdToKey.get(it.itemId)
+          const item = key ? keyToItem.get(key) : undefined
+          return { key: key ?? "", term: item?.term ?? "", seen: it.timesSeen, rate: Math.round(it.correctRate * 100) }
+        })
+      const weakBlock =
+        weakItems.length > 0
+          ? `## WEAKNESS ADAPTATION — học viên yếu các mục sau, cần luyện kỹ hơn
+${weakItems.map((w) => `- ${w.key} (${w.term}): đúng ${w.rate}% (${w.seen} lần)`).join("\n")}
+Với các mục yếu này:
+- Tăng độ khó hợp lý (ưu tiên medium/hard).
+- Với grammar yếu: tạo distractor là các cấu trúc đối lập tương tự (VD -는데/-지만/-아서/-니까) để ép học viên phân biệt.
+- Với từ vựng yếu: đặt trong ngữ cảnh cần suy luận, không chỉ dịch từ trực tiếp.
+- KHÔNG lặp đúng câu đã làm sai trước đó.`
+          : ""
+
       const compileArgs = {
         title: `${set.title} — TOPIK Set Test`,
         items,
@@ -285,6 +328,7 @@ export const setTestRouter = router({
         difficultyMix,
         previousTexts,
         note: "",
+        weakBlock,
       }
 
       const questions = await generateFullTest(compileArgs, itemKeys)
@@ -364,6 +408,35 @@ export const setTestRouter = router({
       return {
         id: history.id,
         test: { title: history.title, description: history.description, sections },
+      }
+    }),
+
+  getWeakItems: publicProcedure
+    .input(z.object({ setId: z.string().min(1) }))
+    .query(async ({ input, ctx }) => {
+      const deviceId = ctx.deviceId || "anonymous"
+      const set = await prisma.flashcardSet.findUnique({
+        where: { id: input.setId },
+        include: { cards: true },
+      })
+      if (!set) throw new Error("Set not found")
+
+      const histories = await loadSetHistories(deviceId, input.setId)
+      const { items, summary, weakIds } = computeWeakStats(toHistoryInput(histories))
+      const cardById = new Map(set.cards.map((c) => [c.id, c]))
+
+      return {
+        summary,
+        weakIds,
+        items: items.map((it) => {
+          const card = cardById.get(it.itemId)
+          return {
+            ...it,
+            term: card?.term ?? "",
+            definition: card?.definition ?? "",
+            type: (card?.type === "grammar" ? "grammar" : "vocabulary") as "vocabulary" | "grammar",
+          }
+        }),
       }
     }),
 })

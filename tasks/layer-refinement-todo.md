@@ -52,5 +52,5 @@ Khi user báo bug/feature, thêm task theo format:
 - Nút "TOPIK Set Test" trên trang /set/[id]
 - Review có breakdown theo part + type (vocab/grammar) + giải thích đúng/sai
 - Typecheck + lint + unit tests pass (distribution, gemini parse)
-**Status:** ✅ Done (Phase A) — Phase B: weakness/오답 복습/thích ứng difficulty chưa làm
+**Status:** ✅ Done (Phase A + B) — Phase B: weakness tracking, difficulty adaptation, 오답 복습 (Ôn câu sai)
 **Commit:** -

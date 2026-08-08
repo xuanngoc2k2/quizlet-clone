@@ -46,13 +46,18 @@ type GradeResult = {
   totalQuestions: number
 }
 
-export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; testHistoryId?: string; onReset: () => void }) {
+export function TestViewer({ test, testHistoryId, onReset, setId }: { test: TestData; testHistoryId?: string; onReset: () => void; setId?: string }) {
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [submitted, setSubmitted] = useState(false)
   const [showExplanations, setShowExplanations] = useState(false)
+  const [reviewFilter, setReviewFilter] = useState<"all" | "wrong">("all")
   const [gradeResult, setGradeResult] = useState<GradeResult | null>(null)
   const grade = api.test.grade.useMutation()
   const saveAttempt = api.testHistory.saveAttempt.useMutation()
+  const weakItems = api.setTest.getWeakItems.useQuery(
+    { setId: setId! },
+    { enabled: !!setId && submitted },
+  )
 
   const allQuestions = test.sections.flatMap((s) => s.questions)
 
@@ -82,6 +87,8 @@ export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; t
   function isCorrectForResult(r: GradeResult["results"][number]): boolean {
     return r.isCorrect || (r.score !== undefined && r.score >= 5)
   }
+
+  const wrongCount = gradeResult ? gradeResult.results.filter((r) => !isCorrectForResult(r)).length : 0
 
   function buildBreakdown() {
     const part: Record<number, { c: number; t: number }> = { 1: { c: 0, t: 0 }, 2: { c: 0, t: 0 }, 3: { c: 0, t: 0 }, 4: { c: 0, t: 0 } }
@@ -264,12 +271,25 @@ export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; t
           <BreakdownCard breakdown={buildBreakdown()} />
         </div>
 
-        <div className="mt-8 flex gap-3">
+        {setId && weakItems.data && weakItems.data.items.length > 0 && (
+          <div className="mt-4 w-full max-w-sm">
+            <WeakItemsPanel items={weakItems.data.items} />
+          </div>
+        )}
+
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button onClick={onReset} variant="secondary">
             <RotateCw className="h-4 w-4" />
             New Test
           </Button>
-          <Button onClick={() => setShowExplanations(true)} variant="gradient">
+          <Button
+            onClick={() => { setReviewFilter("wrong"); setShowExplanations(true) }}
+            variant="secondary"
+            disabled={!wrongCount}
+          >
+            Ôn câu sai ({wrongCount})
+          </Button>
+          <Button onClick={() => { setReviewFilter("all"); setShowExplanations(true) }} variant="gradient">
             Review Answers
           </Button>
         </div>
@@ -300,9 +320,29 @@ export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; t
         </Button>
       </div>
 
+      <div className="mb-4 inline-flex rounded-xl bg-primary-50 p-1">
+        <button
+          onClick={() => setReviewFilter("all")}
+          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            reviewFilter === "all" ? "bg-white text-primary-900 shadow-sm" : "text-primary-400 hover:text-primary-600"
+          }`}
+        >
+          Tất cả
+        </button>
+        <button
+          onClick={() => setReviewFilter("wrong")}
+          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            reviewFilter === "wrong" ? "bg-white text-red-600 shadow-sm" : "text-primary-400 hover:text-red-500"
+          }`}
+        >
+          Chỉ câu sai ({wrongCount})
+        </button>
+      </div>
+
       {[1, 2, 3, 4].map((part) => {
-        const partResults = groupedResults[part]
-        if (!partResults || partResults.length === 0) return null
+        const rawResults = groupedResults[part] ?? []
+        const partResults = reviewFilter === "wrong" ? rawResults.filter((r) => !isCorrectForResult(r)) : rawResults
+        if (partResults.length === 0) return null
         return (
           <div key={part} className="mb-8">
             <div className={`mb-4 rounded-xl border p-3 ${sectionColors[part]}`}>
@@ -456,6 +496,29 @@ export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; t
           New Test
         </Button>
       </div>
+    </div>
+  )
+}
+
+function WeakItemsPanel({ items }: { items: { itemId: string; term: string; definition: string; type: "vocabulary" | "grammar"; timesSeen: number; timesCorrect: number; correctRate: number }[] }) {
+  const weak = items.filter((it) => it.correctRate < 0.7).slice(0, 10)
+  if (weak.length === 0) return null
+  return (
+    <div className="rounded-2xl border border-red-100 bg-white p-4 text-left shadow-sm">
+      <p className="mb-3 text-xs font-bold text-red-600">⚠ Những mục cần ôn lại</p>
+      <div className="flex flex-col gap-1.5">
+        {weak.map((it) => (
+          <div key={it.itemId} className="flex items-center justify-between gap-2 rounded-lg bg-red-50/60 px-3 py-1.5">
+            <span className={`text-xs font-medium text-primary-900 ${it.type === "grammar" ? "text-amber-700" : ""}`}>
+              {it.term}
+            </span>
+            <span className="text-[10px] font-bold text-red-500">
+              {it.timesCorrect}/{it.timesSeen} ({Math.round(it.correctRate * 100)}%)
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-[10px] text-primary-400">Tổng hợp từ các lần làm đề trước của Set này.</p>
     </div>
   )
 }

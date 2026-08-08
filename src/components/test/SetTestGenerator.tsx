@@ -60,7 +60,7 @@ export function SetTestGenerator({ presetSetId }: { presetSetId?: string }) {
         >
           &larr; Back
         </button>
-        <TestViewer test={testData} testHistoryId={testHistoryId ?? undefined} onReset={handleReset} />
+        <TestViewer test={testData} testHistoryId={testHistoryId ?? undefined} onReset={handleReset} setId={selectedId ?? undefined} />
       </div>
     )
   }
