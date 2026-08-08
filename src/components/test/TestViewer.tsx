@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Fragment, useState } from "react"
 import { api } from "@/lib/trpc-provider"
 import { Button } from "@/components/ui/Button"
 import { CheckCircle2, XCircle, Sparkles, RotateCw, Loader2 } from "lucide-react"
@@ -19,6 +19,11 @@ type Question = {
   optionExplanations?: string[]
   itemId?: string
   itemType?: "vocabulary" | "grammar"
+  baseWord?: string
+  targetGrammar?: string
+  expectedAnswers?: string[]
+  transformation?: string
+  underlinedText?: string
 }
 
 type Section = {
@@ -185,7 +190,7 @@ export function TestViewer({ test, testHistoryId, onReset, setId }: { test: Test
                     </span>
                   </div>
                   <p className="mb-3 whitespace-pre-wrap text-sm font-medium text-primary-900">
-                    {q.question}
+                    <UnderlinedQuestion text={q.question} underline={q.part === 3 ? q.underlinedText : undefined} />
                   </p>
 
                   {(q.type === "multiple-choice" || q.type === "synonym") && q.options ? (
@@ -445,7 +450,9 @@ export function TestViewer({ test, testHistoryId, onReset, setId }: { test: Test
                         <XCircle className="h-4 w-4 text-red-500" />
                       )}
                     </div>
-                    <p className="mb-2 whitespace-pre-wrap text-sm font-medium text-primary-900">{q.question}</p>
+                    <p className="mb-2 whitespace-pre-wrap text-sm font-medium text-primary-900">
+                      <UnderlinedQuestion text={q.question} underline={q.part === 3 ? q.underlinedText : undefined} />
+                    </p>
                     <div className="flex flex-col gap-1 text-xs">
                       <p>
                         <span className="font-medium text-primary-600">Your answer: </span>
@@ -464,6 +471,12 @@ export function TestViewer({ test, testHistoryId, onReset, setId }: { test: Test
                         <div className="mt-2 rounded-lg bg-indigo-50 px-3 py-2">
                           <p className="text-[11px] font-bold text-indigo-600">Nghĩa tiếng Việt</p>
                           <p className="text-xs text-primary-700">{q.meaningVi}</p>
+                        </div>
+                      )}
+                      {q.part === 3 && q.targetGrammar && (
+                        <div className="mt-2 rounded-lg bg-violet-50 px-3 py-2">
+                          <p className="text-[11px] font-bold text-violet-600">Ngữ pháp mục tiêu</p>
+                          <p className="text-xs text-primary-700">{q.targetGrammar}</p>
                         </div>
                       )}
                       {q.optionExplanations && q.options && (
@@ -497,6 +510,24 @@ export function TestViewer({ test, testHistoryId, onReset, setId }: { test: Test
         </Button>
       </div>
     </div>
+  )
+}
+
+function UnderlinedQuestion({ text, underline }: { text: string; underline?: string }) {
+  if (!underline) return <>{text}</>
+  const parts = text.split(underline)
+  if (parts.length < 2) return <>{text}</>
+  return (
+    <>
+      {parts.map((p, i) => (
+        <Fragment key={i}>
+          {p}
+          {i < parts.length - 1 && (
+            <u className="font-semibold decoration-2 underline-offset-4">{underline}</u>
+          )}
+        </Fragment>
+      ))}
+    </>
   )
 }
 

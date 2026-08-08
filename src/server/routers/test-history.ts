@@ -12,6 +12,11 @@ const questionSchema = z.object({
   grammarHint: z.string().optional(),
   correctAnswer: z.string(),
   explanation: z.string(),
+  baseWord: z.string().optional(),
+  targetGrammar: z.string().optional(),
+  expectedAnswers: z.array(z.string()).optional(),
+  transformation: z.string().optional(),
+  underlinedText: z.string().optional(),
 })
 
 const sectionSchema = z.object({

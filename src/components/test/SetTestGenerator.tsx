@@ -20,6 +20,11 @@ type TestViewerQuestion = {
   optionExplanations?: string[]
   itemId?: string
   itemType?: "vocabulary" | "grammar"
+  baseWord?: string
+  targetGrammar?: string
+  expectedAnswers?: string[]
+  transformation?: string
+  underlinedText?: string
 }
 
 export function SetTestGenerator({ presetSetId }: { presetSetId?: string }) {

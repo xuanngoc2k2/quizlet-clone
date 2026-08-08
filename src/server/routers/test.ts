@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { router, publicProcedure } from "../trpc"
 import { callGeminiJSON, callGeminiText } from "../lib/gemini"
+import { normalizeConjugationAnswer } from "@/lib/set-test-conjugation"
 
 const buildTestPrompt = (prompt: string) => `You are a TOPIK test generator. Create a Korean language test based on the user's request.
 
@@ -146,7 +147,10 @@ Student's answers:
 ${userAnswers}
 
 Grade each answer. Rules:
-- Part 1-3 (multiple-choice, conjugation, synonym): strict grading — exact match required. Short explanation. Set score to 10 if correct, 0 if wrong.
+- Part 1 & Part 3 (multiple-choice, synonym): strict grading — exact match required. Short explanation. Set score to 10 if correct, 0 if wrong.
+- For Part 3 (synonym) explanations, reference the underlined grammar: mention the question's "underlinedText" and "targetGrammar", why the correct option is equivalent to it, and briefly why each distractor differs. If the student chose wrong, explain why their choice is not equivalent.
+- Part 2 (conjugation — chia dạng từ trong ngoặc): normalize BOTH the student answer and every expected answer first (trim whitespace, NFC Unicode, collapse extra spaces — done before this prompt). Accept the answer if the normalized text EXACTLY equals any value in the question's "expectedAnswers" array (if missing, use "correctAnswer"). DO NOT auto-correct the learner's grammar: e.g. "그렇지" must NOT be accepted for "그런지", "맑는다" must NOT be accepted for "맑다가". Set score to 10 if correct, 0 if wrong.
+- For a WRONG Part 2 answer, the "explanation" MUST explain the transformation and include, on separate lines: "Từ gốc (base word): <baseWord>", "Ngữ pháp mục tiêu: <targetGrammar>", "Cách biến đổi: <transformation>", "Câu hoàn chỉnh: <câu tiếng Hàn đã điền đáp án đúng>", "Nghĩa: <meaningVi>". Do NOT just say "Sai / Đáp án: ...".
 - Part 4 (translation Vi→Ko): Grade generously but thoroughly. Assign a score from 0-10 based on accuracy, grammar, vocab, and style.
 - For Part 4: put ALL feedback (analysis for ALL 5 questions + overall advice) into the explanation field of the FIRST Part 4 question (lowest questionId). Set explanation to "" for the other 4 Part 4 questions.
 
@@ -235,6 +239,11 @@ const gradeInputSchema = z.object({
       grammarHint: z.string().optional(),
       correctAnswer: z.string(),
       explanation: z.string(),
+      baseWord: z.string().optional(),
+      targetGrammar: z.string().optional(),
+      expectedAnswers: z.array(z.string()).optional(),
+      transformation: z.string().optional(),
+      underlinedText: z.string().optional(),
     }),
   ),
   answers: z.record(z.string()),
@@ -265,11 +274,21 @@ export const testRouter = router({
   grade: publicProcedure
     .input(gradeInputSchema)
     .mutation(async ({ input }) => {
+      const normalizedAnswers: Record<string, string> = {}
+      for (const q of input.questions) {
+        const key = String(q.id)
+        const raw = input.answers[key]
+        normalizedAnswers[key] = q.type === "conjugation" && raw ? normalizeConjugationAnswer(raw) : (raw ?? "")
+      }
+
       const questionsStr = JSON.stringify(input.questions.map((q) => ({
         id: q.id, type: q.type, part: q.part, question: q.question,
         options: q.options, correctAnswer: q.correctAnswer,
+        baseWord: q.baseWord, targetGrammar: q.targetGrammar,
+        expectedAnswers: q.expectedAnswers, transformation: q.transformation,
+        underlinedText: q.underlinedText,
       })), null, 2)
-      const answersStr = JSON.stringify(input.answers, null, 2)
+      const answersStr = JSON.stringify(normalizedAnswers, null, 2)
       const raw = await callGeminiJSON(gradePrompt(questionsStr, answersStr), { temperature: 0.4, maxTokens: 8192 })
       const parsed = z.object({
         results: z.array(z.object({
