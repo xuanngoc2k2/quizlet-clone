@@ -54,3 +54,18 @@ Khi user báo bug/feature, thêm task theo format:
 - Typecheck + lint + unit tests pass (distribution, gemini parse)
 **Status:** ✅ Done (Phase A + B) — Phase B: weakness tracking, difficulty adaptation, 오답 복습 (Ôn câu sai)
 **Commit:** -
+
+### [R-03] — Floating Dictionary Assistant (Phase 1: Core lookup + panel)
+
+**Type:** Feature
+**Description:** Từ điển nổi Hàn↔Việt trên mọi trang: nút floating bottom-right, panel chatbot 400px (mobile bottom-sheet), tra từ/cụm/câu/ngữ pháp, AI fallback (Gemini strict JSON) có DB cache (`DictionaryEntry`), text-selection action ("Tra cứu"), lịch sử localStorage, kéo-thả panel (localStorage vị trí), minimize + badge unread, ESC/Enter, lazy-load UI.
+**Acceptance Criteria:**
+- DB: model `DictionaryEntry` (cacheKey unique, text, from, to, result JSON) + migration
+- `dictionary.lookup({ text, from, to })`: DB cache hit → trả ngay; miss → Gemini → Zod validate → upsert cache → trả
+- Panel mở từ nút nổi (z-index cao), conversation giữ nguyên khi đóng/mở và khi chuyển trang
+- Bôi đen text bất kỳ → action "Tra cứu" (không hiện khi chọn bên trong panel; không gọi API khi chỉ mở nút)
+- Kiểm tra hướng: có Hangul → ko→vi, ngược lại vi→ko; lịch sử 20 items localStorage
+- Lazy-load: chỉ tải panel khi mở; FloatingButton không gọi tRPC
+- Typecheck + lint + unit tests pass (dictionary lib), build pass
+**Status:** ✅ Done (Phase 1 + Phase 2) — Phase 2: Add-to-Set + Add-Flashcard (dedupe theo term, chọn/tạo set, editable card). Phase 3 (pending): Mini Practice
+**Commit:** -

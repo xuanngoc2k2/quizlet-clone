@@ -8,9 +8,10 @@ type ModalProps = {
   onClose: () => void
   title?: string
   children: React.ReactNode
+  zIndex?: string
 }
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, zIndex = "z-50" }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-primary-950/40 backdrop-blur-sm sm:items-center"
+          className={`fixed inset-0 flex items-end justify-center bg-primary-950/40 backdrop-blur-sm sm:items-center ${zIndex}`}
           onClick={(e) => {
             if (e.target === overlayRef.current) onClose()
           }}

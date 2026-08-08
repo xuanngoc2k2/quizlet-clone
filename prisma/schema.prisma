@@ -75,3 +75,16 @@ model TestAttempt {
   @@index([deviceId])
   @@index([testHistoryId])
 }
+
+model DictionaryEntry {
+  id        String   @id @default(cuid())
+  cacheKey  String   @unique
+  text      String
+  from      String
+  to        String
+  result    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([text])
+}

@@ -5,6 +5,7 @@ import { cardProgressRouter } from "./card-progress"
 import { testRouter } from "./test"
 import { testHistoryRouter } from "./test-history"
 import { setTestRouter } from "./set-test"
+import { dictionaryRouter } from "./dictionary"
 
 export const appRouter = router({
   sets: setsRouter,
@@ -13,6 +14,7 @@ export const appRouter = router({
   test: testRouter,
   testHistory: testHistoryRouter,
   setTest: setTestRouter,
+  dictionary: dictionaryRouter,
 })
 
 export type AppRouter = typeof appRouter
