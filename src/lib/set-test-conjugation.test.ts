@@ -4,6 +4,7 @@ import {
   extractBaseWord,
   needsConjugationValidation,
   reconstructConjugationSentence,
+  conjugationAnswerLeaks,
   parseAcceptableAnswers,
   findReferenceConjugation,
   checkConjugationMorphology,
@@ -67,6 +68,33 @@ describe("reconstructConjugationSentence", () => {
     expect(reconstructConjugationSentence("시험을 잘 보기 위해 열심히 (공부하다) ____.", "공부하고 있습니다")).toBe(
       "시험을 잘 보기 위해 열심히 공부하고 있습니다.",
     )
+  })
+})
+
+describe("conjugationAnswerLeaks", () => {
+  it("false when answer only appears via the blank (good question)", () => {
+    expect(conjugationAnswerLeaks("한국어는 (배우다) ____ 실력이 빨리 늘 거예요.", "배우면")).toBe(false)
+    expect(conjugationAnswerLeaks("월요일이라 (그렇다) ____ 사람이 많네요.", "그런지")).toBe(false)
+  })
+
+  it("true when answer already appears before the parenthetical base word (duplication)", () => {
+    expect(conjugationAnswerLeaks("한국어는 배우면 (배우다) ____ 실력이 빨리 늘 거예요.", "배우면")).toBe(true)
+  })
+
+  it("true when answer already appears right after the blank", () => {
+    expect(conjugationAnswerLeaks("아침에 (맑다) ____ 맑아서 기분이 좋아요.", "맑아서")).toBe(true)
+  })
+
+  it("false when answer appears in the question but NOT adjacent to the blank", () => {
+    expect(conjugationAnswerLeaks("한국어를 (배우다) ____ 그리고 배우면 좋아요.", "배우면")).toBe(false)
+  })
+
+  it("false when the answer is only a substring of a larger word adjacent to the blank", () => {
+    expect(conjugationAnswerLeaks("학생들은 (배우다) ____서 기억합니다.", "배우면")).toBe(false)
+  })
+
+  it("false when no blank", () => {
+    expect(conjugationAnswerLeaks("한국어는 배우면 (배우다) 실력이 늘 거예요.", "배우면")).toBe(false)
   })
 })
 
@@ -178,6 +206,17 @@ describe("conjugationQuestionIsValid", () => {
 
   it("false when answer mismatch", () => {
     expect(conjugationQuestionIsValid("월요일이라 (그렇다) ____ 사람이 많네요.", "그렇지", outcome)).toBe(false)
+  })
+
+  it("false when the answer already appears adjacent to the blank (duplication)", () => {
+    const leaked: ConjugationValidationOutcome = {
+      isValid: true,
+      correctAnswer: "배우면",
+      expectedAnswers: ["배우면"],
+      issues: [],
+    }
+    expect(conjugationQuestionIsValid("한국어는 배우면 (배우다) ____ 실력이 빨리 늘 거예요.", "배우면", leaked)).toBe(false)
+    expect(conjugationQuestionIsValid("한국어는 (배우다) ____ 실력이 빨리 늘 거예요.", "배우면", leaked)).toBe(true)
   })
 
   it("false when not a conjugation blank question", () => {

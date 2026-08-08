@@ -25,6 +25,17 @@ export function reconstructConjugationSentence(question: string, answer: string)
     .trim()
 }
 
+export function conjugationAnswerLeaks(question: string, answer: string): boolean {
+  const clean = question.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim()
+  const parts = clean.split(BLANK_RE)
+  if (parts.length < 2) return false
+  const ans = normalizeConjugationAnswer(answer)
+  if (!ans) return false
+  const left = parts[0].trim()
+  const right = parts[1].trim()
+  return left.endsWith(ans) || right.startsWith(ans)
+}
+
 export function parseAcceptableAnswers(correctAnswer: string): string[] {
   return correctAnswer
     .split(/[;|]/)
@@ -133,7 +144,8 @@ For each item verify:
 1. MORPHOLOGY: base word + target grammar MUST yield exactly the expected answer. Reject any wrong conjugation of the base word. Ví dụ: 그렇다 + -ㄴ지 chỉ được "그런지", KHÔNG chấp nhận "그렇는지"/"그렇은지"/"그렇지"; 맑다 + -다가 chỉ được "맑다가", KHÔNG chấp nhận "맑는다"/"맑아서"/"맑으면".
 2. COMPLETE SENTENCE: the fully reconstructed sentence (base word replaced by the conjugated answer) must be grammatically correct, natural TOPIK Korean, semantically coherent, and genuinely require the target grammar.
 3. ACCEPTABLE ANSWERS: if the target grammar/context allows legitimate alternative conjugations, list them in expectedAnswers (canonical first). If only one form is acceptable, expectedAnswers = [that single form].
-4. If correctAnswer is empty, does not follow from base word + target grammar, or the reconstructed sentence is ungrammatical → isValid = false.
+4. DUPLICATION: the expected answer (conjugated form) must NOT already appear in the sentence adjacent to the blank — neither right before the parenthetical base word nor right after the blank. The base word in parentheses "(...)" is allowed, but the conjugated answer must appear ONLY as the blank. Reconstruct must never duplicate the answer (VD SAI: "…배우면 (배우다) ____…" vì điền thành "…배우면 배우면…"; ĐÚNG: "…(배우다) ____…"). If the answer already sits next to the blank → isValid = false.
+5. If correctAnswer is empty, does not follow from base word + target grammar, or the reconstructed sentence is ungrammatical → isValid = false.
 
 For each item respond with exactly:
 { "itemKey": "...", "isValid": true/false, "correctAnswer": "<canonical answer>", "expectedAnswers": ["..."], "issues": ["..."] }
@@ -154,5 +166,6 @@ export function conjugationQuestionIsValid(
   if (!outcome.isValid) return false
   if (!needsConjugationValidation(2, question)) return false
   if (!outcome.correctAnswer) return false
+  if (conjugationAnswerLeaks(question, correctAnswer)) return false
   return normalizeConjugationAnswer(outcome.correctAnswer) === normalizeConjugationAnswer(correctAnswer)
 }

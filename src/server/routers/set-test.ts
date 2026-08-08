@@ -18,6 +18,7 @@ import {
   buildConjugationValidationPrompt,
   buildTransformation,
   checkConjugationMorphology,
+  conjugationAnswerLeaks,
   conjugationQuestionIsValid,
   conjugationValidationBatchSchema,
   CONJUGATION_REFERENCE,
@@ -129,6 +130,7 @@ export const PART2_GENERATION_RULES = `### Part 2 (conjugation — chia dạng t
   - correctAnswer: dạng chia đúng duy nhất (VD "그런지")
   - expectedAnswers: ["<canonical>", "<biến thể hợp lệ khác nếu có>"] — tối thiểu 1 phần tử; correctAnswer phải khớp chính xác một phần tử
   - transformation: cách biến đổi (VD "그렇다 → 그렇 + ㄴ지 → 그런지")
+- Đáp án (dạng chia) BẮT BUỘC chỉ xuất hiện trong blank "____", TUYỆT ĐỐI KHÔNG được xuất hiện ở phần còn lại của câu (trước hoặc sau blank) — chỉ base word trong ngoặc "(...)" là được phép. Nếu dạng chia lọt vào câu, khi học viên điền blank sẽ bị LẶP TỪ (VD SAI: "한국어는 배우면 (배우다) ____ …" → điền thành "한국어는 배우면 배우면 …"; ĐÚNG: "한국어는 (배우다) ____ …").
 - Phải khớp chuẩn biến đổi. THÍ DỤ ĐÚNG: ${CONJUGATION_REFERENCE_BLOCK}
 - Sai nếu chia sai dạng (VD 그렇다 + -ㄴ지 phải là "그런지", KHÔNG được "그렇는지"/"그렇은지"/"그렇지"; 맑다 + -다가 phải là "맑다가", KHÔNG được "맑는다"/"맑아서"/"맑으면").
 - KHÔNG có options. explanation giải thích cách chia + điều kiện ngữ pháp bằng tiếng Việt.`
@@ -561,7 +563,8 @@ Yêu cầu:
 3. Dùng ĐÚNG dạng chia của base word theo target grammar. VD: 그렇다 + -ㄴ지 → 그런지; 맑다 + -다가 → 맑다가; 하다 + -아서/어서 → 해서; 듣다 + -은 → 들은; 돕다 + -은 → 도운.
 4. BẮT BUỘC khai báo: correctAnswer = dạng chia đúng duy nhất; expectedAnswers = ["<canonical>", "<biến thể hợp lệ nếu có>"] (tối thiểu 1, correctAnswer phải khớp chính xác một phần tử); transformation = "<cách biến đổi, VD 그렇다 → 그렇 + ㄴ지 → 그런지>".
 5. Câu hoàn chỉnh sau khi điền đáp án phải đúng ngữ pháp, tự nhiên TOPIK, nghĩa rõ ràng.
-6. explanation = giải thích cách chia + điều kiện ngữ pháp bằng tiếng Việt. Giữ đúng itemKey, part=2, difficulty.
+6. Đáp án (dạng chia) BẮT BUỘC chỉ xuất hiện trong blank "____" — TUYỆT ĐỐI KHÔNG để dạng chia đó xuất hiện ở phần còn lại của câu (trước/sau blank), tránh LẶP TỪ khi học viên điền (VD SAI: "…배우면 (배우다) ____…" → điền thành "…배우면 배우면…"; ĐÚNG: "…(배우다) ____…").
+7. explanation = giải thích cách chia + điều kiện ngữ pháp bằng tiếng Việt. Giữ đúng itemKey, part=2, difficulty.
 
 TRẢ VỀ JSON hợp lệ (không markdown, không code fence):
 {"questions":[{"itemKey":"...","part":2,"difficulty":"easy|medium|hard","question":"...","correctAnswer":"...","baseWord":"...","targetGrammar":"...","expectedAnswers":["..."],"transformation":"...","meaningVi":"...","explanation":"...","grammarHint":"..."}]}`
@@ -656,7 +659,8 @@ export async function validateAndFixConjugationQuestions(
   return current.filter((q) => {
     if (q.part !== 2) return true
     const base = q.baseWord || extractBaseWord(q.question) || ""
-    return base !== ""
+    if (base === "") return false
+    return !conjugationAnswerLeaks(q.question, q.correctAnswer)
   })
 }
 
