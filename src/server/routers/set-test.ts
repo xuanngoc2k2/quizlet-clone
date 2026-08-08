@@ -6,6 +6,7 @@ import type { Prisma } from "@prisma/client"
 import { computePartCounts, computeDifficultyCounts } from "@/lib/set-test-distribution"
 import { computeWeakStats, type HistoryInput, type AttemptResult } from "@/lib/set-test-stats"
 import {
+  BLANK_RE,
   buildValidationPrompt,
   needsBlankValidation,
   questionIsValid,
@@ -302,6 +303,7 @@ export async function generateFullTest(
   compileArgs: Parameters<typeof buildSetTestPrompt>[0],
   itemKeys: string[],
 ): Promise<GeneratedQuestion[]> {
+  let best: { questions: GeneratedQuestion[]; missing: number } | null = null
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const raw = await callGeminiJSON(buildSetTestPrompt({ ...compileArgs, note: attempt > 1 ? `ATTEMPT ${attempt}: lần trước bỏ sót item — phải dùng ĐÚNG mọi item, mỗi item đúng 1 lần.` : "" }), {
@@ -314,9 +316,20 @@ export async function generateFullTest(
       if (missing.length === 0 && extraCount === 0 && uniqueKeys && parsed.questions.length === itemKeys.length) {
         return parsed.questions
       }
+      if (!best || missing.length < best.missing) {
+        best = { questions: parsed.questions, missing: missing.length }
+      }
     } catch {
       // parse/network error → retry
     }
+  }
+  if (best) {
+    const seen = new Set<string>()
+    return best.questions.filter((q) => {
+      if (seen.has(q.itemKey)) return false
+      seen.add(q.itemKey)
+      return true
+    })
   }
   throw new Error("Không tạo được đề đạt tỷ lệ bao phủ mọi item sau 3 lần thử. Hãy thử lại.")
 }
@@ -458,9 +471,13 @@ export async function validateAndFixQuestions(
     current = await rewriteInvalidQuestions(current, invalidKeys, keyToTarget)
   }
 
-  throw new Error(
-    "Không thể tạo được câu hỏi trắc nghiệm hợp lệ sau khi validate. Hãy thử lại với Set khác.",
-  )
+  // Best-effort: never hard-fail the whole test. Keep structurally-sound
+  // questions (blank present + at least one option) that passed the rewrite
+  // rounds; drop only items that lost their blank entirely.
+  return current.filter((q) => {
+    if (!needsBlankValidation(q.part, q.options, q.question)) return true
+    return BLANK_RE.test(q.question) && (q.options?.length ?? 0) > 0
+  })
 }
 
 export async function runConjugationValidation(
@@ -633,9 +650,14 @@ export async function validateAndFixConjugationQuestions(
     current = await rewriteInvalidConjugationQuestions(next, invalidKeys, itemInfo)
   }
 
-  throw new Error(
-    "Không thể tạo được câu hỏi chia dạng từ hợp lệ sau khi validate. Hãy thử lại với Set khác.",
-  )
+  // Best-effort: never hard-fail the whole test. Drop only Part 2 items with
+  // no usable base word (structurally broken); keep the rest as improved by
+  // the rewrite rounds.
+  return current.filter((q) => {
+    if (q.part !== 2) return true
+    const base = q.baseWord || extractBaseWord(q.question) || ""
+    return base !== ""
+  })
 }
 
 export async function runSynonymValidation(
@@ -796,9 +818,16 @@ export async function validateAndFixSynonymQuestions(
     current = await rewriteInvalidSynonymQuestions(next, invalidKeys, itemInfo, results)
   }
 
-  throw new Error(
-    "Không thể tạo được câu hỏi tìm câu đồng nghĩa hợp lệ sau khi validate. Hãy thử lại với Set khác.",
-  )
+  // Best-effort: never hard-fail the whole test. Drop only Part 3 items whose
+  // underline is structurally invalid (empty / not an exact substring / the
+  // whole sentence); keep the rest as improved by the rewrite rounds.
+  return current.filter((q) => {
+    if (q.part !== 3) return true
+    const underline = normalizePlain(q.underlinedText ?? "")
+    if (!underline) return false
+    const pos = checkUnderlinePosition(q.question, underline)
+    return pos.found && !pos.wholeSentence
+  })
 }
 
 async function loadSetHistories(deviceId: string, setId: string) {
@@ -839,6 +868,7 @@ export const setTestRouter = router({
         type: c.type === "grammar" ? "grammar" : "vocabulary",
         definition: c.definition,
       }))
+      if (items.length === 0) throw new Error("Set không có thẻ nào. Hãy thêm thẻ vào Set trước khi tạo đề.")
       const itemKeys = items.map((it) => it.key)
       const keyToItem = new Map(items.map((it) => [it.key, it]))
       const counts = computePartCounts(items.length)
@@ -881,9 +911,24 @@ Với các mục yếu này:
       const deduped = await patchQuestionTexts(questions, prevNormalized)
       const keyToTarget = new Map(items.map((it) => [it.key, it.term]))
       const keyToItemInfo = new Map(items.map((it) => [it.key, { term: it.term, type: it.type }]))
-      const validated = await validateAndFixQuestions(deduped, keyToTarget)
-      const validatedConj = await validateAndFixConjugationQuestions(validated, keyToItemInfo)
-      const validatedSyn = await validateAndFixSynonymQuestions(validatedConj, keyToItemInfo)
+      const [v1, v2, v3] = await Promise.all([
+        validateAndFixQuestions(deduped, keyToTarget),
+        validateAndFixConjugationQuestions(deduped, keyToItemInfo),
+        validateAndFixSynonymQuestions(deduped, keyToItemInfo),
+      ])
+      const validatedSyn = deduped
+        .filter((q) => {
+          if (q.part === 1) return v1.some((x) => x.itemKey === q.itemKey)
+          if (q.part === 2) return v2.some((x) => x.itemKey === q.itemKey)
+          if (q.part === 3) return v3.some((x) => x.itemKey === q.itemKey)
+          return true
+        })
+        .map((q) => {
+          if (q.part === 1) return v1.find((x) => x.itemKey === q.itemKey) ?? q
+          if (q.part === 2) return v2.find((x) => x.itemKey === q.itemKey) ?? q
+          if (q.part === 3) return v3.find((x) => x.itemKey === q.itemKey) ?? q
+          return q
+        })
 
       const qByPart: Record<1 | 2 | 3 | 4, BuiltQuestion[]> = { 1: [], 2: [], 3: [], 4: [] }
       let qid = 1
