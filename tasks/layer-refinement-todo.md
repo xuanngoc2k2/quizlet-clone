@@ -40,3 +40,17 @@ Khi user báo bug/feature, thêm task theo format:
 - Unit test cho parser trong `src/lib/set-import.test.ts` pass; lint + typecheck clean
 **Status:** ✅ Done
 **Commit:** -
+
+### [R-02] — TOPIK Set Test Generator (Phase A)
+
+**Type:** Feature
+**Description:** Tạo đề kiểm tra TOPIK-style từ một Set (FlashcardSet): tổng câu = số item, 4 part (MC ≥5 / chia từ ≥5 / đồng nghĩa ≥2 / dịch ≥1 scaled theo tổng), mọi item xuất hiện ≥1 lần, cover cả vocabulary + grammar, difficulty 20/50/30, không hiển thị nghĩa trước submit, chấm AI Part 4, anti-duplicate với các đề cũ, lưu lịch sử theo setId. Phase B: weakness/오답 복습/thích ứng difficulty.
+**Acceptance Criteria:**
+- DB: TestHistory thêm `source`, `setId`, `contextHashes`, `questionItemMap` + migration
+- `set-test.generate` trả 4 part, validate coverage (missing → regenerate ≤3 lần)
+- Tab "Set Test" trên /test, chọn Set → generate → làm/dấểu → chấm → review
+- Nút "TOPIK Set Test" trên trang /set/[id]
+- Review có breakdown theo part + type (vocab/grammar) + giải thích đúng/sai
+- Typecheck + lint + unit tests pass (distribution, gemini parse)
+**Status:** ✅ Done (Phase A) — Phase B: weakness/오답 복습/thích ứng difficulty chưa làm
+**Commit:** -

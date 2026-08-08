@@ -14,6 +14,11 @@ type Question = {
   grammarHint?: string
   correctAnswer: string
   explanation: string
+  difficulty?: string
+  meaningVi?: string
+  optionExplanations?: string[]
+  itemId?: string
+  itemType?: "vocabulary" | "grammar"
 }
 
 type Section = {
@@ -51,6 +56,11 @@ export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; t
 
   const allQuestions = test.sections.flatMap((s) => s.questions)
 
+  const questionsByPart: Record<number, Question> = {}
+  allQuestions.forEach((q) => {
+    questionsByPart[q.id] = q
+  })
+
   const sectionColors: Record<number, string> = {
     1: "bg-blue-50 border-blue-200",
     2: "bg-emerald-50 border-emerald-200",
@@ -67,6 +77,28 @@ export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; t
 
   function setAnswer(qId: number, value: string) {
     setAnswers((prev) => ({ ...prev, [qId]: value }))
+  }
+
+  function isCorrectForResult(r: GradeResult["results"][number]): boolean {
+    return r.isCorrect || (r.score !== undefined && r.score >= 5)
+  }
+
+  function buildBreakdown() {
+    const part: Record<number, { c: number; t: number }> = { 1: { c: 0, t: 0 }, 2: { c: 0, t: 0 }, 3: { c: 0, t: 0 }, 4: { c: 0, t: 0 } }
+    const type: Record<"vocabulary" | "grammar", { c: number; t: number }> = {
+      vocabulary: { c: 0, t: 0 },
+      grammar: { c: 0, t: 0 },
+    }
+    for (const r of gradeResult!.results) {
+      const q = questionsByPart[r.questionId]
+      const p = q?.part ?? 1
+      part[p].t++
+      if (isCorrectForResult(r)) part[p].c++
+      const t = q?.itemType ?? "vocabulary"
+      type[t].t++
+      if (isCorrectForResult(r)) type[t].c++
+    }
+    return { part, type }
   }
 
   async function handleSubmit() {
@@ -227,6 +259,11 @@ export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; t
           <span className="text-2xl text-primary-400">/{gradeResult!.totalQuestions}</span>
         </div>
         <p className="mt-2 text-sm text-primary-500">{score}% correct</p>
+
+        <div className="mt-6 w-full max-w-sm">
+          <BreakdownCard breakdown={buildBreakdown()} />
+        </div>
+
         <div className="mt-8 flex gap-3">
           <Button onClick={onReset} variant="secondary">
             <RotateCw className="h-4 w-4" />
@@ -248,10 +285,6 @@ export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; t
   }
 
   const groupedResults: Record<number, GradeResult["results"]> = { 1: [], 2: [], 3: [], 4: [] }
-  const questionsByPart: Record<number, Question> = {}
-  allQuestions.forEach((q) => {
-    questionsByPart[q.id] = q
-  })
   for (const r of gradeResult!.results) {
     const part = questionsByPart[r.questionId]?.part ?? 1
     if (!groupedResults[part]) groupedResults[part] = []
@@ -387,6 +420,27 @@ export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; t
                       <p className="mt-1 rounded-lg bg-primary-50 px-3 py-2 text-primary-600">
                         {r.explanation}
                       </p>
+                      {q.meaningVi && (
+                        <div className="mt-2 rounded-lg bg-indigo-50 px-3 py-2">
+                          <p className="text-[11px] font-bold text-indigo-600">Nghĩa tiếng Việt</p>
+                          <p className="text-xs text-primary-700">{q.meaningVi}</p>
+                        </div>
+                      )}
+                      {q.optionExplanations && q.options && (
+                        <div className="mt-2 rounded-lg bg-primary-50/70 px-3 py-2">
+                          <p className="text-[11px] font-bold text-primary-600">Các đáp án</p>
+                          <ul className="mt-1 flex flex-col gap-1 text-xs text-primary-600">
+                            {q.options.map((opt, i) => (
+                              <li key={i} className="flex flex-wrap items-baseline gap-x-1.5">
+                                <span className={opt === r.correctAnswer ? "font-bold text-emerald-600" : ""}>{opt}</span>
+                                {q.optionExplanations![i] && (
+                                  <span className="text-primary-400">— {q.optionExplanations![i]}</span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )
@@ -401,6 +455,50 @@ export function TestViewer({ test, testHistoryId, onReset }: { test: TestData; t
           <RotateCw className="h-4 w-4" />
           New Test
         </Button>
+      </div>
+    </div>
+  )
+}
+
+function BreakdownCard({ breakdown }: { breakdown: { part: Record<number, { c: number; t: number }>; type: Record<"vocabulary" | "grammar", { c: number; t: number }> } }) {
+  const partLabels: Record<number, string> = {
+    1: "Phần 1 · Chọn đáp án",
+    2: "Phần 2 · Chia từ",
+    3: "Phần 3 · Đồng nghĩa",
+    4: "Phần 4 · Dịch",
+  }
+  return (
+    <div className="rounded-2xl border border-primary-100 bg-white p-4 text-left shadow-sm">
+      <p className="mb-3 text-xs font-bold text-primary-700">Phân tích kết quả</p>
+      <div className="grid grid-cols-2 gap-2">
+        {[1, 2, 3, 4].map((p) => {
+          const b = breakdown.part[p]
+          if (!b || b.t === 0) return null
+          const pct = Math.round((b.c / b.t) * 100)
+          const color = pct >= 70 ? "text-emerald-600" : pct >= 40 ? "text-amber-600" : "text-red-600"
+          return (
+            <div key={p} className="rounded-xl bg-primary-50 px-3 py-2">
+              <p className="text-[10px] text-primary-500">{partLabels[p]}</p>
+              <p className="text-sm font-bold text-primary-900">
+                {b.c}/{b.t} <span className={`text-xs font-medium ${color}`}>{pct}%</span>
+              </p>
+            </div>
+          )
+        })}
+        {(["vocabulary", "grammar"] as const).map((t) => {
+          const b = breakdown.type[t]
+          if (!b || b.t === 0) return null
+          const pct = Math.round((b.c / b.t) * 100)
+          const color = pct >= 70 ? "text-emerald-600" : pct >= 40 ? "text-amber-600" : "text-red-600"
+          return (
+            <div key={t} className="rounded-xl bg-primary-50 px-3 py-2">
+              <p className="text-[10px] text-primary-500">{t === "vocabulary" ? "Từ vựng" : "Ngữ pháp"}</p>
+              <p className="text-sm font-bold text-primary-900">
+                {b.c}/{b.t} <span className={`text-xs font-medium ${color}`}>{pct}%</span>
+              </p>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

@@ -1,9 +1,6 @@
 import { z } from "zod"
 import { router, publicProcedure } from "../trpc"
-import { env } from "@/lib/env"
-
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent"
+import { callGeminiJSON, callGeminiText } from "../lib/gemini"
 
 const buildTestPrompt = (prompt: string) => `You are a TOPIK test generator. Create a Korean language test based on the user's request.
 
@@ -115,50 +112,6 @@ Rules:
 - Explanations can be in Vietnamese or English (learner's preferred language)
 - Use TOPIK level-appropriate grammar and vocabulary
 - Each question must have a clear single correct answer`
-
-async function callGemini(systemPrompt: string) {
-  const res = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: systemPrompt }] }],
-      generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 8192,
-      },
-    }),
-  })
-
-  if (!res.ok) {
-    const errorText = await res.text()
-    if (res.status === 429) {
-      throw new Error("AI quota exceeded. Please wait and try again.")
-    }
-    throw new Error(`Gemini API error (${res.status}): ${errorText}`)
-  }
-
-  const data = await res.json()
-  const candidate = data?.candidates?.[0]
-  if (!candidate) {
-    const finishReason = candidate?.finishReason ?? "unknown"
-    throw new Error(`Empty Gemini response (finishReason: ${finishReason})`)
-  }
-  let text = candidate?.content?.parts?.[0]?.text
-  if (!text) throw new Error("Empty content from Gemini")
-
-  text = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim()
-  const firstBrace = text.indexOf("{")
-  const lastBrace = text.lastIndexOf("}")
-  if (firstBrace !== -1 && lastBrace !== -1) {
-    text = text.slice(firstBrace, lastBrace + 1)
-  }
-
-  try {
-    return JSON.parse(text)
-  } catch {
-    throw new Error(`Invalid JSON from Gemini (${text.length} chars): ${text.slice(0, 300)}`)
-  }
-}
 
 const questionSchema = z.object({
   id: z.number(),
@@ -287,49 +240,18 @@ const gradeInputSchema = z.object({
   answers: z.record(z.string()),
 })
 
-async function callGeminiText(systemPrompt: string) {
-  const res = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: systemPrompt }] }],
-      generationConfig: {
-        temperature: 0.3,
-        maxOutputTokens: 1024,
-      },
-    }),
-  })
-
-  if (!res.ok) {
-    const errorText = await res.text()
-    if (res.status === 429) {
-      throw new Error("AI quota exceeded. Please wait and try again.")
-    }
-    throw new Error(`Gemini API error (${res.status}): ${errorText}`)
-  }
-
-  const data = await res.json()
-  const candidate = data?.candidates?.[0]
-  if (!candidate) {
-    throw new Error(`Empty Gemini response (finishReason: ${candidate?.finishReason ?? "unknown"})`)
-  }
-  const text = candidate?.content?.parts?.[0]?.text
-  if (!text) throw new Error("Empty content from Gemini")
-  return text.trim()
-}
-
 export const testRouter = router({
   refinePrompt: publicProcedure
     .input(z.object({ prompt: z.string().min(1, "Prompt is required") }))
     .mutation(async ({ input }) => {
-      const refined = await callGeminiText(buildRefinePrompt(input.prompt))
+      const refined = await callGeminiText(buildRefinePrompt(input.prompt), { maxTokens: 1024 })
       return { refined }
     }),
 
   generate: publicProcedure
     .input(z.object({ prompt: z.string().min(1, "Prompt is required") }))
     .mutation(async ({ input }) => {
-      const raw = await callGemini(buildTestPrompt(input.prompt))
+      const raw = await callGeminiJSON(buildTestPrompt(input.prompt), { temperature: 0.4, maxTokens: 8192 })
       const parsed = testOutputSchema.parse(raw)
       parsed.sections.forEach((section, idx) => {
         const partNum = idx + 1
@@ -348,7 +270,7 @@ export const testRouter = router({
         options: q.options, correctAnswer: q.correctAnswer,
       })), null, 2)
       const answersStr = JSON.stringify(input.answers, null, 2)
-      const raw = await callGemini(gradePrompt(questionsStr, answersStr))
+      const raw = await callGeminiJSON(gradePrompt(questionsStr, answersStr), { temperature: 0.4, maxTokens: 8192 })
       const parsed = z.object({
         results: z.array(z.object({
           questionId: z.number(),

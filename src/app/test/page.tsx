@@ -7,12 +7,16 @@ import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
 import { TestViewer } from "@/components/test/TestViewer"
+import { SetTestGenerator } from "@/components/test/SetTestGenerator"
 import { Sparkles, Loader2, BookOpen, PenTool, BookMarked, Languages, Wand2, X, Clock } from "lucide-react"
 
 function TestContent() {
   const searchParams = useSearchParams()
   const retakeId = searchParams.get("retake")
+  const presetMode = searchParams.get("mode")
+  const presetSetId = searchParams.get("setId") ?? undefined
 
+  const [mode, setMode] = useState<"prompt" | "set">(presetMode === "set" ? "set" : "prompt")
   const [prompt, setPrompt] = useState("")
   const [refinedPrompt, setRefinedPrompt] = useState<string | null>(null)
   const [editingPrompt, setEditingPrompt] = useState("")
@@ -83,7 +87,28 @@ function TestContent() {
     <div className="flex min-h-screen-safe flex-col">
       <Header />
       <main className="flex-1 px-4 pb-24 pt-4">
-        {!testData ? (
+        <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl bg-primary-50 p-1">
+          <button
+            onClick={() => setMode("prompt")}
+            className={`rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
+              mode === "prompt" ? "bg-white text-primary-900 shadow-sm" : "text-primary-400 hover:text-primary-600"
+            }`}
+          >
+            Generator
+          </button>
+          <button
+            onClick={() => setMode("set")}
+            className={`rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
+              mode === "set" ? "bg-white text-primary-900 shadow-sm" : "text-primary-400 hover:text-primary-600"
+            }`}
+          >
+            Set Test
+          </button>
+        </div>
+
+        {mode === "set" ? (
+          <SetTestGenerator presetSetId={presetSetId} />
+        ) : !testData ? (
           <>
             <div className="mb-6 text-center">
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-amber-500 shadow-lg">

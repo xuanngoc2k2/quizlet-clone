@@ -1,9 +1,6 @@
 import { z } from "zod"
 import { router, publicProcedure } from "../trpc"
-import { env } from "@/lib/env"
-
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent"
+import { callGeminiJSON } from "../lib/gemini"
 
 const langLabels = {
   en: { name: "English", flag: "en" },
@@ -59,59 +56,6 @@ Respond with VALID JSON ONLY. No markdown, no code fences, no extra text.
 Provide 3 example sentences at different difficulty levels (easy, intermediate, advanced).`
 }
 
-async function callGemini(systemPrompt: string, userText: string, temperature = 0.3) {
-  const res = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: systemPrompt },
-            { text: userText },
-          ],
-        },
-      ],
-      generationConfig: {
-        temperature,
-        maxOutputTokens: 4096,
-      },
-    }),
-  })
-
-  if (!res.ok) {
-    const errorText = await res.text()
-    if (res.status === 429) {
-      throw new Error("AI quota exceeded. Please wait a moment and try again, or add billing at https://ai.google.dev.")
-    }
-    throw new Error(`Gemini API error (${res.status}): ${errorText}`)
-  }
-
-  const data = await res.json()
-  const candidate = data?.candidates?.[0]
-  if (!candidate) {
-    const finishReason = data?.candidates?.[0]?.finishReason ?? "unknown"
-    const safetyRatings = JSON.stringify(data?.candidates?.[0]?.safetyRatings ?? [])
-    const promptFeedback = JSON.stringify(data?.promptFeedback ?? {})
-    throw new Error(`Empty Gemini response (finishReason: ${finishReason}, safety: ${safetyRatings}, promptFeedback: ${promptFeedback})`)
-  }
-  let text = candidate?.content?.parts?.[0]?.text
-  if (!text) throw new Error("Empty content from Gemini")
-
-  text = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim()
-  const firstBrace = text.indexOf("{")
-  const lastBrace = text.lastIndexOf("}")
-  if (firstBrace !== -1 && lastBrace !== -1) {
-    text = text.slice(firstBrace, lastBrace + 1)
-  }
-
-  try {
-    return JSON.parse(text)
-  } catch {
-    throw new Error(`Invalid JSON from Gemini (${text.length} chars): ${text.slice(0, 500)}`)
-  }
-}
-
 type GeminiResponse = {
   grammar_score: number
   naturalness_score: number
@@ -141,9 +85,9 @@ export const sentencesRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      const result = await callGemini(
+      const result = await callGeminiJSON(
         buildCheckPrompt(input.language),
-        `Sentence: "${input.sentence}"`,
+        { userText: `Sentence: "${input.sentence}"` },
       ) as GeminiResponse
       return {
         grammarScore: result.grammar_score,
@@ -163,9 +107,9 @@ export const sentencesRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      const result = await callGemini(
+      const result = await callGeminiJSON(
         buildExplainPrompt(input.language),
-        `Sentence: "${input.sentence}"`,
+        { userText: `Sentence: "${input.sentence}"` },
       ) as ExplainResponse
       return {
         meaning: result.meaning,
@@ -184,10 +128,9 @@ export const sentencesRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      const result = await callGemini(
+      const result = await callGeminiJSON(
         buildExamplesPrompt(input.word, input.definition, input.language),
-        "",
-        0.4,
+        { temperature: 0.4 },
       ) as ExamplesResponse
       return { examples: result.examples }
     }),

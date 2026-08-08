@@ -14,7 +14,7 @@ import { SentenceChecker } from "@/components/ui/SentenceChecker"
 import { WordPractice } from "@/components/ui/WordPractice"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { GraduationCap, PenLine, Trash2 } from "lucide-react"
+import { GraduationCap, PenLine, Trash2, BookMarked } from "lucide-react"
 
 export default function ViewSetPage() {
   const { id } = useParams<{ id: string }>()
@@ -81,6 +81,12 @@ export default function ViewSetPage() {
             <Button variant="gradient" size="lg">
               <GraduationCap className="h-4 w-4" />
               Study
+            </Button>
+          </Link>
+          <Link href={`/test?mode=set&setId=${id}`}>
+            <Button variant="primary">
+              <BookMarked className="h-4 w-4" />
+              Set Test
             </Button>
           </Link>
           <Link href={`/set/${id}/edit`}>

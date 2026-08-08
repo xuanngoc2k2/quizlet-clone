@@ -44,15 +44,20 @@ model CardProgress {
 }
 
 model TestHistory {
-  id          String        @id @default(cuid())
-  deviceId    String
-  title       String
-  description String
-  sections    Json
-  createdAt   DateTime      @default(now())
-  attempts    TestAttempt[]
+  id               String        @id @default(cuid())
+  deviceId         String
+  source           String        @default("prompt")
+  setId            String?
+  title            String
+  description      String
+  sections         Json
+  contextHashes    Json?
+  questionItemMap  Json?
+  createdAt        DateTime      @default(now())
+  attempts         TestAttempt[]
 
   @@index([deviceId])
+  @@index([setId])
   @@index([createdAt])
 }
 
