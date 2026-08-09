@@ -6,6 +6,7 @@ import { api } from "@/lib/trpc-provider"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
+import { isAnswerWrong } from "@/lib/test-results"
 import { Loader2, Clock, RotateCw, ChevronDown, ChevronUp, CheckCircle2, XCircle } from "lucide-react"
 
 export default function TestHistoryDetailPage() {
@@ -85,6 +86,7 @@ export default function TestHistoryDetailPage() {
             const correctCount = results.filter((r) => r.isCorrect).length
             const totalCount = results.length
             const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0
+            const wrongResults = results.filter((r) => isAnswerWrong(r))
             const isExpanded = expandedAttempt === attempt.id
 
             return (
@@ -121,6 +123,17 @@ export default function TestHistoryDetailPage() {
 
                 {isExpanded && (
                   <div className="border-t border-primary-100">
+                    <div className="flex items-center justify-between gap-2 border-b border-primary-50 bg-primary-50/40 px-4 py-2.5">
+                      <p className="text-[11px] font-bold text-primary-600">Chi tiết lần làm</p>
+                      <button
+                        onClick={() => router.push(`/test?retake=${data.id}&attemptId=${attempt.id}`)}
+                        disabled={wrongResults.length === 0}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary-500 to-amber-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40"
+                      >
+                        <RotateCw className="h-3.5 w-3.5" />
+                        Làm lại câu sai ({wrongResults.length})
+                      </button>
+                    </div>
                     {sections?.map((section, si) => {
                       const partNum = si + 1
                       const partResults = results.filter((r) => {

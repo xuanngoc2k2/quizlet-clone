@@ -8,11 +8,13 @@ import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
 import { TestViewer } from "@/components/test/TestViewer"
 import { SetTestGenerator } from "@/components/test/SetTestGenerator"
+import { isAnswerWrong } from "@/lib/test-results"
 import { Sparkles, Loader2, BookOpen, PenTool, BookMarked, Languages, Wand2, X, Clock } from "lucide-react"
 
 function TestContent() {
   const searchParams = useSearchParams()
   const retakeId = searchParams.get("retake")
+  const retakeAttemptId = searchParams.get("attemptId")
   const presetMode = searchParams.get("mode")
   const presetSetId = searchParams.get("setId") ?? undefined
 
@@ -27,9 +29,14 @@ function TestContent() {
   const saveHistory = api.testHistory.save.useMutation()
 
   const [localRetakeId, setLocalRetakeId] = useState<string | null>(null)
+  const [localAttemptId, setLocalAttemptId] = useState<string | null>(null)
   useEffect(() => {
     if (retakeId) setLocalRetakeId(retakeId)
   }, [retakeId])
+
+  useEffect(() => {
+    if (retakeAttemptId) setLocalAttemptId(retakeAttemptId)
+  }, [retakeAttemptId])
 
   const { data: retakeData } = api.testHistory.get.useQuery(
     { id: localRetakeId! },
@@ -38,7 +45,27 @@ function TestContent() {
 
   useEffect(() => {
     if (retakeData) {
-      const sections = retakeData.sections as { name: string; instruction: string; questions: unknown[] }[]
+      const sections = retakeData.sections as unknown as { name: string; instruction: string; questions: { id: number; type: string; question: string; options?: string[]; correctAnswer: string; explanation: string }[] }[]
+      if (localAttemptId) {
+        const attempt = retakeData.attempts.find((a) => a.id === localAttemptId)
+        const wrongIds = new Set(
+          (attempt?.results as { questionId: number; isCorrect: boolean; score?: number }[] | undefined)
+            ?.filter((r) => isAnswerWrong(r))
+            .map((r) => r.questionId) ?? [],
+        )
+        const filteredSections = sections
+          .map((s) => ({ ...s, questions: s.questions.filter((q) => wrongIds.has(q.id)) }))
+          .filter((s) => s.questions.length > 0)
+        if (filteredSections.length > 0) {
+          setTestData({
+            title: retakeData.title,
+            description: retakeData.description,
+            sections: filteredSections,
+          })
+          setTestHistoryId(localRetakeId)
+          return
+        }
+      }
       setTestData({
         title: retakeData.title,
         description: retakeData.description,
@@ -46,7 +73,7 @@ function TestContent() {
       })
       setTestHistoryId(localRetakeId)
     }
-  }, [retakeData, localRetakeId])
+  }, [retakeData, localRetakeId, localAttemptId])
 
   async function handleRefine() {
     if (!prompt.trim()) return
@@ -78,6 +105,7 @@ function TestContent() {
     setEditingPrompt("")
     setPrompt("")
     setLocalRetakeId(null)
+    setLocalAttemptId(null)
     generate.reset()
     refine.reset()
     saveHistory.reset()
