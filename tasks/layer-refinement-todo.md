@@ -69,3 +69,14 @@ Khi user báo bug/feature, thêm task theo format:
 - Typecheck + lint + unit tests pass (dictionary lib), build pass
 **Status:** ✅ Done (Phase 1 + Phase 2) — Phase 2: Add-to-Set + Add-Flashcard (dedupe theo term, chọn/tạo set, editable card). Phase 3 (pending): Mini Practice
 **Commit:** -
+
+### [R-04] — Sửa lỗi nút chức năng trên header từ điển bị kéo thả chiếm quyền
+
+**Type:** Bug
+**Description:** Khi click vào các nút chức năng trên thanh header của Từ điển (đổi chiều ngôn ngữ, thu gọn, xóa lịch sử, đóng panel), hành động click bị chiếm quyền do sự kiện kéo thả panel. Cần thêm `onPointerDown={(e) => e.stopPropagation()}` để các nút này nhận sự kiện click độc lập và hoạt động bình thường.
+**Acceptance Criteria:**
+- Người dùng có thể click vào toàn bộ các nút trên header bình thường.
+- Chức năng kéo thả vẫn hoạt động mượt mà khi nhấn giữ vào phần tiêu đề "Từ điển" hoặc icon grip.
+- Typecheck + lint + tests pass sạch.
+**Status:** ✅ Done
+**Commit:** fix: prevent drag interference on dictionary header buttons

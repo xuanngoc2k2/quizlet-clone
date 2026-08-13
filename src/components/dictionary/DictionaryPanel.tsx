@@ -40,6 +40,7 @@ function DirectionControl() {
     <div className="flex items-center gap-1.5">
       <button
         type="button"
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={() => setFrom("vi")}
         className={`${pill(from === "vi")} min-w-[44px]`}
         aria-pressed={from === "vi"}
@@ -48,6 +49,7 @@ function DirectionControl() {
       </button>
       <button
         type="button"
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={() => setFrom("ko")}
         className={`${pill(from === "ko")} min-w-[44px]`}
         aria-pressed={from === "ko"}
@@ -56,6 +58,7 @@ function DirectionControl() {
       </button>
       <button
         type="button"
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={swapDirection}
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-100 text-primary-500 transition-colors hover:bg-primary-200"
         aria-label="Đảo chiều từ điển"
@@ -89,6 +92,8 @@ export function DictionaryPanel() {
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!isDesktop) return
+    const target = e.target as HTMLElement
+    if (target.closest("button, input, textarea, select, a")) return
     const header = e.currentTarget as HTMLElement
     const rect = header.getBoundingClientRect()
     header.setPointerCapture(e.pointerId)
@@ -186,6 +191,7 @@ export function DictionaryPanel() {
                 </div>
                 <button
                   type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => setMinimized(true)}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-primary-500 transition-colors hover:bg-primary-50"
                   aria-label="Thu gọn"
@@ -194,6 +200,7 @@ export function DictionaryPanel() {
                 </button>
                 <button
                   type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={clearConversation}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-primary-500 transition-colors hover:bg-primary-50"
                   aria-label="Xóa hội thoại"
@@ -203,6 +210,7 @@ export function DictionaryPanel() {
                 </button>
                 <button
                   type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => setOpen(false)}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-primary-500 transition-colors hover:bg-primary-50"
                   aria-label="Đóng"
