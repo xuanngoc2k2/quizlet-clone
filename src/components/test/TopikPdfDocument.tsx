@@ -123,7 +123,7 @@ export const TopikPdfDocument = ({ testData }: { testData: TestData }) => (
         <View key={idx} style={styles.section} wrap={false}>
           <Text style={styles.sectionTitle}>{section.name || `Phần ${idx + 1}`}</Text>
           {section.instruction ? (
-            <Text style={{ marginBottom: 10, fontStyle: 'italic', color: '#4b5563' }}>{section.instruction}</Text>
+            <Text style={{ marginBottom: 10, color: '#6b7280' }}>{section.instruction}</Text>
           ) : null}
           
           {section.questions?.map((q, qIdx) => (
