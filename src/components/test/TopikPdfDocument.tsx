@@ -115,32 +115,32 @@ export const TopikPdfDocument = ({ testData }: { testData: TestData }) => (
     {/* Page 1+: Test Paper */}
     <Page style={styles.page} wrap>
       <View style={styles.header}>
-        <Text style={styles.title}>{testData.title}</Text>
-        <Text style={styles.description}>{testData.description}</Text>
+        <Text style={styles.title}>{testData.title || "Bài Kiểm Tra"}</Text>
+        {testData.description ? <Text style={styles.description}>{testData.description}</Text> : null}
       </View>
       
-      {testData.sections.map((section, idx) => (
+      {testData.sections?.map((section, idx) => (
         <View key={idx} style={styles.section} wrap={false}>
-          <Text style={styles.sectionTitle}>{section.name}</Text>
-          <Text style={{ marginBottom: 10, fontStyle: 'italic', color: '#4b5563' }}>{section.instruction}</Text>
+          <Text style={styles.sectionTitle}>{section.name || `Phần ${idx + 1}`}</Text>
+          {section.instruction ? (
+            <Text style={{ marginBottom: 10, fontStyle: 'italic', color: '#4b5563' }}>{section.instruction}</Text>
+          ) : null}
           
-          {section.questions.map((q, qIdx) => (
+          {section.questions?.map((q, qIdx) => (
             <View key={qIdx} style={styles.questionContainer} wrap={false}>
-              <Text style={styles.questionText}>{q.id}. {q.question}</Text>
+              <Text style={styles.questionText}>{q.id}. {q.question || ""}</Text>
               
               {q.options && q.options.length > 0 && (
                 <View style={styles.optionsContainer}>
                   {q.options.map((opt, optIdx) => (
-                    <Text key={optIdx} style={styles.optionText}>({optIdx + 1}) {opt}</Text>
+                    <Text key={optIdx} style={styles.optionText}>({optIdx + 1}) {opt || ""}</Text>
                   ))}
                 </View>
               )}
               
               {/* For translation or blank questions without options */}
               {(!q.options || q.options.length === 0) && (
-                <View style={{ marginTop: 10, marginBottom: 10, borderBottomWidth: 1, borderBottomColor: '#d1d5db', borderBottomStyle: 'dashed' }}>
-                  <Text> </Text>
-                </View>
+                <View style={{ marginTop: 10, marginBottom: 10, borderBottomWidth: 1, borderBottomColor: '#d1d5db', borderBottomStyle: 'dashed', height: 20 }} />
               )}
             </View>
           ))}
@@ -153,18 +153,18 @@ export const TopikPdfDocument = ({ testData }: { testData: TestData }) => (
       <View>
         <Text style={styles.answerKeyHeader}>ĐÁP ÁN & GIẢI THÍCH CHI TIẾT</Text>
         
-        {testData.sections.map((section, idx) => (
+        {testData.sections?.map((section, idx) => (
           <View key={idx} style={styles.answerSection} wrap={false}>
-            <Text style={styles.answerSectionTitle}>{section.name}</Text>
+            <Text style={styles.answerSectionTitle}>{section.name || `Phần ${idx + 1}`}</Text>
             
-            {section.questions.map((q, qIdx) => (
+            {section.questions?.map((q, qIdx) => (
               <View key={qIdx} style={styles.answerItem} wrap={false}>
                 <Text>
                   Câu {q.id}: <Text style={styles.answerCorrect}>{q.correctAnswer || "Xem giải thích"}</Text>
                 </Text>
-                {q.explanation && (
+                {q.explanation ? (
                   <Text style={styles.explanation}>Giải thích: {q.explanation}</Text>
-                )}
+                ) : null}
               </View>
             ))}
           </View>
