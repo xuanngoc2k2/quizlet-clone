@@ -8,6 +8,8 @@ import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
 import { isAnswerWrong } from "@/lib/test-results"
 import { Loader2, Clock, RotateCw, ChevronDown, ChevronUp, CheckCircle2, XCircle } from "lucide-react"
+import PdfDownloadButton from "@/components/test/PdfDownloadButton"
+import type { TestData } from "@/components/test/TopikPdfDocument"
 
 export default function TestHistoryDetailPage() {
   const params = useParams()
@@ -45,7 +47,7 @@ export default function TestHistoryDetailPage() {
     )
   }
 
-  const sections = data.sections as { name: string; instruction: string; questions: { id: number; question: string; type: string }[] }[] | null
+  const sections = data.sections as TestData["sections"] | null
   const totalQuestions = sections?.reduce((sum, s) => sum + s.questions.length, 0) ?? 0
 
   return (
@@ -63,15 +65,19 @@ export default function TestHistoryDetailPage() {
           <h1 className="font-display text-xl font-bold text-primary-900">{data.title}</h1>
           <p className="mt-1 text-sm text-primary-500">{data.description}</p>
           <p className="mt-1 text-xs text-primary-400">{totalQuestions} câu • {data.attempts.length} lần làm</p>
-          <Button
-            onClick={() => router.push(`/test?retake=${id}`)}
-            variant="gradient"
-            size="sm"
-            className="mt-3"
-          >
-            <RotateCw className="h-3.5 w-3.5" />
-            Làm lại
-          </Button>
+          <div className="mt-3 flex items-center gap-2">
+            <Button
+              onClick={() => router.push(`/test?retake=${id}`)}
+              variant="gradient"
+              size="sm"
+            >
+              <RotateCw className="h-3.5 w-3.5" />
+              Làm lại
+            </Button>
+            {sections && (
+              <PdfDownloadButton testData={{ title: data.title, description: data.description || "", sections }} />
+            )}
+          </div>
         </div>
 
         {data.attempts.length === 0 && (

@@ -92,3 +92,15 @@ Khi user báo bug/feature, thêm task theo format:
 - Typecheck + lint + tests pass sạch
 **Status:** ✅ Done
 **Commit:** feat: integrate free Google Translate TTS with database caching
+
+### [R-06] — Xuất đề thi TOPIK ra định dạng PDF
+
+**Type:** Feature
+**Description:** Sử dụng `@react-pdf/renderer` để tạo tính năng xuất đề thi TOPIK sang file PDF. Hỗ trợ đầy đủ font chữ tiếng Hàn và tiếng Việt (Noto Sans KR). Tính năng này cho phép người dùng tải đề thi về máy để in hoặc làm offline. Nút "Tải PDF" được tích hợp trên trang lịch sử thi.
+**Acceptance Criteria:**
+- Component `TopikPdfDocument` render PDF với font chữ chuẩn (không bị lỗi "tofu").
+- Component `PdfDownloadButton` xử lý đúng quá trình generate phía client-side để tránh lỗi SSR của Next.js.
+- Nút "Tải PDF" hoạt động đúng trên trang `/test/history/[id]`.
+- Typecheck + lint + tests pass sạch.
+**Status:** ✅ Done
+**Commit:** feat: implement TOPIK test PDF export using react-pdf
