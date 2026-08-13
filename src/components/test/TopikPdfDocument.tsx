@@ -4,7 +4,7 @@ import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/rendere
 // Register Noto Sans KR for Korean and Vietnamese support
 Font.register({
   family: 'Noto Sans KR',
-  src: 'https://cdn.jsdelivr.net/npm/noto-sans-kr@0.1.1/fonts/NotoSansKR-Regular.ttf',
+  src: '/fonts/NotoSansKR-Regular.ttf',
 });
 
 const styles = StyleSheet.create({
