@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import { Volume2, Volume1 } from "lucide-react"
 
 type SpeakerButtonProps = {
@@ -11,28 +11,30 @@ type SpeakerButtonProps = {
 
 export function SpeakerButton({ text, lang = "ko-KR", size = "sm" }: SpeakerButtonProps) {
   const [playing, setPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const speak = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     if (!text.trim() || playing) return
-    if (!("speechSynthesis" in window)) return
 
-    window.speechSynthesis.cancel()
+    const shortLang = lang.split("-")[0]
+    const audioUrl = `/api/tts?text=${encodeURIComponent(text.trim())}&lang=${shortLang}`
 
-    const utterance = new SpeechSynthesisUtterance(text.trim())
-    utterance.lang = lang
-    utterance.rate = 0.9
-    utterance.pitch = 1
+    if (audioRef.current) {
+      audioRef.current.pause()
+    }
 
-    utterance.onstart = () => setPlaying(true)
-    utterance.onend = () => setPlaying(false)
-    utterance.onerror = () => setPlaying(false)
+    const audio = new Audio(audioUrl)
+    audioRef.current = audio
 
-    const voices = window.speechSynthesis.getVoices()
-    const koreanVoice = voices.find((v) => v.lang.startsWith("ko"))
-    if (koreanVoice) utterance.voice = koreanVoice
+    audio.onplay = () => setPlaying(true)
+    audio.onended = () => setPlaying(false)
+    audio.onerror = () => setPlaying(false)
 
-    window.speechSynthesis.speak(utterance)
+    audio.play().catch((err) => {
+      console.error("TTS playback failed:", err)
+      setPlaying(false)
+    })
   }, [text, lang, playing])
 
   const sizeClass = size === "md" ? "h-9 w-9" : "h-7 w-7"

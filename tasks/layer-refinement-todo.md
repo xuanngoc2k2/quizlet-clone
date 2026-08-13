@@ -80,3 +80,15 @@ Khi user báo bug/feature, thêm task theo format:
 - Typecheck + lint + tests pass sạch.
 **Status:** ✅ Done
 **Commit:** fix: prevent drag interference on dictionary header buttons
+
+### [R-05] — Tích hợp Text-to-Speech (TTS) miễn phí qua Google Translate TTS
+
+**Type:** Feature
+**Description:** Tích hợp giọng phát âm tiếng Hàn/Việt chất lượng cao thông qua Google Translate TTS API miễn phí, kết hợp cơ chế cache trong database (model `TtsCache`). Thay thế hoàn toàn Web Speech API không ổn định bằng server-side proxy `/api/tts`. Cập nhật `SpeakerButton`, Flashcard, Spell mode và Từ điển nổi.
+**Acceptance Criteria:**
+- API Route `/api/tts` hoạt động: fetch audio từ Google TTS, cache vào DB, trả stream `audio/mpeg`
+- `SpeakerButton` dùng API mới thay vì Web Speech API
+- Spell mode tự động phát âm term tiếng Hàn khi bắt đầu mỗi câu hỏi + nút "Nghe lại"
+- Typecheck + lint + tests pass sạch
+**Status:** ✅ Done
+**Commit:** feat: integrate free Google Translate TTS with database caching

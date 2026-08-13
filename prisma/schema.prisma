@@ -88,3 +88,14 @@ model DictionaryEntry {
 
   @@index([text])
 }
+
+model TtsCache {
+  id          String   @id @default(cuid())
+  text        String
+  lang        String
+  audioBase64 String
+  createdAt   DateTime @default(now())
+
+  @@unique([text, lang])
+  @@index([text])
+}

@@ -12,8 +12,9 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { MathText } from "@/components/ui/MathText"
 import { SpeakerButton } from "@/components/ui/SpeakerButton"
+import { useAudio } from "@/hooks/useAudio"
 import { useEffect, useRef, useState, useMemo } from "react"
-import { CheckCircle2, XCircle, Sparkles, RotateCw } from "lucide-react"
+import { CheckCircle2, XCircle, Sparkles, RotateCw, Volume2 } from "lucide-react"
 
 export default function SpellPage() {
   const { id } = useParams<{ id: string }>()
@@ -32,6 +33,7 @@ export default function SpellPage() {
   )
   const engine = useStudyEngine(cards)
   const timer = useTimer()
+  const { play } = useAudio()
   const [answer, setAnswer] = useState("")
   const [showResult, setShowResult] = useState(false)
   const [lastCorrect, setLastCorrect] = useState(false)
@@ -58,6 +60,12 @@ export default function SpellPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine.isComplete, cards.length])
+
+  useEffect(() => {
+    if (engine.currentCard && !showResult) {
+      play(engine.currentCard.term, "ko")
+    }
+  }, [engine.currentIndex, showResult, play, engine.currentCard])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -142,10 +150,24 @@ export default function SpellPage() {
         <div className="mb-6 rounded-2xl border border-primary-100 bg-white p-8 text-center shadow-sm">
           <div className="mb-3 flex items-center justify-center gap-2">
             <p className="text-xs font-bold uppercase tracking-widest text-primary-400">Definition</p>
-            {engine.currentCard && <SpeakerButton text={engine.currentCard.definition} lang="en-US" />}
+            {engine.currentCard && <SpeakerButton text={engine.currentCard.definition} lang="vi-VN" />}
           </div>
           <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
-          <p className="mt-4 text-xs text-primary-400">Type the term</p>
+          
+          <div className="mt-6 flex flex-col items-center justify-center gap-2">
+            <p className="text-xs text-primary-400 font-medium">Nghe từ vựng tiếng Hàn và gõ lại:</p>
+            {engine.currentCard && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => play(engine.currentCard!.term, "ko")}
+                className="flex items-center gap-2 shadow-sm"
+              >
+                <Volume2 className="h-4 w-4 text-primary-500" />
+                Nghe lại (Phát âm)
+              </Button>
+            )}
+          </div>
         </div>
 
         {showResult ? (
@@ -157,7 +179,7 @@ export default function SpellPage() {
               </p>
             </div>
             <Button onClick={handleNext} variant="gradient" className="w-full">
-              {lastCorrect ? "Next" : "Try Again Later"}
+              {lastCorrect ? "Next" : "Try Again"}
             </Button>
           </div>
         ) : (
