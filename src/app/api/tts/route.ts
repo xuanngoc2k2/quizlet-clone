@@ -11,24 +11,28 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing text parameter" }, { status: 400 })
     }
 
-    // 1. Kiểm tra cache trong DB
-    const cached = await prisma.ttsCache.findUnique({
-      where: {
-        text_lang: {
-          text,
-          lang,
-        },
-      },
-    })
-
-    if (cached) {
-      const buffer = Buffer.from(cached.audioBase64, "base64")
-      return new NextResponse(buffer, {
-        headers: {
-          "Content-Type": "audio/mpeg",
-          "Cache-Control": "public, max-age=31536000, immutable",
+    // 1. Kiểm tra cache trong DB (wrap trong try-catch để fallback nếu DB lỗi)
+    try {
+      const cached = await prisma.ttsCache.findUnique({
+        where: {
+          text_lang: {
+            text,
+            lang,
+          },
         },
       })
+
+      if (cached) {
+        const buffer = Buffer.from(cached.audioBase64, "base64")
+        return new NextResponse(buffer, {
+          headers: {
+            "Content-Type": "audio/mpeg",
+            "Cache-Control": "public, max-age=31536000, immutable",
+          },
+        })
+      }
+    } catch (dbError) {
+      console.warn("Failed to read TTS cache, falling back to API:", dbError)
     }
 
     // 2. Nếu chưa có, gọi Google Translate TTS API
