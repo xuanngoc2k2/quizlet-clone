@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useCallback } from "react"
+import { useState, useCallback } from "react"
 import type { Flashcard } from "@/types"
 
 export function useStudyEngine(cards: Flashcard[]) {
@@ -8,17 +8,22 @@ export function useStudyEngine(cards: Flashcard[]) {
   const [correctIds, setCorrectIds] = useState<Set<string>>(new Set())
   const [incorrectIds, setIncorrectIds] = useState<Set<string>>(new Set())
 
-  const shuffled = useMemo(() => {
+  const [shuffled, setShuffled] = useState<Flashcard[]>([])
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  // Initialize the deck once when cards are available
+  if (cards.length > 0 && !isInitialized) {
     const arr = [...cards]
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]]
     }
-    return arr
-  }, [cards])
+    setShuffled(arr)
+    setIsInitialized(true)
+  }
 
   const currentCard = shuffled[currentIndex] ?? null
-  const isComplete = currentIndex >= shuffled.length
+  const isComplete = isInitialized && shuffled.length > 0 && currentIndex >= shuffled.length
 
   const markCorrect = useCallback(() => {
     if (currentCard) {
@@ -38,7 +43,15 @@ export function useStudyEngine(cards: Flashcard[]) {
     setCurrentIndex(0)
     setCorrectIds(new Set())
     setIncorrectIds(new Set())
-  }, [])
+    
+    const arr = [...cards]
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    setShuffled(arr)
+    setIsInitialized(true)
+  }, [cards])
 
   return {
     currentCard,
