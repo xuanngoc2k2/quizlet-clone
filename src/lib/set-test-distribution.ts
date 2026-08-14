@@ -93,3 +93,80 @@ export const PART_TYPE_PREFERENCE: Record<Part, { primary: CardType; secondary: 
   3: { primary: "grammar", secondary: "vocabulary" },
   4: { primary: "vocabulary", secondary: "grammar" },
 }
+
+export type ItemPartHistory = {
+  counts: Record<Part, number>
+  lastSeenPart?: Part
+}
+
+export type ItemAssignment = {
+  itemKey: string
+  part: Part
+}
+
+/**
+ * Phân bổ item vào các Part dựa trên lịch sử để đảm bảo:
+ * 1. Mỗi item chỉ xuất hiện 1 lần.
+ * 2. Ưu tiên Part mà item ít xuất hiện nhất.
+ * 3. Tránh Part vừa xuất hiện ở lần test gần nhất.
+ * 4. Đảm bảo đúng capacity (số lượng câu) của từng Part.
+ */
+export function assignItemsToParts(
+  items: { key: string; type: CardType }[],
+  partCounts: Distribution,
+  historyMap: Map<string, ItemPartHistory>,
+): ItemAssignment[] {
+  const assignments: ItemAssignment[] = []
+  const capacity = { ...partCounts }
+
+  function getScore(item: { key: string; type: CardType }, part: Part): number {
+    const hist = historyMap.get(item.key)
+    let score = 0
+    if (hist) {
+      score += (hist.counts[part] || 0) * 10
+      if (hist.lastSeenPart === part) {
+        score += 20 // Phạt nếu lặp lại part vừa test
+      }
+    }
+    const pref = PART_TYPE_PREFERENCE[part]
+    if (item.type === pref.primary) {
+      score -= 2 // Thưởng nhẹ nếu hợp type chính
+    } else if (item.type === pref.secondary) {
+      score -= 1 // Thưởng nhẹ nếu hợp type phụ
+    }
+    return score
+  }
+
+  // Shuffle items để công bằng (không phải item đầu luôn được chọn trước)
+  const shuffledItems = [...items].sort(() => Math.random() - 0.5)
+
+  for (const item of shuffledItems) {
+    let bestPart: Part | null = null
+    let bestScore = Infinity
+
+    // Shuffle parts để random giữa các part có cùng score
+    const partsRandomized = [...PARTS].sort(() => Math.random() - 0.5)
+
+    for (const part of partsRandomized) {
+      if (capacity[part] > 0) {
+        const score = getScore(item, part)
+        if (score < bestScore) {
+          bestScore = score
+          bestPart = part
+        }
+      }
+    }
+
+    // Fallback: nếu không còn capacity (có thể do config lỗi), nhét đại vào Part 1
+    if (bestPart === null) {
+      bestPart = 1
+    } else {
+      capacity[bestPart] -= 1
+    }
+
+    assignments.push({ itemKey: item.key, part: bestPart })
+  }
+
+  // Trả về theo thứ tự ban đầu
+  return items.map((it) => assignments.find((a) => a.itemKey === it.key)!)
+}

@@ -3,7 +3,7 @@ import { router, publicProcedure } from "../trpc"
 import { prisma } from "../db"
 import { callGeminiJSON } from "../lib/gemini"
 import type { Prisma } from "@prisma/client"
-import { computePartCounts, computeDifficultyCounts } from "@/lib/set-test-distribution"
+import { computePartCounts, computeDifficultyCounts, assignItemsToParts, type ItemPartHistory, type Part } from "@/lib/set-test-distribution"
 import { computeWeakStats, type HistoryInput, type AttemptResult } from "@/lib/set-test-stats"
 import {
   BLANK_RE,
@@ -153,12 +153,13 @@ export function buildSetTestPrompt(args: {
   title: string
   items: SetItem[]
   counts: Record<number, number>
+  partAssignments?: { itemKey: string; part: number }[]
   difficultyMix: Record<"easy" | "medium" | "hard", number>
   previousTexts: string[]
   note: string
   weakBlock?: string
 }): string {
-  const { title, items, counts, difficultyMix, previousTexts, note, weakBlock } = args
+  const { title, items, counts, partAssignments, difficultyMix, previousTexts, note, weakBlock } = args
 
   const countsStr = [
     `Part 1 (multiple-choice, chọn đáp án điền chỗ trống): ${counts[1]} câu`,
@@ -167,9 +168,26 @@ export function buildSetTestPrompt(args: {
     `Part 4 (translation, dịch Việt → Hàn): ${counts[4]} câu`,
   ].join("\n")
 
-  const itemsStr = items
-    .map((it) => `- ${it.key} | term: ${it.term} | type: ${it.type} | meaning: ${it.definition}`)
-    .join("\n")
+  const itemsStr = partAssignments
+    ? [1, 2, 3, 4]
+        .filter((p) => counts[p] > 0)
+        .map((p) => {
+          const pItems = partAssignments
+            .filter((a) => a.part === p)
+            .map((a) => items.find((i) => i.key === a.itemKey)!)
+            .filter(Boolean)
+          if (pItems.length === 0) return ""
+          return `Part ${p}:\n` + pItems.map((it) => `- ${it.key} | term: ${it.term} | type: ${it.type} | meaning: ${it.definition}`).join("\n")
+        })
+        .filter(Boolean)
+        .join("\n\n")
+    : items
+        .map((it) => `- ${it.key} | term: ${it.term} | type: ${it.type} | meaning: ${it.definition}`)
+        .join("\n")
+
+  const assignmentNote = partAssignments
+    ? `\n## PHÂN BỔ PART BẮT BUỘC\nBạn PHẢI tạo câu hỏi cho mỗi item vào ĐÚNG Part đã được chỉ định ở mục "Set items" phía trên. KHÔNG ĐƯỢC tự ý chuyển item sang Part khác.`
+    : ""
 
   const typeNote = `Loại kiến thức ưu tiên từng part:
 - Part 1: grammar + vocabulary
@@ -194,6 +212,7 @@ ${note ? `Ghi chú: ${note}` : ""}
 
 ## Set items — MỖI item phải được kiểm tra ĐÚNG 1 lần (coverage bắt buộc)
 ${itemsStr}
+${assignmentNote}
 
 ## Phân bổ câu hỏi — tổng số câu = số item (${items.length}), tuân thủ ĐÚNG:
 ${countsStr}
@@ -305,21 +324,34 @@ export async function generateFullTest(
   compileArgs: Parameters<typeof buildSetTestPrompt>[0],
   itemKeys: string[],
 ): Promise<GeneratedQuestion[]> {
-  let best: { questions: GeneratedQuestion[]; missing: number } | null = null
+  const partAssignments = compileArgs.partAssignments
+  let best: { questions: GeneratedQuestion[]; missing: number; mismatch: number } | null = null
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const raw = await callGeminiJSON(buildSetTestPrompt({ ...compileArgs, note: attempt > 1 ? `ATTEMPT ${attempt}: lần trước bỏ sót item — phải dùng ĐÚNG mọi item, mỗi item đúng 1 lần.` : "" }), {
+      const promptNote = attempt > 1 ? `ATTEMPT ${attempt}: lần trước bỏ sót item hoặc gán sai part. Phải dùng ĐÚNG mọi item, đúng 1 lần, và ĐÚNG PART đã chỉ định.` : ""
+      const raw = await callGeminiJSON(buildSetTestPrompt({ ...compileArgs, note: promptNote }), {
         temperature: 0.7,
         maxTokens: 8192,
       })
       const parsed = generatedTestSchema.parse(raw)
       const { missing, extraCount } = computeCoverageStats(parsed.questions, itemKeys)
       const uniqueKeys = new Set(parsed.questions.map((q) => q.itemKey)).size === parsed.questions.length
-      if (missing.length === 0 && extraCount === 0 && uniqueKeys && parsed.questions.length === itemKeys.length) {
+      
+      let mismatchCount = 0
+      if (partAssignments) {
+        for (const q of parsed.questions) {
+          const assigned = partAssignments.find((a) => a.itemKey === q.itemKey)
+          if (assigned && assigned.part !== q.part) {
+            mismatchCount++
+          }
+        }
+      }
+
+      if (missing.length === 0 && extraCount === 0 && uniqueKeys && parsed.questions.length === itemKeys.length && mismatchCount === 0) {
         return parsed.questions
       }
-      if (!best || missing.length < best.missing) {
-        best = { questions: parsed.questions, missing: missing.length }
+      if (!best || (missing.length + mismatchCount * 0.5) < (best.missing + best.mismatch * 0.5)) {
+        best = { questions: parsed.questions, missing: missing.length, mismatch: mismatchCount }
       }
     } catch {
       // parse/network error → retry
@@ -853,6 +885,48 @@ function toHistoryInput(
   }))
 }
 
+function buildHistoryMap(histories: Awaited<ReturnType<typeof loadSetHistories>>, items: SetItem[]): Map<string, ItemPartHistory> {
+  const itemIdToPartHistory = new Map<string, ItemPartHistory>()
+
+  for (let i = histories.length - 1; i >= 0; i--) {
+    const h = histories[i]
+    const qMap = h.questionItemMap as Record<string, string>
+    if (!qMap) continue
+    
+    const sections = h.sections as { questions: { id: number, part: number }[] }[]
+    if (!sections) continue
+
+    for (const s of sections) {
+      for (const q of s.questions) {
+        const itemId = qMap[String(q.id)]
+        if (!itemId) continue
+
+        let ph = itemIdToPartHistory.get(itemId)
+        if (!ph) {
+          ph = { counts: { 1: 0, 2: 0, 3: 0, 4: 0 } as Record<Part, number> }
+          itemIdToPartHistory.set(itemId, ph)
+        }
+
+        const part = q.part as Part
+        if (part >= 1 && part <= 4) {
+          ph.counts[part] = (ph.counts[part] || 0) + 1
+          // Since we process from oldest to newest, the last seen part will naturally be the most recent one
+          ph.lastSeenPart = part
+        }
+      }
+    }
+  }
+
+  const result = new Map<string, ItemPartHistory>()
+  for (const item of items) {
+    const ph = itemIdToPartHistory.get(item.id)
+    if (ph) {
+      result.set(item.key, ph)
+    }
+  }
+  return result
+}
+
 export const setTestRouter = router({
   generate: publicProcedure
     .input(z.object({ setId: z.string().min(1) }))
@@ -901,10 +975,14 @@ Với các mục yếu này:
 - KHÔNG lặp đúng câu đã làm sai trước đó.`
           : ""
 
+      const historyMap = buildHistoryMap(histories, items)
+      const partAssignments = assignItemsToParts(items, counts, historyMap)
+
       const compileArgs = {
         title: `${set.title} — TOPIK Set Test`,
         items,
         counts,
+        partAssignments,
         difficultyMix,
         previousTexts,
         note: "",
@@ -912,7 +990,18 @@ Với các mục yếu này:
       }
 
       const questions = await generateFullTest(compileArgs, itemKeys)
-      const deduped = await patchQuestionTexts(questions, prevNormalized)
+
+      // Force-correct part assignments: the algorithm decides, not the LLM
+      const assignmentMap = new Map(partAssignments.map((a) => [a.itemKey, a.part]))
+      const correctedQuestions = questions.map((q) => {
+        const assignedPart = assignmentMap.get(q.itemKey)
+        if (assignedPart != null && assignedPart !== q.part) {
+          return { ...q, part: assignedPart }
+        }
+        return q
+      })
+
+      const deduped = await patchQuestionTexts(correctedQuestions, prevNormalized)
       const keyToTarget = new Map(items.map((it) => [it.key, it.term]))
       const keyToItemInfo = new Map(items.map((it) => [it.key, { term: it.term, type: it.type }]))
       const [v1, v2, v3] = await Promise.all([
