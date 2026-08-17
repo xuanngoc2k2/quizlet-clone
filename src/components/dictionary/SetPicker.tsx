@@ -11,7 +11,10 @@ type SetPickerProps = {
 
 export function SetPicker({ selectedId, onSelect }: SetPickerProps) {
   const [search, setSearch] = useState("")
-  const { data: sets, isLoading } = api.sets.list.useQuery({ search: search || undefined })
+  const { data: sets, isLoading } = api.sets.my.useQuery()
+  const filtered = (sets ?? []).filter(
+    (s) => !search || s.title.toLowerCase().includes(search.toLowerCase()),
+  )
 
   return (
     <div className="flex flex-col gap-2">
@@ -31,9 +34,9 @@ export function SetPicker({ selectedId, onSelect }: SetPickerProps) {
             <div key={i} className="h-10 animate-pulse rounded-xl bg-primary-100" />
           ))}
         </div>
-      ) : sets && sets.length > 0 ? (
+      ) : filtered.length > 0 ? (
         <div className="max-h-44 space-y-1 overflow-y-auto pr-1">
-          {sets.map((set) => {
+          {filtered.map((set) => {
             const selected = set.id === selectedId
             return (
               <button

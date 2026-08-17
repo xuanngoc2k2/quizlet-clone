@@ -1,11 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { AlertCircle, CheckCircle2, FolderPlus, Plus } from "lucide-react"
+import { AlertCircle, CheckCircle2, FolderPlus, LogIn, Plus } from "lucide-react"
+import { useSession } from "next-auth/react"
+import Link from "next/link"
 import { Modal } from "@/components/ui/Modal"
 import { Button } from "@/components/ui/Button"
 import { api } from "@/lib/trpc-provider"
-import { addOwnSetId } from "@/lib/local-storage"
 import { buildCardInput, isDuplicateTerm, type CardType } from "@/lib/dictionary-actions"
 import { SetPicker } from "./SetPicker"
 
@@ -20,6 +21,7 @@ type AddCardModalProps = {
 }
 
 export function AddCardModal({ open, onClose, term, definition, editable = false }: AddCardModalProps) {
+  const { status } = useSession()
   const [mode, setMode] = useState<"pick" | "create">("pick")
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [newTitle, setNewTitle] = useState("")
@@ -69,7 +71,6 @@ export function AddCardModal({ open, onClose, term, definition, editable = false
           description: `Tạo từ từ điển · ${finalTerm}`,
           cards: [card],
         })
-        addOwnSetId(created.id)
         setFeedback({ kind: "success", text: `Đã tạo set "${created.title}" và thêm card.` })
       } else {
         if (!selectedId) {
@@ -116,6 +117,16 @@ export function AddCardModal({ open, onClose, term, definition, editable = false
 
   return (
     <Modal open={open} onClose={onClose} title="Thêm vào Set" zIndex="z-[90]">
+      {status === "unauthenticated" ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+          <LogIn className="h-10 w-10 text-primary-300" />
+          <p className="text-lg font-medium text-primary-500">Sign in to add cards to sets</p>
+          <p className="text-sm text-primary-400">Your sets are saved to your account</p>
+          <Link href="/login">
+            <Button variant="primary">Sign in</Button>
+          </Link>
+        </div>
+      ) : (
       <div className="flex flex-col gap-3">
         {editable && (
           <div className="flex flex-col gap-2">
@@ -208,16 +219,17 @@ export function AddCardModal({ open, onClose, term, definition, editable = false
           </div>
         )}
 
-        <Button
-          variant="gradient"
-          onClick={handleAdd}
-          loading={update.isLoading || create.isLoading}
-          className="w-full"
-        >
-          {mode === "create" ? <FolderPlus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {mode === "create" ? "Tạo set và thêm" : "Thêm vào set"}
-        </Button>
-      </div>
+<Button
+            variant="gradient"
+            onClick={handleAdd}
+            loading={update.isLoading || create.isLoading}
+            className="w-full"
+          >
+            {mode === "create" ? <FolderPlus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {mode === "create" ? "Tạo set và thêm" : "Thêm vào set"}
+          </Button>
+        </div>
+      )}
     </Modal>
   )
 }

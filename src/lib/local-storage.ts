@@ -1,7 +1,6 @@
 import type { StudyProgress, StudyMode, CardProgressData, RememberedFilter, Flashcard } from "@/types"
 
 const PROGRESS_KEY = "quizlet-progress"
-const OWN_SETS_KEY = "quizlet-own-sets"
 const CARD_PROGRESS_KEY = "quizlet-card-progress"
 const DEVICE_ID_KEY = "quizlet-device-id"
 const AUTOPLAY_SETTING_KEY = "quizlet-autoplay-setting"
@@ -62,29 +61,6 @@ export function updateSetProgress(
   return progress
 }
 
-export function getOwnSetIds(): string[] {
-  if (typeof window === "undefined") return []
-  try {
-    const raw = localStorage.getItem(OWN_SETS_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
-export function addOwnSetId(id: string): void {
-  if (typeof window === "undefined") return
-  try {
-    const ids = getOwnSetIds()
-    if (!ids.includes(id)) {
-      ids.push(id)
-      localStorage.setItem(OWN_SETS_KEY, JSON.stringify(ids))
-    }
-  } catch {
-    // storage full
-  }
-}
-
 export function getDeviceId(): string {
   if (typeof window === "undefined") return ""
   try {
@@ -139,19 +115,6 @@ export function filterCardsByRemembered(
     if (threshold === 3) return remembered >= 3
     return remembered === threshold
   })
-}
-
-export function removeOwnSetId(id: string): void {
-  if (typeof window === "undefined") return
-  try {
-    const ids = getOwnSetIds()
-    localStorage.setItem(
-      OWN_SETS_KEY,
-      JSON.stringify(ids.filter((x) => x !== id)),
-    )
-  } catch {
-    // storage full
-  }
 }
 
 export function getAutoplaySetting(): boolean {

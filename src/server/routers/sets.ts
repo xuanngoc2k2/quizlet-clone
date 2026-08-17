@@ -1,6 +1,13 @@
 import { z } from "zod"
+import { TRPCError } from "@trpc/server"
 import { router, publicProcedure, protectedProcedure } from "../trpc"
 import { prisma } from "../db"
+
+const cardInput = z.object({
+  term: z.string().min(1),
+  definition: z.string().min(1),
+  type: z.enum(["vocabulary", "grammar"]).default("vocabulary"),
+})
 
 export const setsRouter = router({
   list: publicProcedure
@@ -9,12 +16,12 @@ export const setsRouter = router({
         search: z.string().optional(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const { search } = input
       const sets = await prisma.flashcardSet.findMany({
         where: {
-          // If logged in, show only user's sets; otherwise show all (guest mode)
-          ...(ctx.userId ? { userId: ctx.userId } : {}),
+          // Browse Sets only shows public, unowned sets (managed later by admins)
+          userId: null,
           ...(search
             ? {
                 OR: [
@@ -33,9 +40,21 @@ export const setsRouter = router({
       return sets
     }),
 
+  my: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.userId) return []
+    const sets = await prisma.flashcardSet.findMany({
+      where: { userId: ctx.userId },
+      include: {
+        _count: { select: { cards: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+    })
+    return sets
+  }),
+
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const set = await prisma.flashcardSet.findUnique({
         where: { id: input.id },
         include: {
@@ -43,7 +62,7 @@ export const setsRouter = router({
         },
       })
       if (!set) throw new Error("Set not found")
-      return set
+      return { ...set, canManage: !!ctx.userId && set.userId === ctx.userId }
     }),
 
   create: protectedProcedure
@@ -51,15 +70,7 @@ export const setsRouter = router({
       z.object({
         title: z.string().min(1, "Title is required"),
         description: z.string().optional(),
-        cards: z
-          .array(
-            z.object({
-              term: z.string().min(1),
-              definition: z.string().min(1),
-              type: z.enum(["vocabulary", "grammar"]).default("vocabulary"),
-            }),
-          )
-          .min(1, "At least 1 card required"),
+        cards: z.array(cardInput).min(1, "At least 1 card required"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -89,26 +100,17 @@ export const setsRouter = router({
         title: z.string().min(1).optional(),
         description: z.string().optional(),
         cards: z
-          .array(
-            z.object({
-              id: z.string().optional(),
-              term: z.string().min(1),
-              definition: z.string().min(1),
-              type: z.enum(["vocabulary", "grammar"]).default("vocabulary"),
-            }),
-          )
+          .array(cardInput.extend({ id: z.string().optional() }))
           .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      // Ensure user owns this set
       const existing = await prisma.flashcardSet.findUnique({
         where: { id: input.id },
         select: { userId: true },
       })
-      if (existing?.userId && existing.userId !== ctx.userId) {
-        throw new Error("Forbidden")
-      }
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Set not found" })
+      if (existing.userId !== ctx.userId) throw new TRPCError({ code: "FORBIDDEN" })
 
       if (input.cards) {
         await prisma.flashcard.deleteMany({ where: { setId: input.id } })
@@ -146,14 +148,12 @@ export const setsRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Ensure user owns this set
       const existing = await prisma.flashcardSet.findUnique({
         where: { id: input.id },
         select: { userId: true },
       })
-      if (existing?.userId && existing.userId !== ctx.userId) {
-        throw new Error("Forbidden")
-      }
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Set not found" })
+      if (existing.userId !== ctx.userId) throw new TRPCError({ code: "FORBIDDEN" })
       await prisma.flashcardSet.delete({ where: { id: input.id } })
       return { success: true }
     }),

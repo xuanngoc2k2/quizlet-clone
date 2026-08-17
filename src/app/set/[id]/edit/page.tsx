@@ -6,6 +6,8 @@ import { api } from "@/lib/trpc-provider"
 import { SetForm } from "@/components/set/SetForm"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
+import Link from "next/link"
+import { Button } from "@/components/ui/Button"
 
 export default function EditSetPage() {
   const { id } = useParams<{ id: string }>()
@@ -14,6 +16,7 @@ export default function EditSetPage() {
   const { data: set, isLoading } = api.sets.getById.useQuery({ id })
   const updateSet = api.sets.update.useMutation()
   const utils = api.useUtils()
+  const canEdit = set?.canManage ?? false
 
   async function handleSubmit(data: { title: string; description: string; cards: { term: string; definition: string }[] }) {
     if (!set) return
@@ -40,6 +43,24 @@ export default function EditSetPage() {
         <Header />
         <main className="flex-1 px-4 pb-24 pt-4">
           <div className="h-8 w-48 animate-pulse rounded-lg bg-primary-100" />
+        </main>
+        <BottomNav />
+      </div>
+    )
+  }
+
+  if (!canEdit) {
+    return (
+      <div className="flex min-h-screen-safe flex-col">
+        <Header />
+        <main className="flex-1 px-4 pb-24 pt-4">
+          <h1 className="mb-4 font-display text-2xl font-bold text-primary-900">Edit Set</h1>
+          <p className="mb-6 text-primary-500">
+            You can&apos;t edit this set. Only the creator can make changes.
+          </p>
+          <Link href={`/set/${set.id}`}>
+            <Button variant="secondary">Back to set</Button>
+          </Link>
         </main>
         <BottomNav />
       </div>

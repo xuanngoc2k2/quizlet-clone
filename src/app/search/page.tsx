@@ -17,6 +17,8 @@ function SearchContent() {
     { enabled: query.length > 0 },
   )
 
+  const results = sets ?? []
+
   return (
     <main className="flex-1 px-4 pb-24 pt-4">
       <h1 className="mb-1 font-display text-2xl font-bold text-primary-900">Search</h1>
@@ -37,14 +39,14 @@ function SearchContent() {
             <div key={i} className="h-28 animate-pulse rounded-2xl bg-primary-100" />
           ))}
         </div>
-      ) : sets?.length === 0 ? (
+      ) : results.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-primary-200 py-16 text-center">
           <BookOpen className="mb-3 h-10 w-10 text-primary-300" />
           <p className="text-sm font-medium text-primary-500">No sets found for &quot;{query}&quot;</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sets?.map((set) => (
+          {results.map((set) => (
             <SetCard
               key={set.id}
               id={set.id}
