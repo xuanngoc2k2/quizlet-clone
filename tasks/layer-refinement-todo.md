@@ -172,3 +172,15 @@ Khi user báo bug/feature, thêm task theo format:
 - Cập nhật tRPC context để nhận diện user session và filter data theo user.
 **Status:** ✅ Done
 **Commit:** feat: implement authentication system with NextAuth and Prisma
+
+### [R-13] — TOPIK Set Test: chọn cả Browse Sets lẫn Set của user
+
+**Type:** Feature
+**Description:** Trong phần Set Test (`/test`), `SetTestGenerator` hiện chỉ load Browse Sets (public, unowned) qua `sets.list`. Cho phép người dùng chọn Set từ BOTH Browse Sets VÀ các Set của chính user (qua `sets.my`), gom thành 2 tab khác nhau trong cùng màn hình, mỗi tab hiển thị tiêu đề + số item, giữ nguyên flow generate/chấm điểm hiện tại.
+**Acceptance Criteria:**
+- `SetTestGenerator` fetch cả `sets.list` (Browse) và `sets.my` (của user), không cần đăng nhập vẫn hiển thị Browse Sets.
+- UI có tab chuyển đổi "Set của tôi" / "Browse Sets" (ẩn tab "Set của tôi" nếu chưa đăng nhập hoặc không có set). Mỗi mục vẫn render chuẩn như hiện tại và select được.
+- Set được chọn từ tab nào cũng generate đề bình thường (set-test.generate hoạt động với mọi setId), không lỗi.
+- Typecheck + lint pass sạch.
+**Status:** ✅ Done
+**Commit:** feat: allow picking user sets in Set Test via tab switcher
