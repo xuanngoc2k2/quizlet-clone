@@ -1103,6 +1103,7 @@ Với các mục yếu này:
       const history = await prisma.testHistory.create({
         data: {
           deviceId,
+          ...(ctx.userId ? { userId: ctx.userId } : {}),
           source: "set-test",
           setId: input.setId,
           title: `TOPIK Set Test — ${set.title}`,

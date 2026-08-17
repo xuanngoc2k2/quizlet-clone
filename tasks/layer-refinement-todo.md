@@ -184,3 +184,14 @@ Khi user báo bug/feature, thêm task theo format:
 - Typecheck + lint pass sạch.
 **Status:** ✅ Done
 **Commit:** feat: allow picking user sets in Set Test via tab switcher
+
+### [R-14] — Fix: Test set-test không hiện trong lịch sử bài test
+
+**Type:** Bug
+**Description:** Test tạo từ **Set Test** không xuất hiện trong `/test/history` khi user đã đăng nhập. `setTest.generate` (`set-test.ts`) tạo `TestHistory` chỉ gắn `deviceId`, không gắn `userId`; trong khi `testHistory.list` khi đã đăng nhập filter `{ userId }` → record không khớp → bị ẩn. Đối chiếu: `testHistory.save` (đường Generator) có gắn `userId` nên hiện đúng.
+**Acceptance Criteria:**
+- `set-test.generate` gắn `ctx.userId` vào `TestHistory` khi user đã đăng nhập (giữ nguyên `deviceId` cho weakness tracking + user ẩn danh).
+- Test e2e: generate với userId thật → `testHistory.list` (cùng userId) trả về record vừa tạo.
+- Typecheck + lint pass sạch.
+**Status:** ✅ Done
+**Commit:** -
