@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { Search, GraduationCap } from "lucide-react"
+import { UserMenu } from "./UserMenu"
 
 export function Header() {
   const [search, setSearch] = useState("")
@@ -14,7 +15,7 @@ export function Header() {
           <GraduationCap className="h-6 w-6 text-primary-600" />
           <span className="gradient-text">TOPIK</span>
         </Link>
-        <div className="relative flex-1">
+        <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-300" />
           <input
             type="search"
@@ -26,10 +27,14 @@ export function Header() {
                 window.location.href = `/search?q=${encodeURIComponent(search.trim())}`
               }
             }}
-            className="w-full rounded-xl border border-primary-100 bg-primary-50/50 py-2.5 pl-9 pr-4 text-sm outline-none transition-all duration-200 placeholder:text-primary-300 focus:border-primary-300 focus:bg-white focus:ring-2 focus:ring-primary-500/20"
+            className="w-full rounded-xl border border-primary-100 bg-primary-50/50 py-2 pl-9 pr-4 text-sm outline-none transition-all duration-200 placeholder:text-primary-300 focus:border-primary-300 focus:bg-white focus:ring-2 focus:ring-primary-500/20"
           />
+        </div>
+        <div className="flex-1 flex justify-end">
+          <UserMenu />
         </div>
       </div>
     </header>
   )
 }
+

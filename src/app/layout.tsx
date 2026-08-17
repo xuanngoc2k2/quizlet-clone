@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { TRPCProvider } from "@/lib/trpc-provider"
+import { SessionProvider } from "@/components/layout/SessionProvider"
 import { ClientShell } from "@/components/layout/ClientShell"
 import "@/styles/globals.css"
 
@@ -41,9 +42,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className="pb-safe-bottom bg-gray-50">
-        <TRPCProvider>
-          <ClientShell>{children}</ClientShell>
-        </TRPCProvider>
+        <SessionProvider>
+          <TRPCProvider>
+            <ClientShell>{children}</ClientShell>
+          </TRPCProvider>
+        </SessionProvider>
       </body>
     </html>
   )

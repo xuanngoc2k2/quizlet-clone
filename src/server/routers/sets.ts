@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { router, publicProcedure } from "../trpc"
+import { router, publicProcedure, protectedProcedure } from "../trpc"
 import { prisma } from "../db"
 
 export const setsRouter = router({
@@ -9,18 +9,22 @@ export const setsRouter = router({
         search: z.string().optional(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const { search } = input
       const sets = await prisma.flashcardSet.findMany({
-        where: search
-          ? {
-              OR: [
-                { title: { contains: search } },
-                { description: { contains: search } },
-                { cards: { some: { term: { contains: search } } } },
-              ],
-            }
-          : undefined,
+        where: {
+          // If logged in, show only user's sets; otherwise show all (guest mode)
+          ...(ctx.userId ? { userId: ctx.userId } : {}),
+          ...(search
+            ? {
+                OR: [
+                  { title: { contains: search } },
+                  { description: { contains: search } },
+                  { cards: { some: { term: { contains: search } } } },
+                ],
+              }
+            : {}),
+        },
         include: {
           _count: { select: { cards: true } },
         },
@@ -42,7 +46,7 @@ export const setsRouter = router({
       return set
     }),
 
-  create: publicProcedure
+  create: protectedProcedure
     .input(
       z.object({
         title: z.string().min(1, "Title is required"),
@@ -58,11 +62,12 @@ export const setsRouter = router({
           .min(1, "At least 1 card required"),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const set = await prisma.flashcardSet.create({
         data: {
           title: input.title,
           description: input.description,
+          userId: ctx.userId,
           cards: {
             create: input.cards.map((card, i) => ({
               term: card.term,
@@ -77,7 +82,7 @@ export const setsRouter = router({
       return set
     }),
 
-  update: publicProcedure
+  update: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -95,7 +100,16 @@ export const setsRouter = router({
           .optional(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      // Ensure user owns this set
+      const existing = await prisma.flashcardSet.findUnique({
+        where: { id: input.id },
+        select: { userId: true },
+      })
+      if (existing?.userId && existing.userId !== ctx.userId) {
+        throw new Error("Forbidden")
+      }
+
       if (input.cards) {
         await prisma.flashcard.deleteMany({ where: { setId: input.id } })
         await prisma.flashcardSet.update({
@@ -129,9 +143,17 @@ export const setsRouter = router({
       })
     }),
 
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      // Ensure user owns this set
+      const existing = await prisma.flashcardSet.findUnique({
+        where: { id: input.id },
+        select: { userId: true },
+      })
+      if (existing?.userId && existing.userId !== ctx.userId) {
+        throw new Error("Forbidden")
+      }
       await prisma.flashcardSet.delete({ where: { id: input.id } })
       return { success: true }
     }),

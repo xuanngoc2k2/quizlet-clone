@@ -7,9 +7,11 @@ export const cardProgressRouter = router({
   getBySet: publicProcedure
     .input(z.object({ setId: z.string() }))
     .query(async ({ ctx, input }) => {
-      if (!ctx.deviceId) return {} as Record<string, number>
+      if (!ctx.userId && !ctx.deviceId) return {} as Record<string, number>
       const records = await ctx.prisma.cardProgress.findMany({
-        where: { setId: input.setId, deviceId: ctx.deviceId },
+        where: ctx.userId
+          ? { setId: input.setId, userId: ctx.userId }
+          : { setId: input.setId, deviceId: ctx.deviceId },
       })
       const result: Record<string, number> = {}
       for (const r of records) {
@@ -22,9 +24,11 @@ export const cardProgressRouter = router({
   getSrsBySet: publicProcedure
     .input(z.object({ setId: z.string() }))
     .query(async ({ ctx, input }) => {
-      if (!ctx.deviceId) return {} as Record<string, SrsCard & { srsDue: Date }>
+      if (!ctx.userId && !ctx.deviceId) return {} as Record<string, SrsCard & { srsDue: Date }>
       const records = await ctx.prisma.cardProgress.findMany({
-        where: { setId: input.setId, deviceId: ctx.deviceId },
+        where: ctx.userId
+          ? { setId: input.setId, userId: ctx.userId }
+          : { setId: input.setId, deviceId: ctx.deviceId },
       })
       const result: Record<string, SrsCard & { srsDue: Date }> = {}
       for (const r of records) {
@@ -42,22 +46,25 @@ export const cardProgressRouter = router({
   increment: publicProcedure
     .input(z.object({ setId: z.string(), cardId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.deviceId) return
+      if (!ctx.userId && !ctx.deviceId) return
+      const deviceId = ctx.deviceId || "anonymous"
       await ctx.prisma.cardProgress.upsert({
         where: {
           deviceId_cardId: {
-            deviceId: ctx.deviceId,
+            deviceId,
             cardId: input.cardId,
           },
         },
         create: {
-          deviceId: ctx.deviceId,
+          deviceId,
           cardId: input.cardId,
           setId: input.setId,
           rememberedCount: 1,
+          ...(ctx.userId ? { userId: ctx.userId } : {}),
         },
         update: {
           rememberedCount: { increment: 1 },
+          ...(ctx.userId ? { userId: ctx.userId } : {}),
         },
       })
     }),
@@ -72,13 +79,14 @@ export const cardProgressRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.deviceId) return
+      if (!ctx.userId && !ctx.deviceId) return
+      const deviceId = ctx.deviceId || "anonymous"
 
       // Lấy trạng thái SRS hiện tại (nếu chưa có, dùng default)
       const existing = await ctx.prisma.cardProgress.findUnique({
         where: {
           deviceId_cardId: {
-            deviceId: ctx.deviceId,
+            deviceId,
             cardId: input.cardId,
           },
         },
@@ -106,12 +114,12 @@ export const cardProgressRouter = router({
       await ctx.prisma.cardProgress.upsert({
         where: {
           deviceId_cardId: {
-            deviceId: ctx.deviceId,
+            deviceId,
             cardId: input.cardId,
           },
         },
         create: {
-          deviceId: ctx.deviceId,
+          deviceId,
           cardId: input.cardId,
           setId: input.setId,
           rememberedCount: rememberIncrement,
@@ -120,6 +128,7 @@ export const cardProgressRouter = router({
           srsLapses: srsResult.srsLapses,
           srsState: srsResult.srsState,
           srsDue: srsResult.srsDue,
+          ...(ctx.userId ? { userId: ctx.userId } : {}),
         },
         update: {
           rememberedCount: { increment: rememberIncrement },
@@ -128,6 +137,7 @@ export const cardProgressRouter = router({
           srsLapses: srsResult.srsLapses,
           srsState: srsResult.srsState,
           srsDue: srsResult.srsDue,
+          ...(ctx.userId ? { userId: ctx.userId } : {}),
         },
       })
 
@@ -137,14 +147,12 @@ export const cardProgressRouter = router({
   // Lấy tất cả thẻ đến hạn ôn (cho Daily Review - R-08)
   getDueByDevice: publicProcedure
     .query(async ({ ctx }) => {
-      if (!ctx.deviceId) return []
+      if (!ctx.userId && !ctx.deviceId) return []
       const now = new Date()
       return ctx.prisma.cardProgress.findMany({
-        where: {
-          deviceId: ctx.deviceId,
-          srsDue: { lte: now },
-          srsState: { not: "new" },
-        },
+        where: ctx.userId
+          ? { userId: ctx.userId, srsDue: { lte: now }, srsState: { not: "new" } }
+          : { deviceId: ctx.deviceId, srsDue: { lte: now }, srsState: { not: "new" } },
         orderBy: { srsDue: "asc" },
       })
     }),
@@ -152,14 +160,12 @@ export const cardProgressRouter = router({
   // Lấy cards due kèm đầy đủ term/definition/setTitle (Daily Review Dashboard)
   getDueWithDetails: publicProcedure
     .query(async ({ ctx }) => {
-      if (!ctx.deviceId) return []
+      if (!ctx.userId && !ctx.deviceId) return []
       const now = new Date()
       const records = await ctx.prisma.cardProgress.findMany({
-        where: {
-          deviceId: ctx.deviceId,
-          srsDue: { lte: now },
-          srsState: { not: "new" },
-        },
+        where: ctx.userId
+          ? { userId: ctx.userId, srsDue: { lte: now }, srsState: { not: "new" } }
+          : { deviceId: ctx.deviceId, srsDue: { lte: now }, srsState: { not: "new" } },
         include: {
           card: {
             include: {

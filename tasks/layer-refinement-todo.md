@@ -159,3 +159,16 @@ Khi user báo bug/feature, thêm task theo format:
 - (Optional) Toggle setting cho phép người dùng chọn giữa "Classic Quizlet Shortcuts" và "Anki Shortcuts".
 **Status:** ⬜ Todo
 **Commit:** -
+
+### [R-12] — Authentication System (NextAuth.js)
+
+**Type:** Feature
+**Description:** Tích hợp hệ thống đăng nhập/đăng ký cho người dùng để bảo mật dữ liệu cá nhân, lưu trữ lịch sử học tập (TestHistory, CardProgress) theo từng tài khoản thay vì local/anonymous.
+**Acceptance Criteria:**
+- Cài đặt `next-auth` (hoặc `@auth/nextjs`) với Prisma Adapter.
+- Cập nhật Prisma schema (thêm các model User, Account, Session, VerificationToken) và liên kết các model hiện tại (Set, TestHistory, FlashcardProgress) với User.
+- Hỗ trợ đăng nhập qua OAuth (Google/GitHub) và Credentials (Email/Password).
+- Tạo giao diện Login/Register page và bảo vệ các routes yêu cầu đăng nhập bằng middleware/session check.
+- Cập nhật tRPC context để nhận diện user session và filter data theo user.
+**Status:** ✅ Done
+**Commit:** feat: implement authentication system with NextAuth and Prisma

@@ -48,6 +48,7 @@ export const testHistoryRouter = router({
       const history = await prisma.testHistory.create({
         data: {
           deviceId,
+          ...(ctx.userId ? { userId: ctx.userId } : {}),
           title: input.test.title,
           description: input.test.description,
           sections: input.test.sections as unknown as Prisma.InputJsonValue,
@@ -80,9 +81,12 @@ export const testHistoryRouter = router({
     }),
 
   list: publicProcedure.query(async ({ ctx }) => {
-    const deviceId = ctx.deviceId || "anonymous"
+      if (!ctx.userId && !ctx.deviceId) return []
+      
     const histories = await prisma.testHistory.findMany({
-      where: { deviceId },
+      where: ctx.userId
+        ? { userId: ctx.userId }
+        : { deviceId: ctx.deviceId },
       orderBy: { createdAt: "desc" },
       take: 20,
       include: {
@@ -111,9 +115,10 @@ export const testHistoryRouter = router({
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      const deviceId = ctx.deviceId || "anonymous"
       await prisma.testHistory.deleteMany({
-        where: { id: input.id, deviceId },
+        where: ctx.userId
+          ? { id: input.id, userId: ctx.userId }
+          : { id: input.id, deviceId: ctx.deviceId },
       })
       return { success: true }
     }),
