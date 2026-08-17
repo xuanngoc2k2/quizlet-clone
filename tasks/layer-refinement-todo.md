@@ -124,8 +124,8 @@ Khi user báo bug/feature, thêm task theo format:
 - Query được danh sách các thẻ có `dueDate <= now` từ tất cả các Set của user.
 - UI hiển thị số lượng thẻ cần học hôm nay.
 - Flow học tập liên tục cho phép người dùng ôn tập toàn bộ thẻ "Due Today" trong một session duy nhất, bất kể chúng thuộc Set nào.
-**Status:** ⬜ Todo
-**Commit:** -
+**Status:** ✅ Done
+**Commit:** feat: implement Daily Review Dashboard (R-08, Anki Stage 2)
 
 ### [R-09] — Thẻ Điền Khuyết - Cloze Deletion (Anki Stage 3)
 

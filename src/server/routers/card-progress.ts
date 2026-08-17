@@ -148,4 +148,38 @@ export const cardProgressRouter = router({
         orderBy: { srsDue: "asc" },
       })
     }),
+
+  // Lấy cards due kèm đầy đủ term/definition/setTitle (Daily Review Dashboard)
+  getDueWithDetails: publicProcedure
+    .query(async ({ ctx }) => {
+      if (!ctx.deviceId) return []
+      const now = new Date()
+      const records = await ctx.prisma.cardProgress.findMany({
+        where: {
+          deviceId: ctx.deviceId,
+          srsDue: { lte: now },
+          srsState: { not: "new" },
+        },
+        include: {
+          card: {
+            include: {
+              set: { select: { id: true, title: true } },
+            },
+          },
+        },
+        orderBy: { srsDue: "asc" },
+      })
+      return records.map((r) => ({
+        cardId: r.cardId,
+        setId: r.setId,
+        setTitle: r.card.set.title,
+        term: r.card.term,
+        definition: r.card.definition,
+        srsInterval: r.srsInterval,
+        srsEase: r.srsEase,
+        srsLapses: r.srsLapses,
+        srsState: r.srsState,
+        srsDue: r.srsDue,
+      }))
+    }),
 })

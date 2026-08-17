@@ -17,31 +17,33 @@ model FlashcardSet {
 }
 
 model Flashcard {
-  id         String       @id @default(cuid())
-  setId      String
-  term       String
-  definition String
-  type       String       @default("vocabulary")
-  order      Int          @default(0)
-  createdAt  DateTime     @default(now())
-  set        FlashcardSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  id           String         @id @default(cuid())
+  setId        String
+  term         String
+  definition   String
+  type         String         @default("vocabulary")
+  order        Int            @default(0)
+  createdAt    DateTime       @default(now())
+  set          FlashcardSet   @relation(fields: [setId], references: [id], onDelete: Cascade)
+  cardProgress CardProgress[]
 
   @@index([setId])
 }
 
 model CardProgress {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   deviceId        String
   cardId          String
   setId           String
-  rememberedCount Int      @default(0)
-  srsInterval     Int      @default(0)
-  srsDue          DateTime @default(now())
-  srsEase         Float    @default(2.5)
-  srsLapses       Int      @default(0)
-  srsState        String   @default("new")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  rememberedCount Int       @default(0)
+  srsInterval     Int       @default(0)
+  srsDue          DateTime  @default(now())
+  srsEase         Float     @default(2.5)
+  srsLapses       Int       @default(0)
+  srsState        String    @default("new")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  card            Flashcard @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
   @@unique([deviceId, cardId])
   @@index([setId, deviceId])
