@@ -113,8 +113,8 @@ Khi user báo bug/feature, thêm task theo format:
 - DB Schema được cập nhật với các trường phục vụ thuật toán lặp lại ngắt quãng.
 - Hàm tính toán SRS (FSRS hoặc SM-2) được implement.
 - Giao diện Study Mode hiển thị 4 nút: Again (Quên), Hard (Khó), Good (Tốt), Easy (Dễ) với logic update tương ứng.
-**Status:** ⬜ Todo
-**Commit:** -
+**Status:** ✅ Done
+**Commit:** feat: implement spaced repetition system (SRS) with SM-2 algorithm
 
 ### [R-08] — Daily Review Dashboard (Anki Stage 2)
 

@@ -5,6 +5,8 @@ import { api } from "@/lib/trpc-provider"
 import { useStudyEngine } from "@/hooks/useStudyEngine"
 import { useTimer } from "@/hooks/useTimer"
 import { updateSetProgress, filterCardsByRemembered, getAutoplaySetting, saveAutoplaySetting } from "@/lib/local-storage"
+import { getButtonPreviews } from "@/lib/srs"
+import type { SrsCard, SrsRating } from "@/lib/srs"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { ProgressBar } from "@/components/study/ProgressBar"
@@ -12,7 +14,14 @@ import { Button } from "@/components/ui/Button"
 import { MathText } from "@/components/ui/MathText"
 import { SpeakerButton } from "@/components/ui/SpeakerButton"
 import { useEffect, useRef, useState, useMemo, useCallback } from "react"
-import { RotateCw, CheckCircle2, XCircle, Sparkles, Volume2, VolumeX } from "lucide-react"
+import { RotateCw, CheckCircle2, XCircle, Sparkles, Volume2, VolumeX, ChevronRight } from "lucide-react"
+
+const DEFAULT_SRS_CARD: SrsCard = {
+  srsInterval: 0,
+  srsEase: 2.5,
+  srsLapses: 0,
+  srsState: "new",
+}
 
 export default function FlashcardPage() {
   const { id } = useParams<{ id: string }>()
@@ -21,10 +30,16 @@ export default function FlashcardPage() {
   const { data: set } = api.sets.getById.useQuery({ id })
   const rememberedFilter = (searchParams.get("remembered") ?? "all") as "all" | "0" | "1" | "2" | "3"
   const { data: cardProgress = {} } = api.cardProgress.getBySet.useQuery({ setId: id })
+  const { data: srsProgress = {} } = api.cardProgress.getSrsBySet.useQuery({ setId: id })
   const utils = api.useUtils()
-  const incrementMutation = api.cardProgress.increment.useMutation({
-    onSuccess: () => utils.cardProgress.getBySet.invalidate({ setId: id }),
+
+  const reviewMutation = api.cardProgress.review.useMutation({
+    onSuccess: () => {
+      utils.cardProgress.getBySet.invalidate({ setId: id })
+      utils.cardProgress.getSrsBySet.invalidate({ setId: id })
+    },
   })
+
   const cards = useMemo(
     () => filterCardsByRemembered(set?.cards ?? [], cardProgress, rememberedFilter),
     [set?.cards, cardProgress, rememberedFilter],
@@ -64,27 +79,63 @@ export default function FlashcardPage() {
     }
   }, [engine.currentIndex, autoplay, engine.currentCard, engine.isComplete, playAudio])
 
+  // SRS: lấy state của card hiện tại
+  const currentSrsCard: SrsCard = engine.currentCard
+    ? (srsProgress[engine.currentCard.id] ?? DEFAULT_SRS_CARD)
+    : DEFAULT_SRS_CARD
+
+  const buttonPreviews = getButtonPreviews(currentSrsCard)
+
+  // Hàm xử lý đánh giá SRS + chuyển card
+  const handleReview = useCallback(
+    (rating: SrsRating, markCorrect: boolean) => {
+      if (!engine.currentCard || engine.isComplete) return
+      reviewMutation.mutate({ setId: id, cardId: engine.currentCard.id, rating })
+      if (markCorrect) {
+        engine.markCorrect()
+      } else {
+        engine.markIncorrect()
+      }
+      setFlipped(false)
+    },
+    [engine, id, reviewMutation],
+  )
+
+  // Keyboard shortcuts (Anki style):
+  // - Space / Enter: lật thẻ nếu chưa lật; nếu đã lật → Good (rating 2)
+  // - 1: Again, 2: Hard, 3: Good, 4: Easy
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        if (e.repeat) return
-        if (
-          document.activeElement?.tagName === "INPUT" ||
-          document.activeElement?.tagName === "TEXTAREA" ||
-          (document.activeElement as HTMLElement)?.isContentEditable
-        ) {
-          return
-        }
+      if (e.repeat) return
+      const tag = document.activeElement?.tagName
+      if (tag === "INPUT" || tag === "TEXTAREA" || (document.activeElement as HTMLElement)?.isContentEditable) return
+
+      if (e.code === "Space" || e.code === "Enter") {
         e.preventDefault()
         if (!engine.isComplete && engine.currentCard) {
-          engine.markIncorrect()
-          setFlipped(false)
+          if (!flipped) {
+            setFlipped(true)
+          } else {
+            handleReview(2, true) // Good
+          }
         }
+      } else if (e.code === "Digit1" && flipped) {
+        e.preventDefault()
+        handleReview(0, false) // Again
+      } else if (e.code === "Digit2" && flipped) {
+        e.preventDefault()
+        handleReview(1, false) // Hard
+      } else if (e.code === "Digit3" && flipped) {
+        e.preventDefault()
+        handleReview(2, true) // Good
+      } else if (e.code === "Digit4" && flipped) {
+        e.preventDefault()
+        handleReview(3, true) // Easy
       }
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [engine, engine.isComplete, engine.currentCard])
+  }, [engine, flipped, handleReview])
 
   useEffect(() => {
     if (!startedRef.current && cards.length > 0) {
@@ -181,7 +232,13 @@ export default function FlashcardPage() {
             {autoplay ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
           </button>
         </div>
-        <p className="mb-2 text-center text-xs text-primary-400">Space: Bỏ qua · Đánh dấu đang học</p>
+
+        {/* Keyboard hints */}
+        {!flipped ? (
+          <p className="mb-2 text-center text-xs text-primary-400">Space / Enter: Lật thẻ</p>
+        ) : (
+          <p className="mb-2 text-center text-xs text-primary-400">1 Quên · 2 Khó · 3 Tốt · 4 Dễ · Space = Tốt</p>
+        )}
 
         <div className="flex flex-1 flex-col items-center justify-center">
           <button onClick={() => setFlipped(!flipped)} className="w-full max-w-md perspective">
@@ -218,31 +275,60 @@ export default function FlashcardPage() {
           </button>
         </div>
 
-        <div className="mt-8 flex gap-3">
-          <Button
-            variant="danger"
-            className="flex-1"
-            onClick={() => {
-              engine.markIncorrect()
-              setFlipped(false)
-            }}
-          >
-            <XCircle className="h-4 w-4" />
-            Still Learning
-          </Button>
-          <Button
-            variant="gradient"
-            className="flex-1"
-            onClick={() => {
-              if (engine.currentCard) incrementMutation.mutate({ setId: id, cardId: engine.currentCard.id })
-              engine.markCorrect()
-              setFlipped(false)
-            }}
-          >
-            <CheckCircle2 className="h-4 w-4" />
-            Got It
-          </Button>
-        </div>
+        {/* Nếu chưa lật: nút Lật thẻ */}
+        {!flipped ? (
+          <div className="mt-8">
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => setFlipped(true)}
+              aria-label="Flip flashcard"
+            >
+              <ChevronRight className="h-4 w-4" />
+              Lật thẻ để đánh giá
+            </Button>
+          </div>
+        ) : (
+          /* Đã lật: 4 nút SRS */
+          <div className="mt-8 grid grid-cols-4 gap-2">
+            {/* Again */}
+            <button
+              onClick={() => handleReview(0, false)}
+              className="flex flex-col items-center gap-1 rounded-xl border-2 border-red-200 bg-red-50 px-2 py-3 transition-all hover:bg-red-100 active:scale-95"
+              aria-label="Again – forgot this card"
+            >
+              <span className="text-xs font-bold text-red-600">Quên</span>
+              <span className="text-[10px] font-medium text-red-400">{buttonPreviews[0]}</span>
+            </button>
+            {/* Hard */}
+            <button
+              onClick={() => handleReview(1, false)}
+              className="flex flex-col items-center gap-1 rounded-xl border-2 border-orange-200 bg-orange-50 px-2 py-3 transition-all hover:bg-orange-100 active:scale-95"
+              aria-label="Hard – recalled with difficulty"
+            >
+              <span className="text-xs font-bold text-orange-600">Khó</span>
+              <span className="text-[10px] font-medium text-orange-400">{buttonPreviews[1]}</span>
+            </button>
+            {/* Good */}
+            <button
+              onClick={() => handleReview(2, true)}
+              className="flex flex-col items-center gap-1 rounded-xl border-2 border-emerald-200 bg-emerald-50 px-2 py-3 transition-all hover:bg-emerald-100 active:scale-95"
+              aria-label="Good – recalled well"
+            >
+              <span className="text-xs font-bold text-emerald-600">Tốt</span>
+              <span className="text-[10px] font-medium text-emerald-400">{buttonPreviews[2]}</span>
+            </button>
+            {/* Easy */}
+            <button
+              onClick={() => handleReview(3, true)}
+              className="flex flex-col items-center gap-1 rounded-xl border-2 border-blue-200 bg-blue-50 px-2 py-3 transition-all hover:bg-blue-100 active:scale-95"
+              aria-label="Easy – too easy"
+            >
+              <span className="text-xs font-bold text-blue-600">Dễ</span>
+              <span className="text-[10px] font-medium text-blue-400">{buttonPreviews[3]}</span>
+            </button>
+          </div>
+        )}
       </main>
       <BottomNav />
     </div>

@@ -35,12 +35,18 @@ model CardProgress {
   cardId          String
   setId           String
   rememberedCount Int      @default(0)
+  srsInterval     Int      @default(0)
+  srsDue          DateTime @default(now())
+  srsEase         Float    @default(2.5)
+  srsLapses       Int      @default(0)
+  srsState        String   @default("new")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@unique([deviceId, cardId])
   @@index([setId, deviceId])
   @@index([deviceId])
+  @@index([deviceId, srsDue])
 }
 
 model TestHistory {
