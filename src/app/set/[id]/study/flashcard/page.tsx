@@ -4,15 +4,15 @@ import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { api } from "@/lib/trpc-provider"
 import { useStudyEngine } from "@/hooks/useStudyEngine"
 import { useTimer } from "@/hooks/useTimer"
-import { updateSetProgress, filterCardsByRemembered } from "@/lib/local-storage"
+import { updateSetProgress, filterCardsByRemembered, getAutoplaySetting, saveAutoplaySetting } from "@/lib/local-storage"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { ProgressBar } from "@/components/study/ProgressBar"
 import { Button } from "@/components/ui/Button"
 import { MathText } from "@/components/ui/MathText"
 import { SpeakerButton } from "@/components/ui/SpeakerButton"
-import { useEffect, useRef, useState, useMemo } from "react"
-import { RotateCw, CheckCircle2, XCircle, Sparkles } from "lucide-react"
+import { useEffect, useRef, useState, useMemo, useCallback } from "react"
+import { RotateCw, CheckCircle2, XCircle, Sparkles, Volume2, VolumeX } from "lucide-react"
 
 export default function FlashcardPage() {
   const { id } = useParams<{ id: string }>()
@@ -33,6 +33,58 @@ export default function FlashcardPage() {
   const timer = useTimer()
   const [flipped, setFlipped] = useState(false)
   const startedRef = useRef(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [autoplay, setAutoplay] = useState(true)
+
+  useEffect(() => {
+    setAutoplay(getAutoplaySetting())
+  }, [])
+
+  const handleAutoplayToggle = () => {
+    const newVal = !autoplay
+    setAutoplay(newVal)
+    saveAutoplaySetting(newVal)
+  }
+
+  const playAudio = useCallback((text: string, lang: string = "ko-KR") => {
+    if (!text.trim()) return
+    const shortLang = lang.split("-")[0]
+    const audioUrl = `/api/tts?text=${encodeURIComponent(text.trim())}&lang=${shortLang}`
+    if (audioRef.current) {
+      audioRef.current.pause()
+    }
+    const audio = new Audio(audioUrl)
+    audioRef.current = audio
+    audio.play().catch(err => console.error("Auto-play failed:", err))
+  }, [])
+
+  useEffect(() => {
+    if (autoplay && engine.currentCard && !engine.isComplete) {
+      playAudio(engine.currentCard.term, "ko-KR")
+    }
+  }, [engine.currentIndex, autoplay, engine.currentCard, engine.isComplete, playAudio])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        if (e.repeat) return
+        if (
+          document.activeElement?.tagName === "INPUT" ||
+          document.activeElement?.tagName === "TEXTAREA" ||
+          (document.activeElement as HTMLElement)?.isContentEditable
+        ) {
+          return
+        }
+        e.preventDefault()
+        if (!engine.isComplete && engine.currentCard) {
+          engine.markIncorrect()
+          setFlipped(false)
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [engine, engine.isComplete, engine.currentCard])
 
   useEffect(() => {
     if (!startedRef.current && cards.length > 0) {
@@ -109,12 +161,27 @@ export default function FlashcardPage() {
     <div className="flex min-h-screen-safe flex-col">
       <Header />
       <main className="flex-1 px-4 pb-24 pt-4">
-        <ProgressBar
-          current={engine.currentIndex + 1}
-          total={engine.total}
-          correct={engine.correctCount}
-          incorrect={engine.incorrectCount}
-        />
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex-1">
+            <ProgressBar
+              current={engine.currentIndex + 1}
+              total={engine.total}
+              correct={engine.correctCount}
+              incorrect={engine.incorrectCount}
+            />
+          </div>
+          <button
+            onClick={handleAutoplayToggle}
+            className={`ml-4 p-2 rounded-full transition-colors ${
+              autoplay ? "bg-primary-100 text-primary-600" : "bg-gray-100 text-gray-400"
+            }`}
+            title="Toggle Autoplay"
+            aria-label="Automatically play pronunciation"
+          >
+            {autoplay ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+          </button>
+        </div>
+        <p className="mb-2 text-center text-xs text-primary-400">Space: Bỏ qua · Đánh dấu đang học</p>
 
         <div className="flex flex-1 flex-col items-center justify-center">
           <button onClick={() => setFlipped(!flipped)} className="w-full max-w-md perspective">

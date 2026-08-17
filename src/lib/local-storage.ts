@@ -4,6 +4,7 @@ const PROGRESS_KEY = "quizlet-progress"
 const OWN_SETS_KEY = "quizlet-own-sets"
 const CARD_PROGRESS_KEY = "quizlet-card-progress"
 const DEVICE_ID_KEY = "quizlet-device-id"
+const AUTOPLAY_SETTING_KEY = "quizlet-autoplay-setting"
 
 export function getProgress(): StudyProgress {
   if (typeof window === "undefined") return {}
@@ -148,6 +149,25 @@ export function removeOwnSetId(id: string): void {
       OWN_SETS_KEY,
       JSON.stringify(ids.filter((x) => x !== id)),
     )
+  } catch {
+    // storage full
+  }
+}
+
+export function getAutoplaySetting(): boolean {
+  if (typeof window === "undefined") return true
+  try {
+    const raw = localStorage.getItem(AUTOPLAY_SETTING_KEY)
+    return raw !== null ? JSON.parse(raw) : true
+  } catch {
+    return true
+  }
+}
+
+export function saveAutoplaySetting(enabled: boolean): void {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(AUTOPLAY_SETTING_KEY, JSON.stringify(enabled))
   } catch {
     // storage full
   }
