@@ -104,3 +104,58 @@ Khi user báo bug/feature, thêm task theo format:
 - Typecheck + lint + tests pass sạch.
 **Status:** ✅ Done
 **Commit:** feat: implement TOPIK test PDF export using react-pdf
+
+### [R-07] — Spaced Repetition System (SRS) Integration (Anki Stage 1)
+
+**Type:** Feature
+**Description:** Tích hợp thuật toán lặp lại ngắt quãng (FSRS/SM-2) để tối ưu hoá việc học. Thay đổi schema Flashcard/CardProgress để lưu các thông số SRS (interval, ease, dueDate, lapses). Thay đổi giao diện Study Mode để có 4 nút đánh giá: Again, Hard, Good, Easy với dự báo khoảng thời gian hiển thị trên nút.
+**Acceptance Criteria:**
+- DB Schema được cập nhật với các trường phục vụ thuật toán lặp lại ngắt quãng.
+- Hàm tính toán SRS (FSRS hoặc SM-2) được implement.
+- Giao diện Study Mode hiển thị 4 nút: Again (Quên), Hard (Khó), Good (Tốt), Easy (Dễ) với logic update tương ứng.
+**Status:** ⬜ Todo
+**Commit:** -
+
+### [R-08] — Daily Review Dashboard (Anki Stage 2)
+
+**Type:** Feature
+**Description:** Xây dựng màn hình "Daily Review" để tổng hợp các thẻ (từ nhiều Set khác nhau) đến hạn ôn tập trong ngày.
+**Acceptance Criteria:**
+- Query được danh sách các thẻ có `dueDate <= now` từ tất cả các Set của user.
+- UI hiển thị số lượng thẻ cần học hôm nay.
+- Flow học tập liên tục cho phép người dùng ôn tập toàn bộ thẻ "Due Today" trong một session duy nhất, bất kể chúng thuộc Set nào.
+**Status:** ⬜ Todo
+**Commit:** -
+
+### [R-09] — Thẻ Điền Khuyết - Cloze Deletion (Anki Stage 3)
+
+**Type:** Feature
+**Description:** Hỗ trợ định dạng thẻ điền khuyết (Cloze deletion), ví dụ "Tôi ăn {{c1::táo}}". Tính năng này đặc biệt hữu ích cho học ngữ pháp.
+**Acceptance Criteria:**
+- Cho phép tạo và chỉnh sửa flashcard với syntax `{{c1::từ}}`.
+- Study Mode nhận diện thẻ cloze và ẩn phần text điền khuyết thành `[...]`.
+- Khi lật thẻ, hiển thị phần text đầy đủ với định dạng nổi bật.
+**Status:** ⬜ Todo
+**Commit:** -
+
+### [R-10] — Gamification & Heatmap (Anki Stage 4)
+
+**Type:** Feature
+**Description:** Bổ sung yếu tố trò chơi hoá (Gamification) để tăng động lực học tập: Chuỗi ngày học liên tục (Streak) và biểu đồ đóng góp (Heatmap) giống GitHub.
+**Acceptance Criteria:**
+- Tracking hoạt động học tập hằng ngày của người dùng.
+- Tính toán và hiển thị số ngày học liên tiếp (Streak).
+- Xây dựng UI Heatmap hiển thị cường độ ôn tập theo lịch năm.
+**Status:** ⬜ Todo
+**Commit:** -
+
+### [R-11] — Tối ưu Keyboard Shortcuts cho Anki Mode (Anki Stage 5)
+
+**Type:** Feature
+**Description:** Chỉnh sửa lại hệ thống phím tắt cho giống với thói quen của người dùng Anki: Space/Enter để lật thẻ và chọn "Good", phím 1/2/3/4 tương ứng Again/Hard/Good/Easy. Có thể cấu hình phím tắt trong Settings.
+**Acceptance Criteria:**
+- Phím tắt 1, 2, 3, 4 kích hoạt hành động đánh giá thẻ.
+- Phím Space hoặc Enter lật thẻ (nếu thẻ đang úp) hoặc chọn Good (nếu thẻ đang ngửa).
+- (Optional) Toggle setting cho phép người dùng chọn giữa "Classic Quizlet Shortcuts" và "Anki Shortcuts".
+**Status:** ⬜ Todo
+**Commit:** -
