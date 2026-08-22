@@ -207,3 +207,17 @@ Khi user báo bug/feature, thêm task theo format:
 - Typecheck, lint pass sạch.
 **Status:** ✅ Done
 **Commit:** feat: implement Set Progress Indicator on SetCard (R-15)
+
+### [R-16] — Fix Audio Overlap Bug (lúc bắt đầu học phát 2 từ)
+
+**Type:** Bug
+**Description:** Khi bắt đầu học flashcard, thẻ đầu tiên tự động phát âm thanh nhưng người dùng nghe thấy giọng đọc từ đó VÀ thêm một từ nữa, dù chưa chuyển sang thẻ mới.
+*Nguyên nhân phân tích:*
+1. Không có cleanup (`audio.pause()`) khi component unmount: Nếu user vừa chuyển từ trang khác (vd trang Set có bấm nghe thử) vào trang Flashcard, hoặc do React 18 Strict Mode mount/unmount component liên tục, các `Audio` instances cũ không bị dừng lại mà tiếp tục phát ngầm.
+2. `useStudyEngine` chứa logic set state (`setShuffled`) ngay trong thân render phase (anti-pattern) làm React re-render và có thể gây ra race-condition khi kết hợp Strict Mode, khiến 2 render passes tạo ra 2 mảng shuffled khác nhau và kích hoạt double `useEffect`.
+**Acceptance Criteria:**
+- Thêm cleanup function (return trong `useEffect`) để gọi `audioRef.current?.pause()` khi các component `FlashcardPage`, `SpellPage` (hoặc `useAudio` hook), và `SpeakerButton` bị unmount.
+- Refactor `useStudyEngine.ts`: Đưa logic khởi tạo mảng `shuffled` vào trong `useEffect` thay vì gọi trực tiếp trong thân hàm render, đảm bảo tuân thủ React rules và tránh side-effects.
+- Đảm bảo khi vào Flashcard chỉ nghe đúng 1 giọng đọc của thẻ hiện tại.
+**Status:** ⬜ Todo
+**Commit:** -

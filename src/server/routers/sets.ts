@@ -11,7 +11,7 @@ async function attachProgressToSets(sets: any[], ctx: any) {
     by: ['setId'],
     where: {
       setId: { in: setIds },
-      srsState: 'graduated',
+      srsState: 'review',
       ...(ctx.userId ? { userId: ctx.userId } : { deviceId: ctx.deviceId })
     },
     _count: {
