@@ -79,6 +79,14 @@ export default function FlashcardPage() {
     }
   }, [engine.currentIndex, autoplay, engine.currentCard, engine.isComplete, playAudio])
 
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+      }
+    }
+  }, [])
+
   // SRS: lấy state của card hiện tại
   const currentSrsCard: SrsCard = engine.currentCard
     ? (srsProgress[engine.currentCard.id] ?? DEFAULT_SRS_CARD)

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import type { Flashcard } from "@/types"
 
 export function useStudyEngine(cards: Flashcard[]) {
@@ -12,15 +12,17 @@ export function useStudyEngine(cards: Flashcard[]) {
   const [isInitialized, setIsInitialized] = useState(false)
 
   // Initialize the deck once when cards are available
-  if (cards.length > 0 && !isInitialized) {
-    const arr = [...cards]
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]]
+  useEffect(() => {
+    if (cards.length > 0 && !isInitialized) {
+      const arr = [...cards]
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]]
+      }
+      setShuffled(arr)
+      setIsInitialized(true)
     }
-    setShuffled(arr)
-    setIsInitialized(true)
-  }
+  }, [cards, isInitialized])
 
   const currentCard = shuffled[currentIndex] ?? null
   const isComplete = isInitialized && shuffled.length > 0 && currentIndex >= shuffled.length

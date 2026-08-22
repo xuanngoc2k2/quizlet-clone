@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { Volume2, Volume1 } from "lucide-react"
 
 type SpeakerButtonProps = {
@@ -36,6 +36,14 @@ export function SpeakerButton({ text, lang = "ko-KR", size = "sm" }: SpeakerButt
       setPlaying(false)
     })
   }, [text, lang, playing])
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+      }
+    }
+  }, [])
 
   const sizeClass = size === "md" ? "h-9 w-9" : "h-7 w-7"
   const iconSize = size === "md" ? "h-4.5 w-4.5" : "h-3.5 w-3.5"

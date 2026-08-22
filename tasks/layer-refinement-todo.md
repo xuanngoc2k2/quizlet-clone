@@ -219,5 +219,5 @@ Khi user báo bug/feature, thêm task theo format:
 - Thêm cleanup function (return trong `useEffect`) để gọi `audioRef.current?.pause()` khi các component `FlashcardPage`, `SpellPage` (hoặc `useAudio` hook), và `SpeakerButton` bị unmount.
 - Refactor `useStudyEngine.ts`: Đưa logic khởi tạo mảng `shuffled` vào trong `useEffect` thay vì gọi trực tiếp trong thân hàm render, đảm bảo tuân thủ React rules và tránh side-effects.
 - Đảm bảo khi vào Flashcard chỉ nghe đúng 1 giọng đọc của thẻ hiện tại.
-**Status:** ⬜ Todo
-**Commit:** -
+**Status:** ✅ Done
+**Commit:** fix: fix audio overlapping bug and refactor useStudyEngine init (R-16)
