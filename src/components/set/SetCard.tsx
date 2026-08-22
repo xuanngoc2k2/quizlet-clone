@@ -32,9 +32,33 @@ export function SetCard({ id, title, description, cardCount, graduatedCount = 0 
           <BookOpen className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-1 font-display text-base font-semibold text-primary-900">
-            {title}
-          </h3>
+          <div className="flex items-start justify-between gap-4">
+            <h3 className="line-clamp-1 font-display text-base font-semibold text-primary-900">
+              {title}
+            </h3>
+            {progress > 0 && (
+              <div className="relative h-6 w-6 shrink-0" title={`${Math.round(progress)}% đã thuộc`}>
+                <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    className="text-primary-100"
+                    strokeWidth="4"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className={progress >= 100 ? "text-green-500" : "text-yellow-500"}
+                    strokeDasharray={`${progress}, 100`}
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
           {description && (
             <p className="mt-0.5 line-clamp-2 text-sm text-primary-500">
               {description}
