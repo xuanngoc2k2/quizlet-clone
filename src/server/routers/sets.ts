@@ -3,6 +3,30 @@ import { TRPCError } from "@trpc/server"
 import { router, publicProcedure, protectedProcedure } from "../trpc"
 import { prisma } from "../db"
 
+async function attachProgressToSets(sets: any[], ctx: any) {
+  if (sets.length === 0) return sets
+  
+  const setIds = sets.map((s: any) => s.id)
+  const progressCounts = await prisma.cardProgress.groupBy({
+    by: ['setId'],
+    where: {
+      setId: { in: setIds },
+      srsState: 'graduated',
+      ...(ctx.userId ? { userId: ctx.userId } : { deviceId: ctx.deviceId })
+    },
+    _count: {
+      _all: true
+    }
+  })
+  
+  const countMap = new Map(progressCounts.map(p => [p.setId, p._count._all]))
+  
+  return sets.map(set => ({
+    ...set,
+    graduatedCount: countMap.get(set.id) || 0
+  }))
+}
+
 const cardInput = z.object({
   term: z.string().min(1),
   definition: z.string().min(1),
@@ -16,7 +40,7 @@ export const setsRouter = router({
         search: z.string().optional(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const { search } = input
       const sets = await prisma.flashcardSet.findMany({
         where: {
@@ -37,7 +61,7 @@ export const setsRouter = router({
         },
         orderBy: { updatedAt: "desc" },
       })
-      return sets
+      return attachProgressToSets(sets, ctx)
     }),
 
   my: publicProcedure.query(async ({ ctx }) => {
@@ -49,7 +73,7 @@ export const setsRouter = router({
       },
       orderBy: { updatedAt: "desc" },
     })
-    return sets
+    return attachProgressToSets(sets, ctx)
   }),
 
   getById: publicProcedure

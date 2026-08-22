@@ -48,6 +48,7 @@ export default function HomePage() {
                   title={set.title}
                   description={set.description}
                   cardCount={set._count.cards}
+                  graduatedCount={(set as any).graduatedCount}
                 />
               ))}
             </div>
@@ -78,6 +79,7 @@ export default function HomePage() {
                   title={set.title}
                   description={set.description}
                   cardCount={set._count.cards}
+                  graduatedCount={(set as any).graduatedCount}
                 />
               ))}
             </div>

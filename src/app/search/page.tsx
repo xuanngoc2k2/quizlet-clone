@@ -53,6 +53,7 @@ function SearchContent() {
               title={set.title}
               description={set.description}
               cardCount={set._count.cards}
+              graduatedCount={(set as any).graduatedCount}
             />
           ))}
         </div>

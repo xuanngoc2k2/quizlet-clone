@@ -195,3 +195,15 @@ Khi user báo bug/feature, thêm task theo format:
 - Typecheck + lint pass sạch.
 **Status:** ✅ Done
 **Commit:** -
+
+### [R-15] — Hiển thị tiến độ học trên SetCard (Set Progress Indicator)
+
+**Type:** Feature
+**Description:** Thay đổi màu gradient khi hover của SetCard để thể hiện tiến độ học (số lượng từ đã thuộc/đã học). Tỉ lệ hoàn thành tính bằng `(số từ có trạng thái graduated / tổng số từ) * 100`.
+**Acceptance Criteria:**
+- Cập nhật tRPC queries (`sets.list`, `sets.my`) để join với `CardProgress` và trả về số thẻ đã thuộc ứng với `userId` hoặc `deviceId`.
+- Truyền dữ liệu tiến độ vào component `SetCard`.
+- `SetCard` thay đổi màu gradient động tuỳ theo % tiến độ (VD: 0%: mặc định, >0%: màu cam/vàng, 100%: màu xanh lá).
+- Typecheck, lint pass sạch.
+**Status:** ✅ Done
+**Commit:** feat: implement Set Progress Indicator on SetCard (R-15)
