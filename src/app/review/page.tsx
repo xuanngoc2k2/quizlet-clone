@@ -4,6 +4,8 @@ import { api } from "@/lib/trpc-provider"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
+import { StreakCard } from "@/components/gamification/StreakCard"
+import { HeatmapCalendar } from "@/components/gamification/HeatmapCalendar"
 import Link from "next/link"
 import {
   Brain,
@@ -40,6 +42,9 @@ function StatCard({
 export default function ReviewDashboardPage() {
   const { data: dueCards = [], isLoading } =
     api.cardProgress.getDueWithDetails.useQuery()
+  const { data: streak = { currentStreak: 0, longestStreak: 0, totalDays: 0 } } =
+    api.activity.getStreak.useQuery()
+  const { data: heatmapData = [] } = api.activity.getHeatmap.useQuery()
 
   // Nhóm cards theo set
   const bySet = dueCards.reduce<
@@ -96,6 +101,16 @@ export default function ReviewDashboardPage() {
               </Link>
             </div>
           )}
+        </section>
+
+        {/* Gamification: Streak + Heatmap */}
+        <section className="mb-6 flex flex-col gap-4">
+          <StreakCard
+            currentStreak={streak.currentStreak}
+            longestStreak={streak.longestStreak}
+            totalDays={streak.totalDays}
+          />
+          <HeatmapCalendar data={heatmapData} />
         </section>
 
         {isLoading ? (

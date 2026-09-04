@@ -54,10 +54,13 @@ export default function ReviewSessionPage() {
   const { data: rawDue = [], isLoading } =
     api.cardProgress.getDueWithDetails.useQuery()
   const utils = api.useUtils()
+  const activityMutation = api.activity.log.useMutation()
   const reviewMutation = api.cardProgress.review.useMutation({
     onSuccess: () => {
       utils.cardProgress.getDueWithDetails.invalidate()
       utils.cardProgress.getDueByDevice.invalidate()
+      // Log 1 card reviewed to activity tracker
+      activityMutation.mutate({ count: 1 })
     },
   })
 
