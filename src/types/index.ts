@@ -15,6 +15,7 @@ export interface Flashcard {
   definition: string
   type: string
   order: number
+  examples?: any
   createdAt: Date
 }
 

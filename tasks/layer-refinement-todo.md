@@ -25,8 +25,8 @@ Khi user báo bug/feature, thêm task theo format:
 **Type:** Bug | Feature
 **Description:** [Mô tả vấn đề/yêu cầu]
 **Acceptance Criteria:** [Tiêu chí hoàn thành]
-**Status:** ⬜ Todo | 🔄 In Progress | ✅ Done
-**Commit:** -
+**Status:** ✅ Done | 🔄 In Progress | ✅ Done
+**Commit:** feat: implement adaptive study engine and cloze deletion (R-17)
 -->
 
 ### [R-01] — Import cards từ file JSON/CSV
@@ -39,7 +39,7 @@ Khi user báo bug/feature, thêm task theo format:
 - Đường link download sample .csv & .json trên UI
 - Unit test cho parser trong `src/lib/set-import.test.ts` pass; lint + typecheck clean
 **Status:** ✅ Done
-**Commit:** -
+**Commit:** feat: implement adaptive study engine and cloze deletion (R-17)
 
 ### [R-02] — TOPIK Set Test Generator (Phase A)
 
@@ -53,7 +53,7 @@ Khi user báo bug/feature, thêm task theo format:
 - Review có breakdown theo part + type (vocab/grammar) + giải thích đúng/sai
 - Typecheck + lint + unit tests pass (distribution, gemini parse)
 **Status:** ✅ Done (Phase A + B) — Phase B: weakness tracking, difficulty adaptation, 오답 복습 (Ôn câu sai)
-**Commit:** -
+**Commit:** feat: implement adaptive study engine and cloze deletion (R-17)
 
 ### [R-03] — Floating Dictionary Assistant (Phase 1: Core lookup + panel)
 
@@ -68,7 +68,7 @@ Khi user báo bug/feature, thêm task theo format:
 - Lazy-load: chỉ tải panel khi mở; FloatingButton không gọi tRPC
 - Typecheck + lint + unit tests pass (dictionary lib), build pass
 **Status:** ✅ Done (Phase 1 + Phase 2) — Phase 2: Add-to-Set + Add-Flashcard (dedupe theo term, chọn/tạo set, editable card). Phase 3 (pending): Mini Practice
-**Commit:** -
+**Commit:** feat: implement adaptive study engine and cloze deletion (R-17)
 
 ### [R-04] — Sửa lỗi nút chức năng trên header từ điển bị kéo thả chiếm quyền
 
@@ -135,8 +135,8 @@ Khi user báo bug/feature, thêm task theo format:
 - Cho phép tạo và chỉnh sửa flashcard với syntax `{{c1::từ}}`.
 - Study Mode nhận diện thẻ cloze và ẩn phần text điền khuyết thành `[...]`.
 - Khi lật thẻ, hiển thị phần text đầy đủ với định dạng nổi bật.
-**Status:** ⬜ Todo
-**Commit:** -
+**Status:** ✅ Done
+**Commit:** feat: implement adaptive study engine and cloze deletion (R-17)
 
 ### [R-10] — Gamification & Heatmap (Anki Stage 4)
 
@@ -146,8 +146,8 @@ Khi user báo bug/feature, thêm task theo format:
 - Tracking hoạt động học tập hằng ngày của người dùng.
 - Tính toán và hiển thị số ngày học liên tiếp (Streak).
 - Xây dựng UI Heatmap hiển thị cường độ ôn tập theo lịch năm.
-**Status:** ⬜ Todo
-**Commit:** -
+**Status:** ✅ Done
+**Commit:** feat: implement adaptive study engine and cloze deletion (R-17)
 
 ### [R-11] — Tối ưu Keyboard Shortcuts cho Anki Mode (Anki Stage 5)
 
@@ -157,8 +157,8 @@ Khi user báo bug/feature, thêm task theo format:
 - Phím tắt 1, 2, 3, 4 kích hoạt hành động đánh giá thẻ.
 - Phím Space hoặc Enter lật thẻ (nếu thẻ đang úp) hoặc chọn Good (nếu thẻ đang ngửa).
 - (Optional) Toggle setting cho phép người dùng chọn giữa "Classic Quizlet Shortcuts" và "Anki Shortcuts".
-**Status:** ⬜ Todo
-**Commit:** -
+**Status:** ✅ Done
+**Commit:** feat: implement adaptive study engine and cloze deletion (R-17)
 
 ### [R-12] — Authentication System (NextAuth.js)
 
@@ -194,7 +194,7 @@ Khi user báo bug/feature, thêm task theo format:
 - Test e2e: generate với userId thật → `testHistory.list` (cùng userId) trả về record vừa tạo.
 - Typecheck + lint pass sạch.
 **Status:** ✅ Done
-**Commit:** -
+**Commit:** feat: implement adaptive study engine and cloze deletion (R-17)
 
 ### [R-15] — Hiển thị tiến độ học trên SetCard (Set Progress Indicator)
 
@@ -221,3 +221,17 @@ Khi user báo bug/feature, thêm task theo format:
 - Đảm bảo khi vào Flashcard chỉ nghe đúng 1 giọng đọc của thẻ hiện tại.
 **Status:** ✅ Done
 **Commit:** fix: fix audio overlapping bug and refactor useStudyEngine init (R-16)
+
+### [R-17] — Adaptive Study Engine & Auto-Context (AI Cloze Deletion)
+
+**Type:** Feature / AI Integration
+**Description:** Tăng cường Active Recall bằng việc tự động điều chỉnh độ khó (Động) và tự động tạo ngữ cảnh (Ngữ Cảnh) bằng AI Gemini thay vì phải tạo thủ công. 
+**Acceptance Criteria:**
+- **Auto-Context:** Cập nhật DB schema thêm bảng `CardExampleCache` hoặc trường `examples Json?` vào `Flashcard` để lưu kết quả từ Gemini. Thêm tRPC mutation `sentences.generateAndSaveExamples` để gọi Gemini sinh 3 câu ví dụ (dựa trên API hiện có) và lưu vào database.
+- **Adaptive Engine:** Refactor `useStudyEngine` để tự động trả ra biến `recommendedMode` (hoặc `studyMode`) cho từng thẻ dựa trên trạng thái tiến độ (`srsState`, `srsLapses`):
+  - `srsState === 'new'`: Mode `Flashcard` (hoặc `Quiz`).
+  - `srsLapses > 0` (Thẻ hay quên): Mode `Spell` (bắt buộc tự gõ, không gợi ý).
+  - Tích hợp **AI Cloze Deletion**: Khi thẻ ở mode `Spell`, lấy ngẫu nhiên 1 example sentence từ DB, ẩn đi từ vựng (thành `[_______]`), bắt người dùng gõ từ vựng dựa vào ngữ cảnh câu ví dụ.
+- **UI Updates:** Cập nhật giao diện `FlashcardView` / `SpellView` để render câu ví dụ đục lỗ, hỗ trợ hiển thị `grammar_notes` và `translation` sau khi trả lời.
+**Status:** ✅ Done
+**Commit:** feat: implement adaptive study engine and cloze deletion (R-17)

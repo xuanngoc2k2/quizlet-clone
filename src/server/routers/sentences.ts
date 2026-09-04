@@ -134,4 +134,37 @@ export const sentencesRouter = router({
       ) as ExamplesResponse
       return { examples: result.examples }
     }),
+
+  generateAndSaveExamples: publicProcedure
+    .input(
+      z.object({
+        cardId: z.string(),
+        word: z.string().min(1, "Word is required"),
+        definition: z.string().optional(),
+        language: z.enum(["en", "vi"]).default("en"),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existingCard = await ctx.prisma.flashcard.findUnique({
+        where: { id: input.cardId }
+      })
+      if (!existingCard) throw new Error("Card not found")
+      
+      // Do not re-fetch if already cached
+      if (existingCard.examples) {
+        return { examples: existingCard.examples }
+      }
+
+      const result = await callGeminiJSON(
+        buildExamplesPrompt(input.word, input.definition, input.language),
+        { temperature: 0.4 },
+      ) as ExamplesResponse
+      
+      await ctx.prisma.flashcard.update({
+        where: { id: input.cardId },
+        data: { examples: result.examples }
+      })
+
+      return { examples: result.examples }
+    }),
 })

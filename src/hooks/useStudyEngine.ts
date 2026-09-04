@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react"
 import type { Flashcard } from "@/types"
 
-export function useStudyEngine(cards: Flashcard[]) {
+export function useStudyEngine(cards: Flashcard[], srsData?: Record<string, any>) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [correctIds, setCorrectIds] = useState<Set<string>>(new Set())
   const [incorrectIds, setIncorrectIds] = useState<Set<string>>(new Set())
@@ -26,6 +26,16 @@ export function useStudyEngine(cards: Flashcard[]) {
 
   const currentCard = shuffled[currentIndex] ?? null
   const isComplete = isInitialized && shuffled.length > 0 && currentIndex >= shuffled.length
+
+  let recommendedMode = "flashcard"
+  if (currentCard && srsData && srsData[currentCard.id]) {
+    const srs = srsData[currentCard.id]
+    if (srs.srsLapses > 0 && srs.srsState === "review") {
+      recommendedMode = "cloze"
+    } else if (srs.srsState === "review") {
+      recommendedMode = "quiz"
+    }
+  }
 
   const markCorrect = useCallback(() => {
     if (currentCard) {
@@ -63,6 +73,7 @@ export function useStudyEngine(cards: Flashcard[]) {
     incorrectCount: incorrectIds.size,
     completedCards: [...Array.from(correctIds), ...Array.from(incorrectIds)],
     isComplete,
+    recommendedMode,
     markCorrect,
     markIncorrect,
     reset,

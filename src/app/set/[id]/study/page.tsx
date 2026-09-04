@@ -12,6 +12,7 @@ import type { RememberedFilter as RememberedFilterType } from "@/types"
 import { Layers, PenLine, HelpCircle, Target, Volume2, ChevronRight, ArrowLeft } from "lucide-react"
 
 const modes = [
+  { key: "adaptive", label: "Smart Learn (AI)", icon: Target, desc: "Tự động gợi ý mức độ khó", color: "bg-pink-500" },
   { key: "flashcard", label: "Flashcards", icon: Layers, desc: "Flip through cards", color: "bg-blue-500" },
   { key: "learn", label: "Learn", icon: PenLine, desc: "Type the answer", color: "bg-emerald-500" },
   { key: "quiz", label: "Quiz", icon: HelpCircle, desc: "Multiple choice", color: "bg-amber-500" },
