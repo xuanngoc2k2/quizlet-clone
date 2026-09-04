@@ -146,8 +146,8 @@ Khi user báo bug/feature, thêm task theo format:
 - Tracking hoạt động học tập hằng ngày của người dùng.
 - Tính toán và hiển thị số ngày học liên tiếp (Streak).
 - Xây dựng UI Heatmap hiển thị cường độ ôn tập theo lịch năm.
-**Status:** ⬜ Todo
-**Commit:** -
+**Status:** ✅ Done
+**Commit:** feat: implement gamification with streak tracking and heatmap calendar (R-10)
 
 ### [R-11] — Tối ưu Keyboard Shortcuts cho Anki Mode (Anki Stage 5)
 
