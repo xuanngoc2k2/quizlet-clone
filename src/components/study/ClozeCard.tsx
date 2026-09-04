@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { api } from "@/lib/trpc-provider"
 import type { Flashcard } from "@/types"
 import { Button } from "@/components/ui/Button"
-import { MathText } from "@/components/ui/MathText"
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react"
 
 interface ClozeCardProps {
@@ -21,7 +20,7 @@ export function ClozeCard({ card, onCorrect, onIncorrect }: ClozeCardProps) {
   const utils = api.useUtils()
   
   const generateMutation = api.sentences.generateAndSaveExamples.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate the set query to get the updated card with examples
       utils.sets.getById.invalidate({ id: card.setId })
     }
@@ -41,6 +40,7 @@ export function ClozeCard({ card, onCorrect, onIncorrect }: ClozeCardProps) {
         language: "vi" // or user preference
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card.id, card.examples])
 
   const examples = card.examples as { sentence: string, translation: string, grammar_notes: string }[] | undefined
@@ -85,7 +85,7 @@ export function ClozeCard({ card, onCorrect, onIncorrect }: ClozeCardProps) {
               {clozeSentence}
             </p>
             <p className="text-sm text-primary-500 italic">
-              "{currentExample.translation}"
+              &quot;{currentExample.translation}&quot;
             </p>
           </>
         )}
