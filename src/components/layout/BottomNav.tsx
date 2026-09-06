@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Plus, BookOpen, Sparkles, Brain, Clock } from "lucide-react"
+import { Home, Plus, BookOpen, Sparkles, Brain, Clock, LayoutDashboard } from "lucide-react"
 import { api } from "@/lib/trpc-provider"
 
 const staticNavItems = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/set/new", label: "Create", icon: Plus },
   { href: "/review", label: "Review", icon: Brain },
   { href: "/test", label: "Test", icon: Sparkles },
@@ -25,7 +26,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-primary-100 bg-white/80 backdrop-blur-lg safe-bottom">
-      <div className="mx-auto flex max-w-lg items-center justify-around">
+      <div className="mx-auto flex max-w-lg items-center justify-around overflow-x-auto no-scrollbar px-2">
         {staticNavItems.map((item) => {
           const isActive =
             item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
@@ -34,7 +35,7 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex flex-col items-center gap-0.5 px-5 py-2 text-xs transition-colors touch-target ${
+              className={`relative flex flex-col items-center gap-0.5 px-3 py-2 text-[10px] sm:text-xs transition-colors touch-target shrink-0 ${
                 isActive ? "text-primary-600" : "text-primary-400"
               }`}
             >

@@ -235,3 +235,105 @@ Khi user báo bug/feature, thêm task theo format:
 - **UI Updates:** Cập nhật giao diện `FlashcardView` / `SpellView` để render câu ví dụ đục lỗ, hỗ trợ hiển thị `grammar_notes` và `translation` sau khi trả lời.
 **Status:** ✅ Done
 **Commit:** feat: implement adaptive study engine and cloze deletion (R-17)
+
+### [R-18] — Dashboard: Route & Core Architecture
+
+**Type:** Feature
+**Description:**
+- Add `/dashboard`
+- Add Dashboard to existing navigation
+- Preserve all existing routes/menu items
+- Reuse existing Layout/Header/Sidebar/design system
+- Responsive desktop/mobile
+- Loading Skeleton
+- Empty State
+- Error State
+- Auth protection
+- No duplicate layout/navigation
+
+**Acceptance Criteria:**
+- `/dashboard` works
+- Existing pages have no regression
+- No horizontal overflow
+- Existing navigation behavior unchanged
+
+**Status:** ✅ Done
+**Commit:** feat: implement Dashboard core architecture and navigation (R-18)
+
+### [R-19] — Dashboard: Data Model & API Aggregator
+
+**Type:** Feature
+**Description:**
+Create `dashboard.summary` tRPC endpoint.
+First inspect existing Prisma schema and data layer.
+Reuse existing data whenever possible.
+Aggregate:
+- TOPIK Goal
+- Review due count
+- Today's learning activity
+- Vocabulary progress
+- Grammar progress when data exists
+- Reading progress when data exists
+- Listening progress when data exists
+- Top 3 recently studied sets
+- Recent activity
+- Weekly statistics
+- Study streak
+- Weak areas
+
+Create `UserTopikGoal` relational model if necessary.
+IMPORTANT: Do not create mock/fake statistics. If a metric has insufficient data, return null / empty state / not enough data.
+
+**Acceptance Criteria:**
+- API returns aggregated data correctly mapped from existing Prisma models.
+- Handles empty/insufficient data gracefully without faking stats.
+
+**Status:** ✅ Done
+**Commit:** feat: implement Dashboard data model and API aggregator (R-19)
+
+### [R-20] — Dashboard: Goal & Today's Study (Priority 1)
+
+**Type:** Feature
+**Description:**
+Implement:
+- Greeting
+- TOPIK Goal (Target level, Current level, Exam date, Countdown)
+- Today's Study
+- Today's Progress
+
+Today's Study must use real existing learning data.
+Every CTA must navigate to existing learning routes.
+Dashboard must not implement duplicate Review/Test logic.
+
+**Acceptance Criteria:**
+- Today's Progress is calculated as: `completedTasks / totalTasks * 100`
+- Use user's timezone when determining "today".
+
+**Status:** ✅ Done
+**Commit:** feat: implement Dashboard Goal and Today Study sections (R-20)
+
+### [R-21] — Dashboard: Progress, Weak Areas & Activity (Priority 2)
+
+**Type:** Feature
+**Description:**
+Implement:
+- Progress Overview (Vocabulary, Grammar, Reading, Listening)
+- Continue Learning (Top 3 recently studied sets)
+- Weak Areas
+- Recent Activity
+- Weekly Statistics
+- Study Streak
+
+Weak Areas V1:
+- Minimum 5 attempts required.
+- accuracy < 60% → Weak
+- 60–79% → Needs Practice
+- >= 80% → Good
+- Do not classify a skill as weak based on insufficient data.
+
+**Acceptance Criteria:**
+- All metrics must come from real API data.
+- Show appropriate empty/not-enough-data states.
+
+**Status:** ✅ Done
+**Commit:** feat: implement Dashboard Progress, Weak Areas and Activity sections (R-21)
