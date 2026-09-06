@@ -48,25 +48,38 @@ export const cardProgressRouter = router({
     .mutation(async ({ ctx, input }) => {
       if (!ctx.userId && !ctx.deviceId) return
       const deviceId = ctx.deviceId || "anonymous"
-      await ctx.prisma.cardProgress.upsert({
-        where: {
-          deviceId_cardId: {
+      let existing = null
+      if (ctx.userId) {
+        existing = await ctx.prisma.cardProgress.findFirst({
+          where: { userId: ctx.userId, cardId: input.cardId },
+          orderBy: { updatedAt: "desc" },
+        })
+      } else {
+        existing = await ctx.prisma.cardProgress.findUnique({
+          where: {
+            deviceId_cardId: { deviceId, cardId: input.cardId },
+          },
+        })
+      }
+
+      if (existing) {
+        await ctx.prisma.cardProgress.update({
+          where: { id: existing.id },
+          data: {
+            rememberedCount: { increment: 1 },
+          },
+        })
+      } else {
+        await ctx.prisma.cardProgress.create({
+          data: {
             deviceId,
             cardId: input.cardId,
+            setId: input.setId,
+            rememberedCount: 1,
+            userId: ctx.userId || null,
           },
-        },
-        create: {
-          deviceId,
-          cardId: input.cardId,
-          setId: input.setId,
-          rememberedCount: 1,
-          ...(ctx.userId ? { userId: ctx.userId } : {}),
-        },
-        update: {
-          rememberedCount: { increment: 1 },
-          ...(ctx.userId ? { userId: ctx.userId } : {}),
-        },
-      })
+        })
+      }
     }),
 
   // Đánh giá thẻ với SRS (Again/Hard/Good/Easy)
@@ -82,15 +95,19 @@ export const cardProgressRouter = router({
       if (!ctx.userId && !ctx.deviceId) return
       const deviceId = ctx.deviceId || "anonymous"
 
-      // Lấy trạng thái SRS hiện tại (nếu chưa có, dùng default)
-      const existing = await ctx.prisma.cardProgress.findUnique({
-        where: {
-          deviceId_cardId: {
-            deviceId,
-            cardId: input.cardId,
+      let existing = null
+      if (ctx.userId) {
+        existing = await ctx.prisma.cardProgress.findFirst({
+          where: { userId: ctx.userId, cardId: input.cardId },
+          orderBy: { updatedAt: "desc" },
+        })
+      } else {
+        existing = await ctx.prisma.cardProgress.findUnique({
+          where: {
+            deviceId_cardId: { deviceId, cardId: input.cardId },
           },
-        },
-      })
+        })
+      }
 
       const currentCard: SrsCard = existing
         ? {
@@ -111,35 +128,34 @@ export const cardProgressRouter = router({
       // Nếu Good hoặc Easy → tăng rememberedCount như cũ để tương thích
       const rememberIncrement = input.rating >= 2 ? 1 : 0
 
-      await ctx.prisma.cardProgress.upsert({
-        where: {
-          deviceId_cardId: {
+      if (existing) {
+        await ctx.prisma.cardProgress.update({
+          where: { id: existing.id },
+          data: {
+            rememberedCount: { increment: rememberIncrement },
+            srsInterval: srsResult.srsInterval,
+            srsEase: srsResult.srsEase,
+            srsLapses: srsResult.srsLapses,
+            srsState: srsResult.srsState,
+            srsDue: srsResult.srsDue,
+          },
+        })
+      } else {
+        await ctx.prisma.cardProgress.create({
+          data: {
             deviceId,
             cardId: input.cardId,
+            setId: input.setId,
+            rememberedCount: rememberIncrement,
+            srsInterval: srsResult.srsInterval,
+            srsEase: srsResult.srsEase,
+            srsLapses: srsResult.srsLapses,
+            srsState: srsResult.srsState,
+            srsDue: srsResult.srsDue,
+            userId: ctx.userId || null,
           },
-        },
-        create: {
-          deviceId,
-          cardId: input.cardId,
-          setId: input.setId,
-          rememberedCount: rememberIncrement,
-          srsInterval: srsResult.srsInterval,
-          srsEase: srsResult.srsEase,
-          srsLapses: srsResult.srsLapses,
-          srsState: srsResult.srsState,
-          srsDue: srsResult.srsDue,
-          ...(ctx.userId ? { userId: ctx.userId } : {}),
-        },
-        update: {
-          rememberedCount: { increment: rememberIncrement },
-          srsInterval: srsResult.srsInterval,
-          srsEase: srsResult.srsEase,
-          srsLapses: srsResult.srsLapses,
-          srsState: srsResult.srsState,
-          srsDue: srsResult.srsDue,
-          ...(ctx.userId ? { userId: ctx.userId } : {}),
-        },
-      })
+        })
+      }
 
       return srsResult
     }),
@@ -149,12 +165,23 @@ export const cardProgressRouter = router({
     .query(async ({ ctx }) => {
       if (!ctx.userId && !ctx.deviceId) return []
       const now = new Date()
-      return ctx.prisma.cardProgress.findMany({
+      const records = await ctx.prisma.cardProgress.findMany({
         where: ctx.userId
           ? { userId: ctx.userId, srsDue: { lte: now }, srsState: { not: "new" } }
           : { deviceId: ctx.deviceId, srsDue: { lte: now }, srsState: { not: "new" } },
-        orderBy: { srsDue: "asc" },
+        orderBy: { updatedAt: "desc" },
       })
+
+      // Deduplicate in memory (in case user has multiple deviceId records)
+      const uniqueRecords = new Map()
+      for (const r of records) {
+        if (!uniqueRecords.has(r.cardId)) {
+          uniqueRecords.set(r.cardId, r)
+        }
+      }
+      
+      // Sort by due date ascending
+      return Array.from(uniqueRecords.values()).sort((a, b) => a.srsDue.getTime() - b.srsDue.getTime())
     }),
 
   // Lấy cards due kèm đầy đủ term/definition/setTitle (Daily Review Dashboard)
@@ -173,9 +200,19 @@ export const cardProgressRouter = router({
             },
           },
         },
-        orderBy: { srsDue: "asc" },
+        orderBy: { updatedAt: "desc" },
       })
-      return records.map((r) => ({
+      
+      const uniqueRecords = new Map()
+      for (const r of records) {
+        if (!uniqueRecords.has(r.cardId)) {
+          uniqueRecords.set(r.cardId, r)
+        }
+      }
+      
+      const deduplicated = Array.from(uniqueRecords.values()).sort((a, b) => a.srsDue.getTime() - b.srsDue.getTime())
+
+      return deduplicated.map((r) => ({
         cardId: r.cardId,
         setId: r.setId,
         setTitle: r.card.set.title,

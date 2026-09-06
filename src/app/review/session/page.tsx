@@ -73,16 +73,20 @@ export default function ReviewSessionPage() {
   const [incorrectCount, setIncorrectCount] = useState(0)
 
   useEffect(() => {
-    if (!initialized && rawDue.length > 0) {
-      const arr = [...rawDue]
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    if (!initialized && !isLoading) {
+      if (rawDue.length > 0) {
+        const arr = [...rawDue]
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1))
+          ;[arr[i], arr[j]] = [arr[j], arr[i]]
+        }
+        setDeck(arr as DueCard[])
+      } else {
+        setDeck([])
       }
-      setDeck(arr as DueCard[])
       setInitialized(true)
     }
-  }, [rawDue, initialized])
+  }, [rawDue, initialized, isLoading])
 
   const currentCard = deck[currentIndex] ?? null
   const isComplete = initialized && deck.length > 0 && currentIndex >= deck.length
@@ -236,17 +240,13 @@ export default function ReviewSessionPage() {
           </div>
           <div className="mt-8 flex gap-3">
             <Button
-              onClick={() => {
+              onClick={async () => {
+                await utils.cardProgress.getDueWithDetails.refetch()
                 setCurrentIndex(0)
                 setCorrectCount(0)
                 setIncorrectCount(0)
                 setFlipped(false)
-                const arr = [...deck]
-                for (let i = arr.length - 1; i > 0; i--) {
-                  const j = Math.floor(Math.random() * (i + 1))
-                  ;[arr[i], arr[j]] = [arr[j], arr[i]]
-                }
-                setDeck(arr)
+                setInitialized(false)
               }}
               variant="secondary"
             >
