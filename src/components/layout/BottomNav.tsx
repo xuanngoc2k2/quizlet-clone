@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Plus, BookOpen, Sparkles, Brain, Clock, LayoutDashboard } from "lucide-react"
+import { Home, Plus, BookOpen, Sparkles, Brain, Clock, LayoutDashboard, PenLine } from "lucide-react"
 import { api } from "@/lib/trpc-provider"
 
 const staticNavItems = [
@@ -11,6 +11,7 @@ const staticNavItems = [
   { href: "/set/new", label: "Create", icon: Plus },
   { href: "/review", label: "Review", icon: Brain },
   { href: "/test", label: "Test", icon: Sparkles },
+  { href: "/writing", label: "Viết", icon: PenLine },
   { href: "/test/history", label: "History", icon: Clock },
   { href: "/my-sets", label: "My Sets", icon: BookOpen },
 ]

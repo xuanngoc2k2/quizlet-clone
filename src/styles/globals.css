@@ -81,3 +81,35 @@
     scrollbar-width: none;
   }
 }
+
+/* Local Korean Font for Topik Editor */
+@font-face {
+  font-family: "Noto Sans KR";
+  src: url("/fonts/NotoSansKR-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans KR";
+  src: url("/fonts/NotoSansKR-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans KR";
+  src: url("/fonts/NotoSansKR-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Force specific typography for editor to guarantee consistent glyph rendering */
+.writing-editor,
+.writing-cell,
+.writing-ime-input {
+  font-family: "Noto Sans KR", sans-serif;
+}

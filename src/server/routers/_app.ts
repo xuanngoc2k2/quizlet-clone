@@ -8,6 +8,7 @@ import { setTestRouter } from "./set-test"
 import { dictionaryRouter } from "./dictionary"
 import { activityRouter } from "./activity"
 import { dashboardRouter } from "./dashboard"
+import { writingRouter } from "./writing"
 
 export const appRouter = router({
   sets: setsRouter,
@@ -19,6 +20,7 @@ export const appRouter = router({
   dictionary: dictionaryRouter,
   activity: activityRouter,
   dashboard: dashboardRouter,
+  writing: writingRouter,
 })
 
 export type AppRouter = typeof appRouter
