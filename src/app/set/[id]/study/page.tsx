@@ -47,19 +47,19 @@ export default function StudyHubPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
         <Link
           href={`/set/${id}`}
-          className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 transition-colors hover:text-primary-700"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 transition-colors hover:text-slate-700"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to set
         </Link>
 
         <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold text-primary-900">{set?.title ?? "Study"}</h1>
+          <h1 className="font-display text-2xl font-bold text-slate-900">{set?.title ?? "Study"}</h1>
           {setProgress && (
-            <p className="mt-1 text-sm text-primary-400">
+            <p className="mt-1 text-sm text-slate-500">
               Last studied: {new Date(setProgress.date).toLocaleDateString()}
             </p>
           )}
@@ -76,22 +76,22 @@ export default function StudyHubPage() {
               <Link
                 key={mode.key}
                 href={href}
-                className="group flex items-center gap-4 rounded-2xl border border-primary-100 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+                className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
               >
                 <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${mode.color} text-white`}>
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-display font-semibold text-primary-900">{mode.label}</h3>
-                  <p className="text-sm text-primary-500">{mode.desc}</p>
+                  <h3 className="font-display font-semibold text-slate-900">{mode.label}</h3>
+                  <p className="text-sm text-slate-500">{mode.desc}</p>
                 </div>
-                <span className="text-xs font-medium text-primary-400">{counts[filter]} cards</span>
+                <span className="text-xs font-medium text-slate-500">{counts[filter]} cards</span>
                 {modeProgress && filter === "all" && (
-                  <span className="text-xs font-semibold text-primary-400">
+                  <span className="text-xs font-semibold text-slate-500">
                     {Math.round((modeProgress.correct / Math.max(modeProgress.correct + modeProgress.incorrect, 1)) * 100)}%
                   </span>
                 )}
-                <ChevronRight className="h-5 w-5 text-primary-300 transition-colors group-hover:text-primary-500" />
+                <ChevronRight className="h-5 w-5 text-slate-400 transition-colors group-hover:text-slate-500" />
               </Link>
             )
           })}

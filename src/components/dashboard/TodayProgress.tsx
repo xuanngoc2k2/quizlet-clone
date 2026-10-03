@@ -34,9 +34,9 @@ export function TodayProgress({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <CheckCircle2
-            className={`h-4 w-4 ${isComplete ? "text-emerald-500" : "text-primary-300"}`}
+            className={`h-4 w-4 ${isComplete ? "text-emerald-500" : "text-slate-400"}`}
           />
-          <h2 className="text-sm font-bold uppercase tracking-wide text-primary-400">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">
             Today&apos;s Progress
           </h2>
         </div>
@@ -62,7 +62,7 @@ export function TodayProgress({
       </div>
 
       {/* Task count */}
-      <p className="text-xs text-primary-400">
+      <p className="text-xs text-slate-500">
         {totalTasks === 0 ? (
           "No tasks scheduled for today"
         ) : isComplete ? (
@@ -71,11 +71,11 @@ export function TodayProgress({
           </span>
         ) : (
           <>
-            <span className="font-semibold text-primary-700">
+            <span className="font-semibold text-slate-700">
               {completedTasks}
             </span>{" "}
             of{" "}
-            <span className="font-semibold text-primary-700">
+            <span className="font-semibold text-slate-700">
               {totalTasks}
             </span>{" "}
             tasks completed

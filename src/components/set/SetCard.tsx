@@ -28,19 +28,19 @@ export function SetCard({ id, title, description, cardCount, graduatedCount = 0 
     >
       <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r opacity-0 transition-opacity duration-200 group-hover:opacity-100 ${gradientClass}`} />
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-600">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
           <BookOpen className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-4">
-            <h3 className="line-clamp-1 font-display text-base font-semibold text-primary-900">
+            <h3 className="line-clamp-1 font-display text-base font-semibold text-slate-900">
               {title}
             </h3>
             {progress > 0 && (
               <div className="relative h-6 w-6 shrink-0" title={`${Math.round(progress)}% đã thuộc`}>
                 <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
                   <path
-                    className="text-primary-100"
+                    className="text-slate-200"
                     strokeWidth="4"
                     stroke="currentColor"
                     fill="none"
@@ -60,11 +60,11 @@ export function SetCard({ id, title, description, cardCount, graduatedCount = 0 
             )}
           </div>
           {description && (
-            <p className="mt-0.5 line-clamp-2 text-sm text-primary-500">
+            <p className="mt-0.5 line-clamp-2 text-sm text-slate-500">
               {description}
             </p>
           )}
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-primary-400">
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-slate-400">
             <span>
               {cardCount} {cardCount === 1 ? "card" : "cards"}
             </span>

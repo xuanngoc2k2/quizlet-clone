@@ -114,12 +114,12 @@ function TestContent() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
         <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl bg-primary-50 p-1">
           <button
             onClick={() => setMode("prompt")}
             className={`rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
-              mode === "prompt" ? "bg-white text-primary-900 shadow-sm" : "text-primary-400 hover:text-primary-600"
+              mode === "prompt" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-primary-600"
             }`}
           >
             Generator
@@ -127,7 +127,7 @@ function TestContent() {
           <button
             onClick={() => setMode("set")}
             className={`rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
-              mode === "set" ? "bg-white text-primary-900 shadow-sm" : "text-primary-400 hover:text-primary-600"
+              mode === "set" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-primary-600"
             }`}
           >
             Set Test
@@ -142,13 +142,13 @@ function TestContent() {
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-amber-500 shadow-lg">
                 <Sparkles className="h-6 w-6 text-white" />
               </div>
-              <h1 className="font-display text-2xl font-bold text-primary-900">Test Generator</h1>
-              <p className="mt-1 text-sm text-primary-500">
+              <h1 className="font-display text-2xl font-bold text-slate-900">Test Generator</h1>
+              <p className="mt-1 text-sm text-slate-500">
                 30 câu — 4 phần: Trắc nghiệm, Chia từ, Đồng nghĩa, Dịch Việt→Hàn
               </p>
               <button
                 onClick={() => window.location.href = "/test/history"}
-                className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary-500 hover:text-primary-700"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
               >
                 <Clock className="h-3 w-3" />
                 Lịch sử bài test
@@ -158,7 +158,7 @@ function TestContent() {
             {!refinedPrompt ? (
               <>
                 <div className="mb-4 space-y-2">
-                  <p className="text-xs font-medium text-primary-400">Ví dụ:</p>
+                  <p className="text-xs font-medium text-slate-500">Ví dụ:</p>
                   <div className="flex flex-wrap gap-2">
                     {[
                       "TOPIK II ngữ pháp trung cấp",
@@ -169,7 +169,7 @@ function TestContent() {
                       <button
                         key={ex}
                         onClick={() => setPrompt(ex)}
-                        className="rounded-full border border-primary-200 bg-white px-3 py-1 text-[11px] text-primary-500 transition-colors hover:border-primary-300 hover:text-primary-700"
+                        className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
                       >
                         {ex}
                       </button>
@@ -200,7 +200,7 @@ function TestContent() {
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleRefine()}
-                    className="flex-1 rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm outline-none transition-all placeholder:text-primary-300 focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
+                    className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition-all placeholder:text-slate-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
                   />
                   <Button
                     onClick={handleRefine}
@@ -215,8 +215,8 @@ function TestContent() {
 
                 {refine.isLoading && (
                   <div className="flex flex-col items-center py-8">
-                    <Loader2 className="mb-3 h-6 w-6 animate-spin text-primary-400" />
-                    <p className="text-sm text-primary-500">Optimizing prompt...</p>
+                    <Loader2 className="mb-3 h-6 w-6 animate-spin text-slate-500" />
+                    <p className="text-sm text-slate-500">Optimizing prompt...</p>
                   </div>
                 )}
 
@@ -230,12 +230,12 @@ function TestContent() {
               <>
                 <div className="mb-4">
                   <div className="mb-2 flex items-center justify-between">
-                    <p className="text-xs font-semibold text-primary-400">
+                    <p className="text-xs font-semibold text-slate-500">
                       Refined Prompt — bạn có thể chỉnh sửa trước khi Generate
                     </p>
                     <button
                       onClick={() => { setRefinedPrompt(null); setEditingPrompt(""); refine.reset() }}
-                      className="text-xs font-medium text-primary-500 hover:text-primary-700"
+                      className="text-xs font-medium text-slate-500 hover:text-slate-700"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -244,7 +244,7 @@ function TestContent() {
                     value={editingPrompt}
                     onChange={(e) => setEditingPrompt(e.target.value)}
                     rows={6}
-                    className="w-full resize-none rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
+                    className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
                   />
                 </div>
 
@@ -263,8 +263,8 @@ function TestContent() {
 
                 {generate.isLoading && (
                   <div className="flex flex-col items-center py-8">
-                    <Loader2 className="mb-3 h-8 w-8 animate-spin text-primary-400" />
-                    <p className="text-sm text-primary-500">Generating your test...</p>
+                    <Loader2 className="mb-3 h-8 w-8 animate-spin text-slate-500" />
+                    <p className="text-sm text-slate-500">Generating your test...</p>
                   </div>
                 )}
 
@@ -280,7 +280,7 @@ function TestContent() {
           <>
             <button
               onClick={handleReset}
-              className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 transition-colors hover:text-primary-700"
+              className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 transition-colors hover:text-slate-700"
             >
               &larr; Back
             </button>
@@ -302,9 +302,9 @@ export default function TestPage() {
     <Suspense fallback={
       <div className="flex min-h-screen-safe flex-col">
         <Header />
-        <main className="flex-1 px-4 pb-24 pt-4">
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
           <div className="flex flex-col items-center py-16">
-            <Loader2 className="mb-4 h-10 w-10 animate-spin text-primary-400" />
+            <Loader2 className="mb-4 h-10 w-10 animate-spin text-slate-500" />
           </div>
         </main>
         <BottomNav />

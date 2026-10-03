@@ -29,15 +29,15 @@ export function WeeklyStats({
   if (!stats.hasData) {
     return (
       <div className="card-base h-full flex flex-col">
-        <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-primary-400">
+        <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-500">
           Weekly Activity
         </h2>
         <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-300">
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-slate-400">
             <BarChart3 className="h-6 w-6" />
           </div>
-          <p className="font-semibold text-primary-900">No activity yet</p>
-          <p className="mt-1 text-sm text-primary-400">
+          <p className="font-semibold text-slate-900">No activity yet</p>
+          <p className="mt-1 text-sm text-slate-500">
             Study cards or take tests to see your weekly stats.
           </p>
         </div>
@@ -50,25 +50,25 @@ export function WeeklyStats({
 
   return (
     <div className="card-base h-full flex flex-col">
-      <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-primary-400">
+      <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-500">
         Weekly Activity
       </h2>
 
       {/* Stats row */}
-      <div className="mb-6 grid grid-cols-3 gap-2 divide-x divide-primary-100">
+      <div className="mb-6 grid grid-cols-3 gap-2 divide-x divide-slate-200">
         <div className="text-center">
-          <p className="font-display text-xl font-bold text-primary-900">{stats.cardsReviewed}</p>
-          <p className="text-[10px] uppercase text-primary-400">Cards</p>
+          <p className="font-display text-xl font-bold text-slate-900">{stats.cardsReviewed}</p>
+          <p className="text-[10px] uppercase text-slate-500">Cards</p>
         </div>
         <div className="text-center">
-          <p className="font-display text-xl font-bold text-primary-900">{stats.questionsAnswered}</p>
-          <p className="text-[10px] uppercase text-primary-400">Questions</p>
+          <p className="font-display text-xl font-bold text-slate-900">{stats.questionsAnswered}</p>
+          <p className="text-[10px] uppercase text-slate-500">Questions</p>
         </div>
         <div className="text-center">
-          <p className="font-display text-xl font-bold text-primary-900">
+          <p className="font-display text-xl font-bold text-slate-900">
             {stats.accuracy != null ? `${stats.accuracy}%` : "-"}
           </p>
-          <p className="text-[10px] uppercase text-primary-400">Accuracy</p>
+          <p className="text-[10px] uppercase text-slate-500">Accuracy</p>
         </div>
       </div>
 
@@ -88,7 +88,7 @@ export function WeeklyStats({
                 }`}
                 style={{ height: `${height}%` }}
               />
-              <span className={`mt-2 text-[10px] ${isToday ? "font-bold text-primary-900" : "font-medium text-primary-400"}`}>
+              <span className={`mt-2 text-[10px] ${isToday ? "font-bold text-slate-900" : "font-medium text-slate-500"}`}>
                 {dayName}
               </span>
               

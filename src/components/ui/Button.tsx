@@ -13,9 +13,9 @@ const variantStyles: Record<Variant, string> = {
   primary:
     "bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm hover:shadow",
   secondary:
-    "bg-primary-100 text-primary-700 hover:bg-primary-200 active:bg-primary-300",
-  ghost: "text-primary-600 hover:bg-primary-50 active:bg-primary-100",
-  danger: "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm",
+    "bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300",
+  ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200",
+  danger: "bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800 shadow-sm",
   gradient:
     "gradient-primary text-white hover:shadow-lg hover:shadow-primary-500/25 active:opacity-90",
 }

@@ -26,7 +26,7 @@ export function BottomNav() {
   const dueCount = dueCards.length
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-primary-100 bg-white/80 backdrop-blur-lg safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/80 backdrop-blur-lg safe-bottom">
       <div className="mx-auto flex max-w-lg items-center justify-around overflow-x-auto no-scrollbar px-2">
         {staticNavItems.map((item) => {
           const isActive =
@@ -37,7 +37,7 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={`relative flex flex-col items-center gap-0.5 px-3 py-2 text-[10px] sm:text-xs transition-colors touch-target shrink-0 ${
-                isActive ? "text-primary-600" : "text-primary-400"
+                isActive ? "text-primary-600" : "text-slate-500 hover:text-slate-900"
               }`}
             >
               {isActive && (

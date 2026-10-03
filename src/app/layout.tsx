@@ -41,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className="pb-safe-bottom bg-gray-50">
+      <body className="pb-safe-bottom bg-slate-50 text-slate-900">
         <SessionProvider>
           <TRPCProvider>
             <ClientShell>{children}</ClientShell>

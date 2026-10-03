@@ -17,17 +17,17 @@
   }
 
   body {
-    @apply min-h-screen-safe bg-primary-50 font-sans text-primary-950 antialiased;
+    @apply min-h-screen-safe bg-slate-50 font-sans text-slate-900 antialiased;
     padding-top: var(--safe-area-top);
     padding-bottom: var(--safe-area-bottom);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-semibold;
+    @apply font-display font-bold text-slate-900 tracking-tight;
   }
 
   * {
-    @apply border-primary-200;
+    @apply border-slate-200;
   }
 }
 
@@ -37,7 +37,7 @@
   }
 
   .card-base {
-    @apply rounded-2xl border border-primary-100 bg-white p-5 shadow-sm transition-all duration-200;
+    @apply rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200;
   }
 
   .card-hover {

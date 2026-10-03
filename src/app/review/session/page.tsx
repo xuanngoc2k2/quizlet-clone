@@ -177,7 +177,7 @@ export default function ReviewSessionPage() {
         <main className="flex flex-1 items-center justify-center">
           <div className="text-center">
             <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600" />
-            <p className="text-sm text-primary-400">Đang tải thẻ ôn tập…</p>
+            <p className="text-sm text-slate-500">Đang tải thẻ ôn tập…</p>
           </div>
         </main>
         <BottomNav />
@@ -194,10 +194,10 @@ export default function ReviewSessionPage() {
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-green-500 shadow-lg">
             <CheckCircle2 className="h-8 w-8 text-white" />
           </div>
-          <h2 className="font-display text-2xl font-bold text-primary-900">
+          <h2 className="font-display text-2xl font-bold text-slate-900">
             Không có thẻ nào!
           </h2>
-          <p className="mt-1 text-sm text-primary-400">
+          <p className="mt-1 text-sm text-slate-500">
             Hôm nay không có thẻ nào cần ôn tập.
           </p>
           <div className="mt-8 flex gap-3">
@@ -221,10 +221,10 @@ export default function ReviewSessionPage() {
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg">
             <Sparkles className="h-8 w-8 text-white" />
           </div>
-          <h2 className="font-display text-2xl font-bold text-primary-900">
+          <h2 className="font-display text-2xl font-bold text-slate-900">
             Hoàn thành! 🎉
           </h2>
-          <p className="mt-1 text-sm text-primary-400">
+          <p className="mt-1 text-sm text-slate-500">
             Bạn đã ôn xong {deck.length} thẻ hôm nay
           </p>
           <div className="mt-4 flex items-center gap-4">
@@ -232,7 +232,7 @@ export default function ReviewSessionPage() {
               <CheckCircle2 className="h-5 w-5" />
               <span className="text-lg font-bold">{correctCount}</span>
             </span>
-            <span className="text-primary-300">/</span>
+            <span className="text-slate-400">/</span>
             <span className="flex items-center gap-1.5 text-red-500">
               <XCircle className="h-5 w-5" />
               <span className="text-lg font-bold">{incorrectCount}</span>
@@ -267,7 +267,7 @@ export default function ReviewSessionPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
         {/* Progress */}
         <div className="mb-1">
           <ProgressBar
@@ -280,7 +280,7 @@ export default function ReviewSessionPage() {
 
         {/* Set label */}
         {currentCard && (
-          <div className="mb-3 flex items-center gap-1.5 text-xs text-primary-400">
+          <div className="mb-3 flex items-center gap-1.5 text-xs text-slate-500">
             <BookOpen className="h-3.5 w-3.5" />
             <span className="truncate">{currentCard.setTitle}</span>
           </div>
@@ -288,11 +288,11 @@ export default function ReviewSessionPage() {
 
         {/* Keyboard hints */}
         {!flipped ? (
-          <p className="mb-2 text-center text-xs text-primary-400">
+          <p className="mb-2 text-center text-xs text-slate-500">
             Space / Enter: Lật thẻ
           </p>
         ) : (
-          <p className="mb-2 text-center text-xs text-primary-400">
+          <p className="mb-2 text-center text-xs text-slate-500">
             1 Quên · 2 Khó · 3 Tốt · 4 Dễ · Space = Tốt
           </p>
         )}
@@ -309,15 +309,15 @@ export default function ReviewSessionPage() {
               }`}
             >
               {/* Front */}
-              <div className="absolute inset-0 backface-hidden rounded-2xl border border-primary-100 bg-white p-8 shadow-lg">
+              <div className="absolute inset-0 backface-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">
+                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">
                     Term
                   </p>
-                  <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap">
+                  <p className="text-xl font-semibold text-slate-900 whitespace-pre-wrap">
                     <MathText text={currentCard?.term ?? ""} />
                   </p>
-                  <p className="mt-6 text-xs text-primary-300">Tap to flip</p>
+                  <p className="mt-6 text-xs text-slate-400">Tap to flip</p>
                 </div>
                 {currentCard && (
                   <div className="absolute bottom-4 right-4">
@@ -326,15 +326,15 @@ export default function ReviewSessionPage() {
                 )}
               </div>
               {/* Back */}
-              <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl border border-primary-100 bg-white p-8 shadow-lg">
+              <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">
+                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">
                     Definition
                   </p>
-                  <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap">
+                  <p className="text-xl font-semibold text-slate-900 whitespace-pre-wrap">
                     <MathText text={currentCard?.definition ?? ""} />
                   </p>
-                  <p className="mt-6 text-xs text-primary-300">Tap to flip back</p>
+                  <p className="mt-6 text-xs text-slate-400">Tap to flip back</p>
                 </div>
                 {currentCard && (
                   <div className="absolute bottom-4 right-4">

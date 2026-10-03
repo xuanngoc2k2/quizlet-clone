@@ -314,7 +314,7 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
         {/* Grid wrapper — allows horizontal scroll on narrow screens */}
         <div className="w-full overflow-x-auto rounded-lg pb-4">
           <div
-            className="writing-editor relative border-2 border-gray-500 bg-white w-max"
+            className="writing-editor mx-auto relative border-2 border-gray-500 bg-white w-max"
             onClick={focusInput}
           >
             {/* Hidden input — captures all keyboard input including Korean IME */}

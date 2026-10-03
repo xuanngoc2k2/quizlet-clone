@@ -80,7 +80,7 @@ export default function WritingPracticePage({ params }: PageProps) {
       <div className="flex min-h-screen flex-col">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
         </main>
         <BottomNav />
       </div>
@@ -106,11 +106,11 @@ export default function WritingPracticePage({ params }: PageProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
         {/* Back nav */}
         <Link
           href="/writing"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-slate-700"
         >
           <ArrowLeft className="h-4 w-4" />
           Danh sách đề
@@ -129,7 +129,7 @@ export default function WritingPracticePage({ params }: PageProps) {
             {/* Attempt history badge */}
             {attempts && attempts.length > 0 && (
               <div className="mb-4 flex items-center gap-2 rounded-xl bg-primary-50 px-3 py-2">
-                <Clock className="h-4 w-4 text-primary-400" />
+                <Clock className="h-4 w-4 text-slate-500" />
                 <p className="text-xs text-primary-600">
                   Bạn đã làm{" "}
                   <span className="font-semibold">{attempts.length} lần</span>
@@ -143,7 +143,7 @@ export default function WritingPracticePage({ params }: PageProps) {
 
             {/* 원고지 Editor — with right-side margin for markers */}
             <div className="mb-4 pr-10">
-              <p className="mb-2 text-xs font-semibold text-primary-500">
+              <p className="mb-2 text-center text-xs font-semibold text-slate-500">
                 ✏️ 원고지 — nhấp vào ô để bắt đầu viết
               </p>
               <WongojipEditor
@@ -222,7 +222,7 @@ export default function WritingPracticePage({ params }: PageProps) {
             </div>
 
             {gradeMutation.isLoading && (
-              <p className="mt-2 text-center text-xs text-primary-400">
+              <p className="mt-2 text-center text-xs text-slate-500">
                 Gemini AI đang đọc và đánh giá bài của bạn...
               </p>
             )}

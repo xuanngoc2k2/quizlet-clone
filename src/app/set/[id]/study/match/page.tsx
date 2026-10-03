@@ -110,10 +110,10 @@ export default function MatchPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
         <div className="mb-4 flex items-center justify-between text-sm font-medium">
-          <span className="text-primary-500">Match terms &amp; definitions</span>
-          <span className="flex items-center gap-1 text-primary-400">
+          <span className="text-slate-500">Match terms &amp; definitions</span>
+          <span className="flex items-center gap-1 text-slate-500">
             <Clock className="h-4 w-4" />
             {elapsed}s
           </span>
@@ -124,11 +124,11 @@ export default function MatchPage() {
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-emerald-500 shadow-lg">
               <Sparkles className="h-8 w-8 text-white" />
             </div>
-            <h2 className="font-display text-2xl font-bold text-primary-900">Match Complete!</h2>
-            <p className="mt-2 text-sm text-primary-400">
+            <h2 className="font-display text-2xl font-bold text-slate-900">Match Complete!</h2>
+            <p className="mt-2 text-sm text-slate-500">
               Time: {Math.floor(elapsed / 60)}m {elapsed % 60}s
             </p>
-            <p className="text-sm text-primary-400">{matchedIds.size / 2} pairs matched</p>
+            <p className="text-sm text-slate-500">{matchedIds.size / 2} pairs matched</p>
             <div className="mt-8 flex gap-3">
               <Button onClick={handleRetry} variant="secondary">
                 <RotateCw className="h-4 w-4" />
@@ -144,7 +144,7 @@ export default function MatchPage() {
             {gameCards.map((card) => {
               const isSelected = selectedId === card.id
               const isMatched = matchedIds.has(card.id)
-              let style = "border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm"
+              let style = "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
               if (isSelected) style = "border-primary-500 bg-primary-50 ring-2 ring-primary-500/20"
               if (isMatched) style = "border-emerald-300 bg-emerald-50 opacity-50"
 

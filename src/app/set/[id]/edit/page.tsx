@@ -41,7 +41,7 @@ export default function EditSetPage() {
     return (
       <div className="flex min-h-screen-safe flex-col">
         <Header />
-        <main className="flex-1 px-4 pb-24 pt-4">
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
           <div className="h-8 w-48 animate-pulse rounded-lg bg-primary-100" />
         </main>
         <BottomNav />
@@ -53,9 +53,9 @@ export default function EditSetPage() {
     return (
       <div className="flex min-h-screen-safe flex-col">
         <Header />
-        <main className="flex-1 px-4 pb-24 pt-4">
-          <h1 className="mb-4 font-display text-2xl font-bold text-primary-900">Edit Set</h1>
-          <p className="mb-6 text-primary-500">
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
+          <h1 className="mb-4 font-display text-2xl font-bold text-slate-900">Edit Set</h1>
+          <p className="mb-6 text-slate-500">
             You can&apos;t edit this set. Only the creator can make changes.
           </p>
           <Link href={`/set/${set.id}`}>
@@ -70,8 +70,8 @@ export default function EditSetPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
-        <h1 className="mb-6 font-display text-2xl font-bold text-primary-900">Edit Set</h1>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
+        <h1 className="mb-6 font-display text-2xl font-bold text-slate-900">Edit Set</h1>
         <SetForm
           initialTitle={set.title}
           initialDescription={set.description ?? ""}

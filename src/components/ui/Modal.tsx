@@ -42,7 +42,7 @@ export function Modal({ open, onClose, title, children, zIndex = "z-50" }: Modal
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className={`fixed inset-0 flex items-end justify-center bg-primary-950/40 backdrop-blur-sm sm:items-center ${zIndex}`}
+          className={`fixed inset-0 flex items-end justify-center bg-slate-900/40 backdrop-blur-sm sm:items-center ${zIndex}`}
           onClick={(e) => {
             if (e.target === overlayRef.current) onClose()
           }}
@@ -52,14 +52,14 @@ export function Modal({ open, onClose, title, children, zIndex = "z-50" }: Modal
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="w-full max-w-md rounded-t-2xl border border-primary-100 bg-white p-6 shadow-xl sm:rounded-2xl"
+            className="w-full max-w-md rounded-t-2xl border border-slate-200 bg-white p-6 shadow-xl sm:rounded-2xl"
           >
             {title && (
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-primary-900">{title}</h2>
+                <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
                 <button
                   onClick={onClose}
-                  className="touch-target rounded-lg p-1.5 text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-600"
+                  className="touch-target rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

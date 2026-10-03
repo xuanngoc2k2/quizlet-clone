@@ -24,8 +24,8 @@ interface ProgressOverviewProps {
 function StatItem({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex justify-between items-center text-xs">
-      <span className="text-primary-400">{label}</span>
-      <span className="font-semibold text-primary-700">{value}</span>
+      <span className="text-slate-500">{label}</span>
+      <span className="font-semibold text-slate-700">{value}</span>
     </div>
   )
 }
@@ -46,16 +46,16 @@ function SkillCard({
   type: "cards" | "tests"
 }) {
   return (
-    <div className="rounded-xl border border-primary-100 bg-primary-50/30 p-4">
+    <div className="rounded-xl border border-slate-200 bg-primary-50/30 p-4">
       <div className="mb-3 flex items-center gap-2">
         <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${bgColor} ${color}`}>
           <Icon className="h-4 w-4" />
         </div>
-        <h3 className="font-semibold text-primary-900">{title}</h3>
+        <h3 className="font-semibold text-slate-900">{title}</h3>
       </div>
       
       {!data.hasData ? (
-        <div className="flex h-12 items-center justify-center text-xs text-primary-400 italic">
+        <div className="flex h-12 items-center justify-center text-xs text-slate-500 italic">
           Not enough data
         </div>
       ) : (
@@ -93,7 +93,7 @@ export function ProgressOverview({ progress, isLoading }: ProgressOverviewProps)
 
   return (
     <div className="card-base">
-      <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-primary-400">
+      <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-500">
         Progress Overview
       </h2>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">

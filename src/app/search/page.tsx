@@ -20,7 +20,7 @@ function SearchContent() {
   const results = sets ?? []
 
   return (
-    <main className="flex-1 px-4 pb-24 pt-4">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
       <h1 className="mb-1 font-display text-2xl font-bold text-primary-900">Search</h1>
       {query && (
         <p className="mb-6 text-sm text-primary-500">
@@ -67,7 +67,7 @@ export default function SearchPage() {
     <div className="flex min-h-screen-safe flex-col">
       <Header />
       <Suspense fallback={
-        <main className="flex-1 px-4 pb-24 pt-4">
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
           <div className="h-8 w-24 animate-pulse rounded-lg bg-primary-100" />
         </main>
       }>

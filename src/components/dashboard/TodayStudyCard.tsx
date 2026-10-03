@@ -31,7 +31,7 @@ export function TodayStudyCard({
   if (isLoading) {
     return (
       <div className="card-base flex flex-col gap-4">
-        <div className="h-5 w-40 animate-pulse rounded-lg bg-primary-100" />
+        <div className="h-5 w-40 animate-pulse rounded-lg bg-slate-200" />
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-16 animate-pulse rounded-xl bg-primary-50" />
@@ -84,12 +84,12 @@ export function TodayStudyCard({
   if (mySetsCount === 0 && reviewDue === 0) {
     return (
       <div className="card-base flex flex-col items-center justify-center gap-3 py-8 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-400">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-slate-500">
           <BookOpen className="h-6 w-6" />
         </div>
         <div>
-          <p className="font-semibold text-primary-800">No study activity yet</p>
-          <p className="mt-1 text-sm text-primary-400">
+          <p className="font-semibold text-slate-800">No study activity yet</p>
+          <p className="mt-1 text-sm text-slate-500">
             Start your first learning session to build your TOPIK progress.
           </p>
         </div>
@@ -111,7 +111,7 @@ export function TodayStudyCard({
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
           <Mic className="h-4 w-4" />
         </div>
-        <h2 className="text-sm font-bold uppercase tracking-wide text-primary-400">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">
           Today&apos;s Study
         </h2>
       </div>
@@ -124,7 +124,7 @@ export function TodayStudyCard({
             <Link
               key={task.id}
               href={task.href}
-              className={`flex items-center gap-3 rounded-xl border border-transparent p-3 transition-all hover:border-primary-100 hover:bg-primary-50/50 group ${
+              className={`flex items-center gap-3 rounded-xl border border-transparent p-3 transition-all hover:border-slate-200 hover:bg-primary-50/50 group ${
                 task.id === "review" && task.count === 0
                   ? "opacity-50 pointer-events-none"
                   : ""
@@ -139,8 +139,8 @@ export function TodayStudyCard({
 
               {/* Info */}
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-primary-900">{task.label}</p>
-                <p className="text-xs text-primary-400">{task.description}</p>
+                <p className="text-sm font-semibold text-slate-900">{task.label}</p>
+                <p className="text-xs text-slate-500">{task.description}</p>
               </div>
 
               {/* CTA */}

@@ -29,12 +29,12 @@ function StatCard({
   color: string
 }) {
   return (
-    <div className="flex flex-col items-center gap-1 rounded-2xl border border-primary-100 bg-white p-4 shadow-sm">
+    <div className="flex flex-col items-center gap-1 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className={`rounded-xl p-2.5 ${color}`}>
         <Icon className="h-5 w-5 text-white" />
       </div>
-      <span className="text-2xl font-bold text-primary-900">{value}</span>
-      <span className="text-center text-xs text-primary-400">{label}</span>
+      <span className="text-2xl font-bold text-slate-900">{value}</span>
+      <span className="text-center text-xs text-slate-500">{label}</span>
     </div>
   )
 }
@@ -67,7 +67,7 @@ export default function ReviewDashboardPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
         {/* Hero banner */}
         <section className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 p-6 text-white shadow-lg">
           <div className="relative z-10 flex items-start justify-between">
@@ -121,17 +121,17 @@ export default function ReviewDashboardPage() {
           </div>
         ) : total === 0 ? (
           /* Empty state */
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-primary-200 py-16 text-center">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-16 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-green-500 shadow-lg">
               <CheckCircle2 className="h-8 w-8 text-white" />
             </div>
-            <h2 className="font-display text-xl font-bold text-primary-900">
+            <h2 className="font-display text-xl font-bold text-slate-900">
               Tuyệt vời! 🎉
             </h2>
-            <p className="mt-1 text-sm text-primary-400">
+            <p className="mt-1 text-sm text-slate-500">
               Không có thẻ nào cần ôn hôm nay.
             </p>
-            <p className="mt-0.5 text-xs text-primary-300">
+            <p className="mt-0.5 text-xs text-slate-400">
               Hãy học thêm thẻ mới từ các Set của bạn
             </p>
             <Link href="/" className="mt-6">
@@ -167,20 +167,20 @@ export default function ReviewDashboardPage() {
 
             {/* Breakdown theo set */}
             <section>
-              <h2 className="mb-3 font-display text-base font-bold text-primary-900">
+              <h2 className="mb-3 font-display text-base font-bold text-slate-900">
                 Phân bổ theo Set
               </h2>
               <div className="flex flex-col gap-2">
                 {sets.map((s) => (
                   <div
                     key={s.setId}
-                    className="flex items-center gap-3 rounded-2xl border border-primary-100 bg-white px-4 py-3 shadow-sm"
+                    className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
                   >
                     <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-violet-100">
                       <BookOpen className="h-4 w-4 text-violet-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="truncate text-sm font-semibold text-primary-900">
+                      <p className="truncate text-sm font-semibold text-slate-900">
                         {s.title}
                       </p>
                     </div>

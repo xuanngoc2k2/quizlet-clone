@@ -15,7 +15,7 @@ const severityConfig: Record<WeakAreaSeverity, { color: string; bgColor: string;
   weak: { color: "text-red-600", bgColor: "bg-red-50", icon: AlertTriangle, label: "Weak" },
   needs_practice: { color: "text-amber-600", bgColor: "bg-amber-50", icon: TrendingUp, label: "Needs Practice" },
   good: { color: "text-emerald-600", bgColor: "bg-emerald-50", icon: CheckCircle, label: "Good" },
-  insufficient_data: { color: "text-primary-400", bgColor: "bg-primary-50", icon: HelpCircle, label: "Not enough data" },
+  insufficient_data: { color: "text-slate-500", bgColor: "bg-primary-50", icon: HelpCircle, label: "Not enough data" },
 }
 
 export function WeakAreas({
@@ -45,7 +45,7 @@ export function WeakAreas({
 
   return (
     <div className="card-base h-full flex flex-col">
-      <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-primary-400">
+      <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-500">
         Weak Areas
       </h2>
 
@@ -54,8 +54,8 @@ export function WeakAreas({
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
             <CheckCircle className="h-6 w-6" />
           </div>
-          <p className="font-semibold text-primary-900">You&apos;re doing great!</p>
-          <p className="mt-1 text-sm text-primary-400">
+          <p className="font-semibold text-slate-900">You&apos;re doing great!</p>
+          <p className="mt-1 text-sm text-slate-500">
             No weak areas detected recently. Keep practicing to maintain your skills.
           </p>
         </div>
@@ -66,12 +66,12 @@ export function WeakAreas({
             const Icon = config.icon
 
             return (
-              <div key={area.type} className="flex items-center gap-3 rounded-xl border border-primary-100 p-3">
+              <div key={area.type} className="flex items-center gap-3 rounded-xl border border-slate-200 p-3">
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${config.bgColor} ${config.color}`}>
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold capitalize text-primary-900">
+                  <p className="text-sm font-semibold capitalize text-slate-900">
                     {area.type}
                   </p>
                   <p className={`text-xs font-medium ${config.color}`}>
@@ -79,10 +79,10 @@ export function WeakAreas({
                   </p>
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="font-semibold text-primary-900">
+                  <p className="font-semibold text-slate-900">
                     {area.accuracy != null ? `${Math.round(area.accuracy * 100)}%` : "-"}
                   </p>
-                  <p className="text-[10px] text-primary-400">Accuracy</p>
+                  <p className="text-[10px] text-slate-500">Accuracy</p>
                 </div>
               </div>
             )

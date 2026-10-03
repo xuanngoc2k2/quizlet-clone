@@ -16,14 +16,14 @@ export default function MySetsPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
-        <h1 className="mb-6 font-display text-2xl font-bold text-primary-900">My Sets</h1>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
+        <h1 className="mb-6 font-display text-2xl font-bold text-slate-900">My Sets</h1>
 
         {status === "unauthenticated" ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-primary-200 py-16 text-center">
-            <LogIn className="mb-3 h-10 w-10 text-primary-300" />
-            <p className="text-lg font-medium text-primary-500">Sign in to see your sets</p>
-            <p className="mb-6 text-sm text-primary-400">Your sets are synced to your account</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-16 text-center">
+            <LogIn className="mb-3 h-10 w-10 text-slate-400" />
+            <p className="text-lg font-medium text-slate-500">Sign in to see your sets</p>
+            <p className="mb-6 text-sm text-slate-500">Your sets are synced to your account</p>
             <Link href="/login">
               <Button variant="primary">Sign in</Button>
             </Link>
@@ -35,10 +35,10 @@ export default function MySetsPage() {
             ))}
           </div>
         ) : mySets?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-primary-200 py-16 text-center">
-            <BookOpen className="mb-3 h-10 w-10 text-primary-300" />
-            <p className="text-lg font-medium text-primary-500">No sets yet</p>
-            <p className="text-sm text-primary-400">Sets you create will appear here</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-16 text-center">
+            <BookOpen className="mb-3 h-10 w-10 text-slate-400" />
+            <p className="text-lg font-medium text-slate-500">No sets yet</p>
+            <p className="text-sm text-slate-500">Sets you create will appear here</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

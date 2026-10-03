@@ -49,7 +49,7 @@ export default function DashboardPage() {
 
   if (status === "loading" || status === "unauthenticated") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
       </div>
     )
@@ -62,10 +62,10 @@ export default function DashboardPage() {
   const firstSetId = mySets[0]?.id ?? null
 
   return (
-    <div className="flex min-h-screen-safe flex-col bg-gray-50">
+    <div className="flex min-h-screen-safe flex-col bg-slate-50">
       <Header />
 
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
 
         {/* ── Greeting ─────────────────────────────────────── */}
         <DashboardGreeting
@@ -84,7 +84,7 @@ export default function DashboardPage() {
 
         {/* ── Section error (non-fatal) ─────────────────────── */}
         {error && !isLoading && (
-          <div className="mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
             Unable to load some dashboard data. Other sections may still be available.
           </div>
         )}

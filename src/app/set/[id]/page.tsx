@@ -32,12 +32,12 @@ export default function ViewSetPage() {
     return (
       <div className="flex min-h-screen-safe flex-col">
         <Header />
-        <main className="flex-1 px-4 pb-24 pt-4">
-          <div className="h-8 w-48 animate-pulse rounded-lg bg-primary-100" />
-          <div className="mt-2 h-4 w-32 animate-pulse rounded bg-primary-100" />
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
+          <div className="h-8 w-48 animate-pulse rounded-lg bg-slate-200" />
+          <div className="mt-2 h-4 w-32 animate-pulse rounded bg-slate-200" />
           <div className="mt-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-16 animate-pulse rounded-2xl bg-primary-100" />
+              <div key={i} className="h-16 animate-pulse rounded-xl bg-slate-100" />
             ))}
           </div>
         </main>
@@ -50,8 +50,8 @@ export default function ViewSetPage() {
     return (
       <div className="flex min-h-screen-safe flex-col">
         <Header />
-        <main className="flex-1 px-4 pb-24 pt-4">
-          <p className="text-primary-500">Set not found</p>
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
+          <p className="text-slate-500">Set not found</p>
         </main>
         <BottomNav />
       </div>
@@ -61,7 +61,7 @@ export default function ViewSetPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
         <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-primary-600 to-primary-500 p-6 text-white shadow-lg">
           <div className="flex items-center gap-2">
             <GraduationCap className="h-5 w-5 text-primary-100" />
@@ -104,29 +104,29 @@ export default function ViewSetPage() {
           )}
         </div>
 
-        <h2 className="mb-3 font-display text-sm font-semibold text-primary-700">Cards</h2>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Cards</h2>
         <div className="flex flex-col gap-2">
           {set.cards.map((card, i) => {
             const isGrammar = card.type === "grammar"
             return (
               <div
                 key={card.id}
-                className={`flex items-center gap-3 rounded-2xl border p-4 shadow-sm transition-all hover:shadow-md ${
+                className={`flex items-center gap-3 rounded-xl border p-4 shadow-sm transition-all hover:shadow-md ${
                   isGrammar
                     ? "border-amber-200 bg-amber-50/40"
-                    : "border-primary-100 bg-white"
+                    : "border-slate-200 bg-white"
                 }`}
               >
                 <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
                   isGrammar
                     ? "bg-amber-200 text-amber-700"
-                    : "bg-primary-100 text-primary-600"
+                    : "bg-slate-100 text-primary-600"
                 }`}>
                   {i + 1}
                 </span>
                 <div className="flex flex-1 flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="flex flex-1 items-center gap-2 font-medium text-primary-900 whitespace-pre-wrap">
+                    <span className="flex flex-1 items-center gap-2 font-medium text-slate-900 whitespace-pre-wrap">
                       <SpeakerButton text={card.term} lang="ko-KR" />
                       <MathText text={card.term} />
                     </span>
@@ -146,7 +146,7 @@ export default function ViewSetPage() {
         </div>
 
         <div className="mt-8 space-y-3">
-          <h2 className="font-display text-sm font-semibold text-primary-700">Writing Practice</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Writing Practice</h2>
           {set.cards.map((card) => (
             <WordPractice key={card.id} term={card.term} definition={card.definition} />
           ))}
@@ -159,7 +159,7 @@ export default function ViewSetPage() {
       <BottomNav />
 
       <Modal open={showDelete} onClose={() => setShowDelete(false)} title="Delete Set?">
-        <p className="mb-4 text-sm text-primary-500">
+        <p className="mb-4 text-sm text-slate-500">
           This will permanently delete &quot;{set.title}&quot; and all {set.cards.length} cards.
         </p>
         <div className="flex gap-3">

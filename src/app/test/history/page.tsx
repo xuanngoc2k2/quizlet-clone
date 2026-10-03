@@ -20,11 +20,11 @@ export default function TestHistoryPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="font-display text-xl font-bold text-primary-900">Lịch sử bài test</h1>
-            <p className="text-xs text-primary-500">Các bài test đã tạo</p>
+            <h1 className="font-display text-xl font-bold text-slate-900">Lịch sử bài test</h1>
+            <p className="text-xs text-slate-500">Các bài test đã tạo</p>
           </div>
           <Button onClick={() => router.push("/test")} variant="gradient" size="sm">
             Test mới
@@ -33,8 +33,8 @@ export default function TestHistoryPage() {
 
         {isLoading && (
           <div className="flex flex-col items-center py-12">
-            <Loader2 className="mb-3 h-6 w-6 animate-spin text-primary-400" />
-            <p className="text-sm text-primary-500">Đang tải...</p>
+            <Loader2 className="mb-3 h-6 w-6 animate-spin text-slate-500" />
+            <p className="text-sm text-slate-500">Đang tải...</p>
           </div>
         )}
 
@@ -46,9 +46,9 @@ export default function TestHistoryPage() {
 
         {tests && tests.length === 0 && (
           <div className="flex flex-col items-center py-12 text-center">
-            <FileText className="mb-3 h-10 w-10 text-primary-300" />
-            <p className="text-sm font-medium text-primary-500">Chưa có bài test nào</p>
-            <p className="mt-1 text-xs text-primary-400">Tạo test mới để bắt đầu</p>
+            <FileText className="mb-3 h-10 w-10 text-slate-400" />
+            <p className="text-sm font-medium text-slate-500">Chưa có bài test nào</p>
+            <p className="mt-1 text-xs text-slate-500">Tạo test mới để bắt đầu</p>
             <Button onClick={() => router.push("/test")} variant="gradient" className="mt-4">
               Tạo test mới
             </Button>
@@ -61,13 +61,13 @@ export default function TestHistoryPage() {
               <div
                 key={t.id}
                 onClick={() => router.push(`/test/history/${t.id}`)}
-                className="cursor-pointer rounded-2xl border border-primary-100 bg-white p-4 shadow-sm transition-colors hover:border-primary-200"
+                className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-slate-200"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="text-sm font-semibold text-primary-900">{t.title}</h3>
-                    <p className="mt-0.5 line-clamp-1 text-xs text-primary-500">{t.description}</p>
-                    <div className="mt-2 flex items-center gap-3 text-[10px] text-primary-400">
+                    <h3 className="text-sm font-semibold text-slate-900">{t.title}</h3>
+                    <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">{t.description}</p>
+                    <div className="mt-2 flex items-center gap-3 text-[10px] text-slate-500">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {new Date(t.createdAt).toLocaleDateString("vi-VN")}

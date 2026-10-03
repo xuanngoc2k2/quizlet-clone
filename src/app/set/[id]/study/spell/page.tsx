@@ -91,7 +91,7 @@ export default function SpellPage() {
       <div className="flex min-h-screen-safe flex-col">
         <Header />
         <main className="flex flex-1 items-center justify-center px-4">
-          <p className="text-primary-500">No cards in this set</p>
+          <p className="text-slate-500">No cards in this set</p>
         </main>
         <BottomNav />
       </div>
@@ -106,19 +106,19 @@ export default function SpellPage() {
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-emerald-500 shadow-lg">
             <Sparkles className="h-8 w-8 text-white" />
           </div>
-          <h2 className="font-display text-2xl font-bold text-primary-900">Complete!</h2>
+          <h2 className="font-display text-2xl font-bold text-slate-900">Complete!</h2>
           <div className="mt-4 flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-emerald-600">
               <CheckCircle2 className="h-5 w-5" />
               <span className="text-lg font-bold">{engine.correctCount}</span>
             </span>
-            <span className="text-primary-300">/</span>
+            <span className="text-slate-400">/</span>
             <span className="flex items-center gap-1.5 text-red-500">
               <XCircle className="h-5 w-5" />
               <span className="text-lg font-bold">{engine.incorrectCount}</span>
             </span>
           </div>
-          <p className="mt-2 text-sm text-primary-400">
+          <p className="mt-2 text-sm text-slate-500">
             Time: {Math.floor(timer.elapsed / 60)}m {timer.elapsed % 60}s
           </p>
           <div className="mt-8 flex gap-3">
@@ -139,7 +139,7 @@ export default function SpellPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
         <ProgressBar
           current={engine.currentIndex + 1}
           total={engine.total}
@@ -147,15 +147,15 @@ export default function SpellPage() {
           incorrect={engine.incorrectCount}
         />
 
-        <div className="mb-6 rounded-2xl border border-primary-100 bg-white p-8 text-center shadow-sm">
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <div className="mb-3 flex items-center justify-center gap-2">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary-400">Definition</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Definition</p>
             {engine.currentCard && <SpeakerButton text={engine.currentCard.definition} lang="vi-VN" />}
           </div>
-          <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
+          <p className="text-xl font-semibold text-slate-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
           
           <div className="mt-6 flex flex-col items-center justify-center gap-2">
-            <p className="text-xs text-primary-400 font-medium">Nghe từ vựng tiếng Hàn và gõ lại:</p>
+            <p className="text-xs text-slate-500 font-medium">Nghe từ vựng tiếng Hàn và gõ lại:</p>
             {engine.currentCard && (
               <Button
                 type="button"
@@ -163,7 +163,7 @@ export default function SpellPage() {
                 onClick={() => play(engine.currentCard!.term, "ko")}
                 className="flex items-center gap-2 shadow-sm"
               >
-                <Volume2 className="h-4 w-4 text-primary-500" />
+                <Volume2 className="h-4 w-4 text-slate-500" />
                 Nghe lại (Phát âm)
               </Button>
             )}
@@ -174,7 +174,7 @@ export default function SpellPage() {
           <div className="flex flex-col items-center gap-4">
             <div className={`w-full rounded-xl p-4 text-center ${lastCorrect ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
               <p className="font-medium">{lastCorrect ? "Correct!" : "Incorrect"}</p>
-              <p className="mt-1 text-sm text-primary-900">
+              <p className="mt-1 text-sm text-slate-900">
                 Correct answer: <span className="font-semibold">{engine.currentCard?.term}</span>
               </p>
             </div>

@@ -171,7 +171,7 @@ export default function FlashcardPage() {
       <div className="flex min-h-screen-safe flex-col">
         <Header />
         <main className="flex flex-1 items-center justify-center px-4">
-          <p className="text-primary-500">No cards in this set</p>
+          <p className="text-slate-500">No cards in this set</p>
         </main>
         <BottomNav />
       </div>
@@ -186,19 +186,19 @@ export default function FlashcardPage() {
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-emerald-500 shadow-lg">
             <Sparkles className="h-8 w-8 text-white" />
           </div>
-          <h2 className="font-display text-2xl font-bold text-primary-900">Complete!</h2>
+          <h2 className="font-display text-2xl font-bold text-slate-900">Complete!</h2>
           <div className="mt-4 flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-emerald-600">
               <CheckCircle2 className="h-5 w-5" />
               <span className="text-lg font-bold">{engine.correctCount}</span>
             </span>
-            <span className="text-primary-300">/</span>
+            <span className="text-slate-400">/</span>
             <span className="flex items-center gap-1.5 text-red-500">
               <XCircle className="h-5 w-5" />
               <span className="text-lg font-bold">{engine.incorrectCount}</span>
             </span>
           </div>
-          <p className="mt-2 text-sm text-primary-400">
+          <p className="mt-2 text-sm text-slate-500">
             Time: {Math.floor(timer.elapsed / 60)}m {timer.elapsed % 60}s
           </p>
           <div className="mt-8 flex gap-3">
@@ -219,7 +219,7 @@ export default function FlashcardPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex-1">
             <ProgressBar
@@ -243,9 +243,9 @@ export default function FlashcardPage() {
 
         {/* Keyboard hints */}
         {!flipped ? (
-          <p className="mb-2 text-center text-xs text-primary-400">Space / Enter: Lật thẻ</p>
+          <p className="mb-2 text-center text-xs text-slate-500">Space / Enter: Lật thẻ</p>
         ) : (
-          <p className="mb-2 text-center text-xs text-primary-400">1 Quên · 2 Khó · 3 Tốt · 4 Dễ · Space = Tốt</p>
+          <p className="mb-2 text-center text-xs text-slate-500">1 Quên · 2 Khó · 3 Tốt · 4 Dễ · Space = Tốt</p>
         )}
 
         <div className="flex flex-1 flex-col items-center justify-center">
@@ -255,11 +255,11 @@ export default function FlashcardPage() {
                 flipped ? "rotate-y-180" : ""
               }`}
             >
-              <div className="absolute inset-0 backface-hidden rounded-2xl border border-primary-100 bg-white p-8 shadow-lg">
+              <div className="absolute inset-0 backface-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">Term</p>
-                  <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.term ?? ""} /></p>
-                  <p className="mt-6 text-xs text-primary-300">Tap to flip</p>
+                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">Term</p>
+                  <p className="text-xl font-semibold text-slate-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.term ?? ""} /></p>
+                  <p className="mt-6 text-xs text-slate-400">Tap to flip</p>
                 </div>
                 {engine.currentCard && (
                   <div className="absolute bottom-4 right-4">
@@ -267,11 +267,11 @@ export default function FlashcardPage() {
                   </div>
                 )}
               </div>
-              <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl border border-primary-100 bg-white p-8 shadow-lg">
+              <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400">Definition</p>
-                  <p className="text-xl font-semibold text-primary-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
-                  <p className="mt-6 text-xs text-primary-300">Tap to flip back</p>
+                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">Definition</p>
+                  <p className="text-xl font-semibold text-slate-900 whitespace-pre-wrap"><MathText text={engine.currentCard?.definition ?? ""} /></p>
+                  <p className="mt-6 text-xs text-slate-400">Tap to flip back</p>
                 </div>
                 {engine.currentCard && (
                   <div className="absolute bottom-4 right-4">

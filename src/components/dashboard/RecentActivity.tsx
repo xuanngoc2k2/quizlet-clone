@@ -33,15 +33,15 @@ export function RecentActivity({
   if (activities.length === 0) {
     return (
       <div className="card-base">
-        <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-primary-400">
+        <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-500">
           Recent Tests
         </h2>
         <div className="flex flex-col items-center justify-center py-6 text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-300">
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-slate-400">
             <History className="h-6 w-6" />
           </div>
-          <p className="font-semibold text-primary-900">No recent tests</p>
-          <p className="mt-1 text-sm text-primary-400">
+          <p className="font-semibold text-slate-900">No recent tests</p>
+          <p className="mt-1 text-sm text-slate-500">
             Take a practice test to see your history here.
           </p>
         </div>
@@ -52,12 +52,12 @@ export function RecentActivity({
   return (
     <div className="card-base">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-primary-400">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">
           Recent Tests
         </h2>
         <Link
           href="/test"
-          className="flex items-center gap-1 text-xs font-medium text-primary-500 hover:text-primary-700 transition-colors"
+          className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
         >
           Take a Test <ChevronRight className="h-3 w-3" />
         </Link>
@@ -85,10 +85,10 @@ export function RecentActivity({
             </div>
             
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-primary-900 group-hover:text-primary-600 transition-colors">
+              <p className="truncate text-sm font-semibold text-slate-900 group-hover:text-primary-600 transition-colors">
                 {activity.title}
               </p>
-              <p className="text-xs text-primary-400">
+              <p className="text-xs text-slate-500">
                 {new Date(activity.createdAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -98,7 +98,7 @@ export function RecentActivity({
               </p>
             </div>
             
-            <ChevronRight className="h-4 w-4 shrink-0 text-primary-300 transition-transform group-hover:translate-x-1" />
+            <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-1" />
           </Link>
         ))}
       </div>

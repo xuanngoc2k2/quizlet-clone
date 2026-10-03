@@ -54,12 +54,12 @@ function GoalEditModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold text-primary-900">
+          <h2 className="font-display text-lg font-bold text-slate-900">
             Set TOPIK Goal
           </h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-primary-400 hover:bg-primary-50 hover:text-primary-600"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-primary-50 hover:text-primary-600"
           >
             <X className="h-4 w-4" />
           </button>
@@ -68,7 +68,7 @@ function GoalEditModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Exam Type */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-primary-700">
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
               Exam type
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -79,8 +79,8 @@ function GoalEditModal({
                   onClick={() => setForm((f) => ({ ...f, examType: t }))}
                   className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${
                     form.examType === t
-                      ? "border-primary-500 bg-primary-50 text-primary-700"
-                      : "border-primary-100 text-primary-500 hover:border-primary-200"
+                      ? "border-primary-500 bg-primary-50 text-slate-700"
+                      : "border-slate-200 text-slate-500 hover:border-slate-200"
                   }`}
                 >
                   {t === "TOPIK_I" ? "TOPIK I (Level 1–2)" : "TOPIK II (Level 3–6)"}
@@ -91,7 +91,7 @@ function GoalEditModal({
 
           {/* Target Level */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-primary-700">
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
               Target level
             </label>
             <div className="flex gap-2">
@@ -103,7 +103,7 @@ function GoalEditModal({
                   className={`flex-1 rounded-xl border py-2 text-sm font-semibold transition-all ${
                     form.targetLevel === lvl
                       ? "border-primary-500 bg-primary-600 text-white"
-                      : "border-primary-100 text-primary-500 hover:border-primary-200"
+                      : "border-slate-200 text-slate-500 hover:border-slate-200"
                   }`}
                 >
                   {lvl}
@@ -114,9 +114,9 @@ function GoalEditModal({
 
           {/* Current Level */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-primary-700">
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
               Current level{" "}
-              <span className="font-normal text-primary-400">(optional)</span>
+              <span className="font-normal text-slate-500">(optional)</span>
             </label>
             <select
               value={form.currentLevel ?? ""}
@@ -126,7 +126,7 @@ function GoalEditModal({
                   currentLevel: e.target.value ? Number(e.target.value) : undefined,
                 }))
               }
-              className="w-full rounded-xl border border-primary-100 bg-primary-50/50 px-3 py-2 text-sm outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-500/20"
+              className="w-full rounded-xl border border-slate-200 bg-primary-50/50 px-3 py-2 text-sm outline-none focus:border-slate-300 focus:ring-2 focus:ring-primary-500/20"
             >
               <option value="">Not set</option>
               {[0, 1, 2, 3, 4, 5, 6].map((lvl) => (
@@ -139,22 +139,22 @@ function GoalEditModal({
 
           {/* Exam Date */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-primary-700">
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
               Exam date{" "}
-              <span className="font-normal text-primary-400">(optional)</span>
+              <span className="font-normal text-slate-500">(optional)</span>
             </label>
             <input
               type="date"
               value={form.examDate}
               min={new Date().toISOString().slice(0, 10)}
               onChange={(e) => setForm((f) => ({ ...f, examDate: e.target.value }))}
-              className="w-full rounded-xl border border-primary-100 bg-primary-50/50 px-3 py-2 text-sm outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-500/20"
+              className="w-full rounded-xl border border-slate-200 bg-primary-50/50 px-3 py-2 text-sm outline-none focus:border-slate-300 focus:ring-2 focus:ring-primary-500/20"
             />
           </div>
 
           {/* Daily Goal */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-primary-700">
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
               Daily study goal:{" "}
               <span className="font-semibold text-primary-600">
                 {form.dailyStudyMinutes} min/day
@@ -171,7 +171,7 @@ function GoalEditModal({
               }
               className="w-full accent-primary-600"
             />
-            <div className="mt-1 flex justify-between text-xs text-primary-400">
+            <div className="mt-1 flex justify-between text-xs text-slate-500">
               <span>5 min</span>
               <span>120 min</span>
             </div>
@@ -251,12 +251,12 @@ export function TopikGoalCard({ goal, isLoading }: TopikGoalCardProps) {
           <GoalEditModal current={null} onClose={() => setEditOpen(false)} />
         )}
         <div className="card-base flex flex-col items-center justify-center gap-3 py-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-400">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-slate-500">
             <Target className="h-6 w-6" />
           </div>
           <div>
-            <p className="font-semibold text-primary-800">Set your TOPIK goal</p>
-            <p className="mt-1 text-sm text-primary-400">
+            <p className="font-semibold text-slate-800">Set your TOPIK goal</p>
+            <p className="mt-1 text-sm text-slate-500">
               Choose your target level and exam date to personalize your dashboard.
             </p>
           </div>
@@ -300,13 +300,13 @@ export function TopikGoalCard({ goal, isLoading }: TopikGoalCardProps) {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
               <Target className="h-4 w-4" />
             </div>
-            <h2 className="text-sm font-bold uppercase tracking-wide text-primary-400">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">
               My TOPIK Goal
             </h2>
           </div>
           <button
             onClick={() => setEditOpen(true)}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-primary-300 hover:bg-primary-50 hover:text-primary-500 transition-colors"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-primary-50 hover:text-slate-500 transition-colors"
             aria-label="Edit goal"
           >
             <Pencil className="h-3.5 w-3.5" />
@@ -315,14 +315,14 @@ export function TopikGoalCard({ goal, isLoading }: TopikGoalCardProps) {
 
         {/* Goal info */}
         <div>
-          <p className="font-display text-2xl font-bold text-primary-900">
+          <p className="font-display text-2xl font-bold text-slate-900">
             {levelLabel}
           </p>
-          <p className="text-sm text-primary-500">
+          <p className="text-sm text-slate-500">
             Target Level{" "}
-            <span className="font-semibold text-primary-700">{goal.targetLevel}</span>
+            <span className="font-semibold text-slate-700">{goal.targetLevel}</span>
             {goal.currentLevel != null && (
-              <> · Current Level <span className="font-semibold text-primary-700">{goal.currentLevel}</span></>
+              <> · Current Level <span className="font-semibold text-slate-700">{goal.currentLevel}</span></>
             )}
           </p>
         </div>
@@ -330,10 +330,10 @@ export function TopikGoalCard({ goal, isLoading }: TopikGoalCardProps) {
         {/* Exam date & countdown */}
         {goal.examDate && (
           <div className="flex items-center gap-2 rounded-xl bg-primary-50 px-3 py-2.5">
-            <CalendarDays className="h-4 w-4 shrink-0 text-primary-500" />
+            <CalendarDays className="h-4 w-4 shrink-0 text-slate-500" />
             <div className="min-w-0">
-              <p className="text-xs text-primary-400">Exam date</p>
-              <p className="text-sm font-semibold text-primary-800">
+              <p className="text-xs text-slate-500">Exam date</p>
+              <p className="text-sm font-semibold text-slate-800">
                 {new Date(goal.examDate).toLocaleDateString("en-US", {
                   day: "numeric",
                   month: "long",
@@ -346,7 +346,7 @@ export function TopikGoalCard({ goal, isLoading }: TopikGoalCardProps) {
                 <p className="font-display text-xl font-bold text-primary-600 leading-none">
                   {goal.daysRemaining}
                 </p>
-                <p className="text-[10px] text-primary-400">days left</p>
+                <p className="text-[10px] text-slate-500">days left</p>
               </div>
             )}
           </div>
@@ -355,7 +355,7 @@ export function TopikGoalCard({ goal, isLoading }: TopikGoalCardProps) {
         {/* Progress toward target */}
         {goal.currentLevel != null && (
           <div>
-            <div className="mb-1.5 flex justify-between text-xs text-primary-400">
+            <div className="mb-1.5 flex justify-between text-xs text-slate-500">
               <span>Level progress</span>
               <span className="font-semibold text-primary-600">{progressPercent}%</span>
             </div>
@@ -366,7 +366,7 @@ export function TopikGoalCard({ goal, isLoading }: TopikGoalCardProps) {
         {/* Study plan link */}
         <button
           onClick={() => setEditOpen(true)}
-          className="flex items-center justify-center gap-1 rounded-xl border border-primary-100 py-2 text-sm font-medium text-primary-500 hover:bg-primary-50 hover:text-primary-700 transition-colors"
+          className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 py-2 text-sm font-medium text-slate-500 hover:bg-primary-50 hover:text-slate-700 transition-colors"
         >
           Edit Study Plan
           <ChevronRight className="h-4 w-4" />

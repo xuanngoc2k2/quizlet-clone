@@ -11,7 +11,7 @@ export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
 
   if (status === "loading") {
-    return <div className="h-8 w-8 animate-pulse rounded-full bg-primary-100" />
+    return <div className="h-8 w-8 animate-pulse rounded-full bg-slate-200" />
   }
 
   if (!session?.user) {
@@ -29,12 +29,12 @@ export function UserMenu() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-primary-100 transition-all hover:border-primary-300 active:scale-95"
+        className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-slate-200 transition-all hover:border-slate-300 active:scale-95"
       >
         {session.user.image ? (
           <img src={session.user.image} alt={session.user.name || "User"} className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-primary-50 text-primary-600">
+          <div className="flex h-full w-full items-center justify-center bg-slate-50 text-primary-600">
             {session.user.name?.[0] || <User className="h-4 w-4" />}
           </div>
         )}

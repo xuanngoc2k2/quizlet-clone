@@ -37,12 +37,12 @@ export function ContinueLearning({
   return (
     <div className="card-base">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-primary-400">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">
           Continue Learning
         </h2>
         <Link
           href="/my-sets"
-          className="flex items-center gap-1 text-xs font-medium text-primary-500 hover:text-primary-700 transition-colors"
+          className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
         >
           View All <ChevronRight className="h-3 w-3" />
         </Link>
@@ -53,20 +53,20 @@ export function ContinueLearning({
           <Link
             key={set.id}
             href={`/set/${set.id}/study`}
-            className="group flex flex-col justify-between rounded-xl border border-primary-100 bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
+            className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
           >
             <div>
-              <div className="mb-2 flex items-center gap-2 text-primary-400">
+              <div className="mb-2 flex items-center gap-2 text-slate-500">
                 <FileText className="h-4 w-4" />
                 <span className="text-xs font-medium uppercase">{set.totalCards} cards</span>
               </div>
-              <h3 className="line-clamp-2 font-semibold text-primary-900 group-hover:text-primary-600 transition-colors">
+              <h3 className="line-clamp-2 font-semibold text-slate-900 group-hover:text-primary-600 transition-colors">
                 {set.title}
               </h3>
             </div>
             
             <div className="mt-4">
-              <div className="mb-1.5 flex justify-between text-xs text-primary-500">
+              <div className="mb-1.5 flex justify-between text-xs text-slate-500">
                 <span>Mastered</span>
                 <span className="font-semibold">{set.progressPercent}%</span>
               </div>
