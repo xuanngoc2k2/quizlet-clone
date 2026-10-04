@@ -1,6 +1,77 @@
 const COLS = 25
 const ROWS = 12
 
+export function isDecimalPoint(text: string, index: number): boolean {
+  return (
+    text[index] === "." &&
+    index > 0 &&
+    index < text.length - 1 &&
+    /[0-9]/.test(text[index - 1]) &&
+    /[0-9]/.test(text[index + 1])
+  )
+}
+
+export function tokenizeNumber(value: string): string[] {
+  const decimalIndex = value.indexOf(".")
+
+  if (decimalIndex === -1) {
+    const cells: string[] = []
+    for (let i = 0; i < value.length; i += 2) {
+      cells.push(value.slice(i, i + 2))
+    }
+    return cells
+  }
+
+  const cells: string[] = []
+  const integerPart = value.slice(0, decimalIndex)
+  const fractionPart = value.slice(decimalIndex + 1)
+
+  for (let i = 0; i < integerPart.length; i += 2) {
+    const group = integerPart.slice(i, i + 2)
+    if (i + group.length === integerPart.length && group.length === 1) {
+      cells.push(`${group}.`)
+    } else {
+      cells.push(group)
+    }
+  }
+
+  if (integerPart.length % 2 === 0) {
+    cells.push(`.${fractionPart.slice(0, 1)}`)
+    for (let i = 1; i < fractionPart.length; i += 2) {
+      cells.push(fractionPart.slice(i, i + 2))
+    }
+  } else {
+    for (let i = 0; i < fractionPart.length; i += 2) {
+      cells.push(fractionPart.slice(i, i + 2))
+    }
+  }
+
+  return cells
+}
+
+export function tokenizeWriting(text: string): string[] {
+  const cells: string[] = []
+  let i = 0
+
+  while (i < text.length) {
+    if (/[0-9]/.test(text[i])) {
+      const start = i
+      while (i < text.length && /[0-9]/.test(text[i])) i++
+      if (isDecimalPoint(text, i)) {
+        i++
+        while (i < text.length && /[0-9]/.test(text[i])) i++
+      }
+      cells.push(...tokenizeNumber(text.slice(start, i)))
+      continue
+    }
+
+    cells.push(text[i])
+    i++
+  }
+
+  return cells
+}
+
 /**
  * Convert 원고지 cells array → plain Korean text.
  * Empty cells at end of each row are trimmed (paragraph break detection).
@@ -25,24 +96,21 @@ export function deserializeCells(text: string): string[] {
   const lines = text.split("\n")
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-    let col = 0
-    let j = 0
-    while (j < line.length && col < COLS) {
-      // Digit grouping rule: 2 digits per cell
-      if (/\d/.test(line[j]) && j + 1 < line.length && /\d/.test(line[j + 1])) {
-        cells.push(line[j] + line[j + 1])
-        j += 2
-      } else {
-        cells.push(line[j])
-        j += 1
-      }
-      col++
+    const lineCells = tokenizeWriting(lines[i])
+
+    if (lineCells.length === 0) {
+      cells.push(...Array(COLS).fill(""))
+      continue
     }
-    // Pad the rest of the row with empty strings
-    while (col < COLS) {
-      cells.push("")
-      col++
+
+    for (let start = 0; start < lineCells.length; start += COLS) {
+      const rowCells = lineCells.slice(start, start + COLS)
+      cells.push(...rowCells)
+      // Pad the rest of the row with empty strings
+      while (rowCells.length < COLS) {
+        cells.push("")
+        rowCells.push("")
+      }
     }
   }
 
@@ -77,7 +145,7 @@ export function countChars(cells: string[]): number {
  */
 export function validateWongojip(cells: string[]): Record<number, string> {
   const errors: Record<number, string> = {}
-  
+
   const COLS = 25
   const ROWS = 12
   const TOTAL = COLS * ROWS

@@ -72,11 +72,49 @@ function reducer(state: EditorState, action: EditorAction): EditorState {
         return { ...state, cells: next, cursorIndex: cursorIndex + 1 }
       }
 
+      // A decimal point belongs to the preceding digit, or starts the next
+      // cell when the preceding number cell already contains two digits.
+      if (char === "." && cursorIndex > 0) {
+        const prev = cells[cursorIndex - 1]
+        if (/^[0-9]$/.test(prev)) {
+          const next = [...cells]
+          next[cursorIndex - 1] = `${prev}.`
+          return { ...state, cells: next }
+        }
+        if (/^[0-9]{2}$/.test(prev)) {
+          if (cells.length >= TOTAL) return state
+          const next = [...cells]
+          next.splice(cursorIndex, 0, ".")
+          return { ...state, cells: next, cursorIndex: cursorIndex + 1 }
+        }
+      }
+
+      // For an even-length integer, the first fractional digit shares the
+      // cell that contains the leading decimal point.
+      if (/[0-9]/.test(char) && cursorIndex > 0 && cells[cursorIndex - 1] === ".") {
+        const next = [...cells]
+        next[cursorIndex - 1] = `.${char}`
+        return { ...state, cells: next, cursorIndex: cursorIndex + 1 }
+      }
+
+      // Resolve a period after one digit as a sentence period when the next
+      // character is not a digit.
+      if (!/[0-9]/.test(char) && cursorIndex > 0) {
+        const prev = cells[cursorIndex - 1]
+        if (/^[0-9]\.$/.test(prev)) {
+          const next = [...cells]
+          next[cursorIndex - 1] = prev[0]
+          next.splice(cursorIndex, 0, ".")
+          next.splice(cursorIndex + 1, 0, char)
+          return { ...state, cells: next, cursorIndex: cursorIndex + 2 }
+        }
+      }
+
       // 1. Digit grouping rule
-      if (/\d/.test(char) && cursorIndex > 0) {
+      if (/[0-9]/.test(char) && cursorIndex > 0) {
         const prev = cells[cursorIndex - 1]
         // If previous is exactly 1 digit, we group them into 1 cell
-        if (/^\d$/.test(prev)) {
+        if (/^[0-9]$/.test(prev)) {
           const next = [...cells]
           next[cursorIndex - 1] = prev + char
           return { ...state, cells: next }
@@ -119,10 +157,7 @@ function reducer(state: EditorState, action: EditorAction): EditorState {
     case "MOVE_ROW":
       return {
         ...state,
-        cursorIndex: Math.max(
-          0,
-          Math.min(cells.length, cursorIndex + action.delta * COLS),
-        ),
+        cursorIndex: Math.max(0, Math.min(cells.length, cursorIndex + action.delta * COLS)),
       }
     case "ROW_HOME":
       return { ...state, cursorIndex: Math.floor(cursorIndex / COLS) * COLS }
@@ -195,7 +230,7 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
       },
       setCells: (newCells: string[]) => {
         dispatch({ type: "SET_ALL", cells: newCells })
-      }
+      },
     }))
 
     // Notify parent on cells change
@@ -227,77 +262,68 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
     }, []) // dispatch is stable from useReducer
 
     // Keyboard navigation (arrows, backspace, delete, enter, home, end)
-    const handleKeyDown = useCallback(
-      (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (isComposingRef.current) return // IME controls keyboard during composition
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (isComposingRef.current) return // IME controls keyboard during composition
 
-        switch (e.key) {
-          case "ArrowLeft":
-            e.preventDefault()
-            dispatch({ type: "MOVE", delta: -1 })
-            break
-          case "ArrowRight":
-            e.preventDefault()
-            dispatch({ type: "MOVE", delta: 1 })
-            break
-          case "ArrowUp":
-            e.preventDefault()
-            dispatch({ type: "MOVE_ROW", delta: -1 })
-            break
-          case "ArrowDown":
-            e.preventDefault()
-            dispatch({ type: "MOVE_ROW", delta: 1 })
-            break
-          case "Home":
-            e.preventDefault()
-            dispatch({ type: "ROW_HOME" })
-            break
-          case "End":
-            e.preventDefault()
-            dispatch({ type: "ROW_END" })
-            break
-          case "Enter":
-            e.preventDefault()
-            dispatch({ type: "ENTER" })
-            break
-          case "Backspace":
-            e.preventDefault()
-            dispatch({ type: "BACKSPACE" })
-            break
-          case "Delete":
-            e.preventDefault()
-            dispatch({ type: "DELETE" })
-            break
-        }
-      },
-      [],
-    )
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault()
+          dispatch({ type: "MOVE", delta: -1 })
+          break
+        case "ArrowRight":
+          e.preventDefault()
+          dispatch({ type: "MOVE", delta: 1 })
+          break
+        case "ArrowUp":
+          e.preventDefault()
+          dispatch({ type: "MOVE_ROW", delta: -1 })
+          break
+        case "ArrowDown":
+          e.preventDefault()
+          dispatch({ type: "MOVE_ROW", delta: 1 })
+          break
+        case "Home":
+          e.preventDefault()
+          dispatch({ type: "ROW_HOME" })
+          break
+        case "End":
+          e.preventDefault()
+          dispatch({ type: "ROW_END" })
+          break
+        case "Enter":
+          e.preventDefault()
+          dispatch({ type: "ENTER" })
+          break
+        case "Backspace":
+          e.preventDefault()
+          dispatch({ type: "BACKSPACE" })
+          break
+        case "Delete":
+          e.preventDefault()
+          dispatch({ type: "DELETE" })
+          break
+      }
+    }, [])
 
     // Korean IME composition events
     const handleCompositionStart = useCallback(() => {
       isComposingRef.current = true
     }, [])
 
-    const handleCompositionUpdate = useCallback(
-      (e: React.CompositionEvent<HTMLInputElement>) => {
-        dispatch({ type: "COMPOSE", text: e.data || "" })
-      },
-      [],
-    )
+    const handleCompositionUpdate = useCallback((e: React.CompositionEvent<HTMLInputElement>) => {
+      dispatch({ type: "COMPOSE", text: e.data || "" })
+    }, [])
 
-    const handleCompositionEnd = useCallback(
-      (e: React.CompositionEvent<HTMLInputElement>) => {
-        isComposingRef.current = false
-        dispatch({ type: "COMPOSE", text: "" })
-        // Reset hidden input value to clear composed text
-        if (hiddenInputRef.current) hiddenInputRef.current.value = ""
-        // Insert the final composed character
-        if (e.data) {
-          dispatch({ type: "TYPE", char: e.data })
-        }
-      },
-      [],
-    )
+    const handleCompositionEnd = useCallback((e: React.CompositionEvent<HTMLInputElement>) => {
+      isComposingRef.current = false
+      dispatch({ type: "COMPOSE", text: "" })
+      // Reset hidden input value to clear composed text
+      if (hiddenInputRef.current) hiddenInputRef.current.value = ""
+      // Insert the final composed character
+      if (e.data) {
+        dispatch({ type: "TYPE", char: e.data })
+      }
+    }, [])
 
     function focusInput() {
       if (!disabled) hiddenInputRef.current?.focus()
@@ -326,14 +352,14 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
         {/* Grid wrapper — allows horizontal scroll on narrow screens */}
         <div className="w-full overflow-x-auto rounded-lg pb-4">
           <div
-            className="writing-editor mx-auto relative border-2 border-gray-500 bg-white w-max"
+            className="writing-editor relative mx-auto w-max border-2 border-gray-500 bg-white"
             onClick={focusInput}
           >
             {/* Hidden input — captures all keyboard input including Korean IME */}
             {/* Must have exactly matching typography classes so IME popup scales correctly */}
             <input
               ref={hiddenInputRef}
-              className="writing-ime-input absolute opacity-0 pointer-events-none text-xs md:text-sm lg:text-base font-medium leading-none"
+              className="writing-ime-input pointer-events-none absolute text-xs font-medium leading-none opacity-0 md:text-sm lg:text-base"
               style={{ width: 1, height: 1, top: 0, left: 0 }}
               onKeyDown={handleKeyDown}
               onCompositionStart={handleCompositionStart}
@@ -376,13 +402,24 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
                       focusInput()
                     }}
                     className={[
-                      "writing-cell box-border relative flex items-center justify-center",
-                      "w-[26px] h-[26px] md:w-[28px] md:h-[28px] lg:w-[32px] lg:h-[32px]",
-                      "text-xs md:text-sm lg:text-base font-medium",
-                      col !== COLS - 1 ? (isMajorRight ? "border-r-2 border-r-gray-500" : "border-r border-r-gray-200") : "",
-                      row !== ROWS - 1 ? (isMajorBottom ? "border-b-2 border-b-gray-500" : "border-b border-b-gray-200") : "",
-                      isCursor ? "bg-blue-50 ring-2 ring-inset ring-blue-400 z-10" :
-                        errorMsg ? "bg-red-50 ring-1 ring-inset ring-red-400 z-10" : "bg-white",
+                      "writing-cell relative box-border flex items-center justify-center",
+                      "h-[26px] w-[26px] md:h-[28px] md:w-[28px] lg:h-[32px] lg:w-[32px]",
+                      "text-xs font-medium md:text-sm lg:text-base",
+                      col !== COLS - 1
+                        ? isMajorRight
+                          ? "border-r-2 border-r-gray-500"
+                          : "border-r border-r-gray-200"
+                        : "",
+                      row !== ROWS - 1
+                        ? isMajorBottom
+                          ? "border-b-2 border-b-gray-500"
+                          : "border-b border-b-gray-200"
+                        : "",
+                      isCursor
+                        ? "z-10 bg-blue-50 ring-2 ring-inset ring-blue-400"
+                        : errorMsg
+                          ? "z-10 bg-red-50 ring-1 ring-inset ring-red-400"
+                          : "bg-white",
                       disabled ? "cursor-default" : "cursor-text",
                     ]
                       .filter(Boolean)
@@ -392,9 +429,14 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
                     <span
                       className={[
                         "leading-none",
-                        isComposingCell ? "text-blue-500 underline decoration-dotted" :
-                          errorMsg ? "text-red-700" : "text-gray-900",
-                      ].filter(Boolean).join(" ")}
+                        isComposingCell
+                          ? "text-blue-500 underline decoration-dotted"
+                          : errorMsg
+                            ? "text-red-700"
+                            : "text-gray-900",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                     >
                       {displayChar}
                     </span>
@@ -406,12 +448,9 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
             {/* Right-side row markers (50, 100, ..., 300) */}
             <div className="pointer-events-none absolute inset-y-0 -right-9 flex flex-col">
               {Array.from({ length: ROWS }, (_, row) => (
-                <div
-                  key={row}
-                  className="flex flex-1 items-end justify-start pb-1 pl-1"
-                >
+                <div key={row} className="flex flex-1 items-end justify-start pb-1 pl-1">
                   {MARKER_ROWS[row] && (
-                    <span className="text-[10px] leading-none text-gray-400 font-mono">
+                    <span className="font-mono text-[10px] leading-none text-gray-400">
                       {MARKER_ROWS[row]}
                     </span>
                   )}
@@ -422,9 +461,7 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
         </div>
 
         {/* Counter */}
-        <p className="mt-2 text-xs text-gray-500">
-          {cellCount} ô đã dùng · tối đa 300 ô
-        </p>
+        <p className="mt-2 text-xs text-gray-500">{cellCount} ô đã dùng · tối đa 300 ô</p>
       </div>
     )
   },
