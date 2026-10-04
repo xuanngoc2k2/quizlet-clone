@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
+import { Modal } from "@/components/ui/Modal"
 import { WongojipEditor, type WongojipEditorHandle } from "@/components/writing/WongojipEditor"
 import { WritingQuestion } from "@/components/writing/WritingQuestion"
 import { WritingResult } from "@/components/writing/WritingResult"
@@ -27,7 +28,9 @@ export default function WritingPracticePage({ params }: PageProps) {
   const [formatErrors, setFormatErrors] = useState<Record<number, string>>({})
   const [grade, setGrade] = useState<WritingGrade | null>(null)
   const [answer, setAnswer] = useState("")
+  const [viewCells, setViewCells] = useState<string[] | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [showHistory, setShowHistory] = useState(false)
 
   const gradeMutation = api.writing.gradeWriting53.useMutation()
   const saveAttemptMutation = api.writing.saveAttempt.useMutation()
@@ -46,6 +49,7 @@ export default function WritingPracticePage({ params }: PageProps) {
 
     const serialized = serializeCells(cells)
     setAnswer(serialized)
+    setViewCells([...cells])
 
     try {
       const result = await gradeMutation.mutateAsync({
@@ -58,6 +62,7 @@ export default function WritingPracticePage({ params }: PageProps) {
       saveAttemptMutation.mutate({
         questionId: id,
         answer: serialized,
+        cells: [...cells],
         grade: result as WritingGrade,
       })
     } catch (err) {
@@ -119,7 +124,7 @@ export default function WritingPracticePage({ params }: PageProps) {
         {/* Result view */}
         {grade ? (
           <>
-            <WritingResult grade={grade} answer={answer} onWriteAgain={handleWriteAgain} />
+            <WritingResult grade={grade} answer={answer} viewCells={viewCells} onWriteAgain={handleWriteAgain} />
           </>
         ) : (
           <>
@@ -128,9 +133,9 @@ export default function WritingPracticePage({ params }: PageProps) {
 
             {/* Attempt history badge */}
             {attempts && attempts.length > 0 && (
-              <div className="mb-4 flex items-center gap-2 rounded-xl bg-primary-50 px-3 py-2">
+              <div className="mb-4 flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 border border-slate-200">
                 <Clock className="h-4 w-4 text-slate-500" />
-                <p className="text-xs text-primary-600">
+                <p className="flex-1 text-xs text-slate-600">
                   Bạn đã làm{" "}
                   <span className="font-semibold">{attempts.length} lần</span>
                   {" · "}Cao nhất:{" "}
@@ -138,6 +143,12 @@ export default function WritingPracticePage({ params }: PageProps) {
                     {Math.max(...attempts.map((a) => a.totalScore ?? 0))} / 30
                   </span>
                 </p>
+                <button
+                  onClick={() => setShowHistory(true)}
+                  className="rounded-lg bg-white px-2 py-1 text-[11px] font-semibold text-primary-600 shadow-sm border border-slate-200 hover:bg-slate-50"
+                >
+                  Xem lịch sử
+                </button>
               </div>
             )}
 
@@ -230,6 +241,31 @@ export default function WritingPracticePage({ params }: PageProps) {
         )}
       </main>
       <BottomNav />
+
+      <Modal open={showHistory} onClose={() => setShowHistory(false)} title="Lịch sử làm bài">
+        <div className="flex flex-col gap-3">
+          {attempts?.map((a) => (
+            <div key={a.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">{a.totalScore} / 30 điểm</p>
+                <p className="text-[11px] text-slate-500">{new Date(a.createdAt).toLocaleString("vi-VN")}</p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setGrade(a.gradeJson as WritingGrade)
+                  setAnswer(a.answer)
+                  setViewCells(Array.isArray(a.cellsJson) ? a.cellsJson as string[] : null)
+                  setShowHistory(false)
+                }}
+              >
+                Xem kết quả
+              </Button>
+            </div>
+          ))}
+        </div>
+      </Modal>
     </div>
   )
 }

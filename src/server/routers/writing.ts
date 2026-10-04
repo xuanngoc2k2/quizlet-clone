@@ -234,6 +234,7 @@ export const writingRouter = router({
       z.object({
         questionId: z.string(),
         answer: z.string(),
+        cells: z.array(z.string()).optional(),
         grade: gradeSchema,
       }),
     )
@@ -245,6 +246,7 @@ export const writingRouter = router({
           deviceId,
           ...(ctx.userId ? { userId: ctx.userId } : {}),
           answer: input.answer,
+          cellsJson: input.cells ? (input.cells as string[]) : undefined,
           gradeJson: input.grade as object,
           totalScore: input.grade.totalScore,
         },
@@ -264,7 +266,7 @@ export const writingRouter = router({
         },
         orderBy: { createdAt: "desc" },
         take: 10,
-        select: { id: true, totalScore: true, createdAt: true },
+        select: { id: true, totalScore: true, createdAt: true, answer: true, gradeJson: true, cellsJson: true },
       })
       return rows
     }),

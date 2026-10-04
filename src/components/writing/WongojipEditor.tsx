@@ -36,9 +36,9 @@ type EditorState = {
   composingText: string
 }
 
-const makeInitialState = (): EditorState => ({
-  cells: [" "],
-  cursorIndex: 1,
+const makeInitialState = (initialCells?: string[]): EditorState => ({
+  cells: initialCells ? [...initialCells] : [" "],
+  cursorIndex: initialCells ? initialCells.length : 1,
   composingText: "",
 })
 
@@ -54,6 +54,7 @@ type EditorAction =
   | { type: "ENTER" }
   | { type: "COMPOSE"; text: string }
   | { type: "RESET" }
+  | { type: "SET_ALL"; cells: string[] }
 
 function reducer(state: EditorState, action: EditorAction): EditorState {
   const { cells, cursorIndex } = state
@@ -143,6 +144,12 @@ function reducer(state: EditorState, action: EditorAction): EditorState {
       return { ...state, composingText: action.text.normalize("NFC") }
     case "RESET":
       return makeInitialState()
+    case "SET_ALL":
+      return {
+        ...state,
+        cells: action.cells,
+        cursorIndex: action.cells.length,
+      }
     default:
       return state
   }
@@ -153,6 +160,7 @@ function reducer(state: EditorState, action: EditorAction): EditorState {
 export type WongojipEditorHandle = {
   reset: () => void
   getCells: () => string[]
+  setCells: (cells: string[]) => void
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -161,13 +169,14 @@ type WongojipEditorProps = {
   disabled?: boolean
   onCellsChange?: (cells: string[]) => void
   errors?: Record<number, string>
+  initialCells?: string[]
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorProps>(
-  function WongojipEditor({ disabled = false, onCellsChange, errors }, ref) {
-    const [state, dispatch] = useReducer(reducer, undefined, makeInitialState)
+  function WongojipEditor({ disabled = false, onCellsChange, errors, initialCells }, ref) {
+    const [state, dispatch] = useReducer(reducer, initialCells, makeInitialState)
     const { cells, cursorIndex, composingText } = state
 
     const isComposingRef = useRef(false)
@@ -184,6 +193,9 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
         if (padded.length > TOTAL) padded.length = TOTAL
         return padded
       },
+      setCells: (newCells: string[]) => {
+        dispatch({ type: "SET_ALL", cells: newCells })
+      }
     }))
 
     // Notify parent on cells change

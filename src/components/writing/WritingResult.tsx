@@ -3,11 +3,14 @@
 import { useState } from "react"
 import { RotateCw, ChevronDown, ChevronUp, CheckCircle, AlertCircle, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/Button"
+import { WongojipEditor } from "@/components/writing/WongojipEditor"
+import { deserializeCells } from "@/lib/writing-serializer"
 import type { WritingGrade } from "@/lib/writing-types"
 
 type Props = {
   grade: WritingGrade
   answer: string
+  viewCells?: string[] | null
   onWriteAgain: () => void
 }
 
@@ -29,9 +32,11 @@ function ScoreBar({ score, max }: { score: number; max: number }) {
   )
 }
 
-export function WritingResult({ grade, answer, onWriteAgain }: Props) {
+export function WritingResult({ grade, answer, viewCells, onWriteAgain }: Props) {
   const [showAnswer, setShowAnswer] = useState(false)
   const [showSample, setShowSample] = useState(false)
+  // Use exact cells (if available) otherwise fall back to deserializing the text
+  const answerCells = viewCells ?? deserializeCells(answer)
 
   const totalPct = Math.round((grade.totalScore / grade.maxScore) * 100)
   const totalColor =
@@ -151,49 +156,45 @@ export function WritingResult({ grade, answer, onWriteAgain }: Props) {
       )}
 
       {/* Your Answer (collapsible) */}
-      <div className="rounded-2xl border border-primary-100 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => setShowAnswer((v) => !v)}
-          className="flex w-full items-center justify-between px-5 py-4 text-left"
+          className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
         >
-          <p className="text-sm font-semibold text-primary-700">내 답안 보기 · Bài viết của bạn</p>
+          <p className="text-sm font-semibold text-slate-700">내 답안 보기 · Bài viết của bạn</p>
           {showAnswer ? (
-            <ChevronUp className="h-4 w-4 text-primary-400" />
+            <ChevronUp className="h-4 w-4 text-slate-400" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-primary-400" />
+            <ChevronDown className="h-4 w-4 text-slate-400" />
           )}
         </button>
         {showAnswer && (
-          <div className="border-t border-primary-100 px-5 pb-5 pt-4">
-            <pre className="whitespace-pre-wrap text-sm leading-relaxed text-primary-800 font-sans">
-              {answer}
-            </pre>
+          <div className="border-t border-slate-200 px-5 pb-5 pt-4">
+            <WongojipEditor disabled initialCells={answerCells} />
           </div>
         )}
       </div>
 
       {/* Sample Answer (collapsible) */}
       {grade.sampleAnswer && (
-        <div className="rounded-2xl border border-primary-100 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
           <button
             onClick={() => setShowSample((v) => !v)}
-            className="flex w-full items-center justify-between px-5 py-4 text-left"
+            className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
           >
             <div className="flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-primary-500" />
-              <p className="text-sm font-semibold text-primary-700">모범 답안 · Bài mẫu tham khảo</p>
+              <p className="text-sm font-semibold text-slate-700">모범 답안 · Bài mẫu tham khảo</p>
             </div>
             {showSample ? (
-              <ChevronUp className="h-4 w-4 text-primary-400" />
+              <ChevronUp className="h-4 w-4 text-slate-400" />
             ) : (
-              <ChevronDown className="h-4 w-4 text-primary-400" />
+              <ChevronDown className="h-4 w-4 text-slate-400" />
             )}
           </button>
           {showSample && (
-            <div className="border-t border-primary-100 px-5 pb-5 pt-4">
-              <pre className="whitespace-pre-wrap text-sm leading-relaxed text-primary-800 font-sans">
-                {grade.sampleAnswer}
-              </pre>
+            <div className="border-t border-slate-200 px-5 pb-5 pt-4">
+              <WongojipEditor disabled initialCells={deserializeCells(grade.sampleAnswer)} />
             </div>
           )}
         </div>

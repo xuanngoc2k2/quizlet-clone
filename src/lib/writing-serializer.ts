@@ -20,6 +20,45 @@ export function serializeCells(cells: string[]): string {
   return lines.join("\n")
 }
 
+export function deserializeCells(text: string): string[] {
+  const cells: string[] = []
+  const lines = text.split("\n")
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    let col = 0
+    let j = 0
+    while (j < line.length && col < COLS) {
+      // Digit grouping rule: 2 digits per cell
+      if (/\d/.test(line[j]) && j + 1 < line.length && /\d/.test(line[j + 1])) {
+        cells.push(line[j] + line[j + 1])
+        j += 2
+      } else {
+        cells.push(line[j])
+        j += 1
+      }
+      col++
+    }
+    // Pad the rest of the row with empty strings
+    while (col < COLS) {
+      cells.push("")
+      col++
+    }
+  }
+
+  // Pad the rest of the 300 cells
+  while (cells.length < COLS * ROWS) {
+    cells.push("")
+  }
+
+  // Trim to exact size
+  if (cells.length > COLS * ROWS) {
+    cells.length = COLS * ROWS
+  }
+
+  return cells
+}
+
 /**
  * Count non-empty cells (space counts, newline does not apply here
  * since we use positional model — every empty string = empty cell).

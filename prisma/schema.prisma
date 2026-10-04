@@ -246,6 +246,7 @@ model WritingAttempt53 {
   deviceId   String
   userId     String?
   answer     String            @db.Text
+  cellsJson  Json?             // raw cells array (300 strings) — for wongoji display
   gradeJson  Json?
   totalScore Int?
   createdAt  DateTime          @default(now())
