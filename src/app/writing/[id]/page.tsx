@@ -14,6 +14,8 @@ import { api } from "@/lib/trpc-provider"
 import { serializeCells, countCells, validateWongojip } from "@/lib/writing-serializer"
 import type { WritingGrade } from "@/lib/writing-types"
 
+type QuestionLayout = "top" | "left"
+
 type PageProps = {
   params: { id: string }
 }
@@ -31,6 +33,7 @@ export default function WritingPracticePage({ params }: PageProps) {
   const [viewCells, setViewCells] = useState<string[] | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [showHistory, setShowHistory] = useState(false)
+  const [questionLayout, setQuestionLayout] = useState<QuestionLayout>("top")
 
   const gradeMutation = api.writing.gradeWriting53.useMutation()
   const saveAttemptMutation = api.writing.saveAttempt.useMutation()
@@ -84,7 +87,7 @@ export default function WritingPracticePage({ params }: PageProps) {
     return (
       <div className="flex min-h-screen flex-col">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
+        <main className="flex flex-1 items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
         </main>
         <BottomNav />
@@ -99,7 +102,10 @@ export default function WritingPracticePage({ params }: PageProps) {
         <Header />
         <main className="flex-1 px-4 pt-8 text-center">
           <p className="text-red-600">Không tìm thấy đề bài</p>
-          <Link href="/writing" className="mt-4 inline-block text-sm text-primary-600 hover:underline">
+          <Link
+            href="/writing"
+            className="mt-4 inline-block text-sm text-primary-600 hover:underline"
+          >
             ← Quay lại danh sách
           </Link>
         </main>
@@ -111,7 +117,12 @@ export default function WritingPracticePage({ params }: PageProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
+      <main
+        className={[
+          "mx-auto w-full flex-1 px-4 pb-24 pt-6 sm:px-6 md:px-8",
+          questionLayout === "left" ? "max-w-[1600px]" : "max-w-5xl",
+        ].join(" ")}
+      >
         {/* Back nav */}
         <Link
           href="/writing"
@@ -124,45 +135,90 @@ export default function WritingPracticePage({ params }: PageProps) {
         {/* Result view */}
         {grade ? (
           <>
-            <WritingResult grade={grade} answer={answer} viewCells={viewCells} onWriteAgain={handleWriteAgain} />
+            <WritingResult
+              grade={grade}
+              answer={answer}
+              viewCells={viewCells}
+              onWriteAgain={handleWriteAgain}
+            />
           </>
         ) : (
           <>
-            {/* Question display */}
-            <WritingQuestion question={question} />
-
-            {/* Attempt history badge */}
-            {attempts && attempts.length > 0 && (
-              <div className="mb-4 flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 border border-slate-200">
-                <Clock className="h-4 w-4 text-slate-500" />
-                <p className="flex-1 text-xs text-slate-600">
-                  Bạn đã làm{" "}
-                  <span className="font-semibold">{attempts.length} lần</span>
-                  {" · "}Cao nhất:{" "}
-                  <span className="font-semibold text-emerald-600">
-                    {Math.max(...attempts.map((a) => a.totalScore ?? 0))} / 30
-                  </span>
-                </p>
-                <button
-                  onClick={() => setShowHistory(true)}
-                  className="rounded-lg bg-white px-2 py-1 text-[11px] font-semibold text-primary-600 shadow-sm border border-slate-200 hover:bg-slate-50"
-                >
-                  Xem lịch sử
-                </button>
+            <div className="mb-4 flex justify-end">
+              <div
+                role="tablist"
+                aria-label="Layout đề bài"
+                className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 shadow-sm"
+              >
+                {(["top", "left"] as const).map((layout) => {
+                  const isActive = questionLayout === layout
+                  return (
+                    <button
+                      key={layout}
+                      type="button"
+                      role="tab"
+                      aria-label={layout === "top" ? "Đề trên" : "Đề bên trái"}
+                      aria-selected={isActive}
+                      onClick={() => setQuestionLayout(layout)}
+                      className={[
+                        "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-white text-primary-700 shadow-sm ring-1 ring-primary-200"
+                          : "text-slate-600 hover:bg-white/70 hover:text-slate-900",
+                      ].join(" ")}
+                    >
+                      {layout === "top" ? "Đề trên" : "Đề bên trái"}
+                    </button>
+                  )
+                })}
               </div>
-            )}
+            </div>
 
-            {/* 원고지 Editor — with right-side margin for markers */}
-            <div className="mb-4 pr-10">
-              <p className="mb-2 text-center text-xs font-semibold text-slate-500">
-                ✏️ 원고지 — nhấp vào ô để bắt đầu viết
-              </p>
-              <WongojipEditor
-                ref={editorRef}
-                onCellsChange={handleCellsChange}
-                disabled={gradeMutation.isLoading}
-                errors={formatErrors}
-              />
+            <div
+              className={
+                questionLayout === "left"
+                  ? "grid w-full grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)]"
+                  : "flex w-full flex-col gap-6"
+              }
+            >
+              <div className="min-w-0">
+                <WritingQuestion question={question} />
+              </div>
+
+              <div className="min-w-0">
+                {/* Attempt history badge */}
+                {attempts && attempts.length > 0 && (
+                  <div className="mb-4 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <Clock className="h-4 w-4 text-slate-500" />
+                    <p className="flex-1 text-xs text-slate-600">
+                      Bạn đã làm <span className="font-semibold">{attempts.length} lần</span>
+                      {" · "}Cao nhất:{" "}
+                      <span className="font-semibold text-emerald-600">
+                        {Math.max(...attempts.map((a) => a.totalScore ?? 0))} / 30
+                      </span>
+                    </p>
+                    <button
+                      onClick={() => setShowHistory(true)}
+                      className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-primary-600 shadow-sm hover:bg-slate-50"
+                    >
+                      Xem lịch sử
+                    </button>
+                  </div>
+                )}
+
+                {/* 원고지 Editor — with right-side margin for markers */}
+                <div className="mb-4 pr-10">
+                  <p className="mb-2 text-center text-xs font-semibold text-slate-500">
+                    ✏️ 원고지 — nhấp vào ô để bắt đầu viết
+                  </p>
+                  <WongojipEditor
+                    ref={editorRef}
+                    onCellsChange={handleCellsChange}
+                    disabled={gradeMutation.isLoading}
+                    errors={formatErrors}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Char count reminder */}
@@ -179,7 +235,8 @@ export default function WritingPracticePage({ params }: PageProps) {
                   ].join(" ")}
                 >
                   {cellCount} ô
-                  {cellCount < question.rangeMin && ` · cần thêm ${question.rangeMin - cellCount} ô`}
+                  {cellCount < question.rangeMin &&
+                    ` · cần thêm ${question.rangeMin - cellCount} ô`}
                   {cellCount > question.rangeMax && ` · vượt ${cellCount - question.rangeMax} ô`}
                   {cellCount >= question.rangeMin &&
                     cellCount <= question.rangeMax &&
@@ -245,10 +302,15 @@ export default function WritingPracticePage({ params }: PageProps) {
       <Modal open={showHistory} onClose={() => setShowHistory(false)} title="Lịch sử làm bài">
         <div className="flex flex-col gap-3">
           {attempts?.map((a) => (
-            <div key={a.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div
+              key={a.id}
+              className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3"
+            >
               <div>
                 <p className="text-sm font-semibold text-slate-900">{a.totalScore} / 30 điểm</p>
-                <p className="text-[11px] text-slate-500">{new Date(a.createdAt).toLocaleString("vi-VN")}</p>
+                <p className="text-[11px] text-slate-500">
+                  {new Date(a.createdAt).toLocaleString("vi-VN")}
+                </p>
               </div>
               <Button
                 variant="secondary"
@@ -256,7 +318,7 @@ export default function WritingPracticePage({ params }: PageProps) {
                 onClick={() => {
                   setGrade(a.gradeJson as WritingGrade)
                   setAnswer(a.answer)
-                  setViewCells(Array.isArray(a.cellsJson) ? a.cellsJson as string[] : null)
+                  setViewCells(Array.isArray(a.cellsJson) ? (a.cellsJson as string[]) : null)
                   setShowHistory(false)
                 }}
               >

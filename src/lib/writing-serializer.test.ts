@@ -74,4 +74,20 @@ describe("TOPIK decimal number cell rules", () => {
       ".",
     ])
   })
+
+  test("indents only the first line when requested", () => {
+    const cells = deserializeCells("첫 번째 줄입니다.\n두 번째 줄입니다.", true)
+
+    expect(cells[0]).toBe(" ")
+    expect(cells[1]).toBe("첫")
+    expect(cells[25]).toBe("두")
+  })
+
+  test("does not place a word-starting space in a later visual row", () => {
+    const cells = deserializeCells(`${"가".repeat(24)} 나머지`, true)
+
+    expect(cells[0]).toBe(" ")
+    expect(cells[24]).toBe("가")
+    expect(cells[25]).toBe("나")
+  })
 })

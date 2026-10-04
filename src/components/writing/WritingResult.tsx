@@ -19,13 +19,13 @@ function ScoreBar({ score, max }: { score: number; max: number }) {
   const color = pct >= 70 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-red-500"
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden">
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
         <div
           className={`h-full rounded-full transition-all duration-700 ${color}`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-sm font-bold text-primary-900 w-10 text-right">
+      <span className="w-10 text-right text-sm font-bold text-primary-900">
         {score}/{max}
       </span>
     </div>
@@ -124,7 +124,7 @@ export function WritingResult({ grade, answer, viewCells, onWriteAgain }: Props)
               <div key={i} className="rounded-xl bg-red-50 p-3 text-sm">
                 <div className="mb-1 flex items-start gap-2">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
-                  <span className="line-through text-red-600">{c.original}</span>
+                  <span className="text-red-600 line-through">{c.original}</span>
                 </div>
                 <p className="ml-6 font-medium text-emerald-700">→ {c.corrected}</p>
                 <p className="ml-6 mt-1 text-[11px] text-primary-500">{c.explanation}</p>
@@ -156,10 +156,10 @@ export function WritingResult({ grade, answer, viewCells, onWriteAgain }: Props)
       )}
 
       {/* Your Answer (collapsible) */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <button
           onClick={() => setShowAnswer((v) => !v)}
-          className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
+          className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-slate-50"
         >
           <p className="text-sm font-semibold text-slate-700">내 답안 보기 · Bài viết của bạn</p>
           {showAnswer ? (
@@ -177,10 +177,10 @@ export function WritingResult({ grade, answer, viewCells, onWriteAgain }: Props)
 
       {/* Sample Answer (collapsible) */}
       {grade.sampleAnswer && (
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <button
             onClick={() => setShowSample((v) => !v)}
-            className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
+            className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-slate-50"
           >
             <div className="flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-primary-500" />
@@ -194,7 +194,7 @@ export function WritingResult({ grade, answer, viewCells, onWriteAgain }: Props)
           </button>
           {showSample && (
             <div className="border-t border-slate-200 px-5 pb-5 pt-4">
-              <WongojipEditor disabled initialCells={deserializeCells(grade.sampleAnswer)} />
+              <WongojipEditor disabled initialCells={deserializeCells(grade.sampleAnswer, true)} />
             </div>
           )}
         </div>

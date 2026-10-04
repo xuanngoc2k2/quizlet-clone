@@ -91,12 +91,20 @@ export function serializeCells(cells: string[]): string {
   return lines.join("\n")
 }
 
-export function deserializeCells(text: string): string[] {
+export function deserializeCells(text: string, indentFirstLine = false): string[] {
   const cells: string[] = []
   const lines = text.split("\n")
 
   for (let i = 0; i < lines.length; i++) {
     const lineCells = tokenizeWriting(lines[i])
+
+    if (indentFirstLine && i === 0 && lineCells[0] !== " ") {
+      lineCells.unshift(" ")
+    }
+
+    if (indentFirstLine && i > 0 && lineCells[0] === " ") {
+      lineCells.shift()
+    }
 
     if (lineCells.length === 0) {
       cells.push(...Array(COLS).fill(""))
@@ -104,6 +112,9 @@ export function deserializeCells(text: string): string[] {
     }
 
     for (let start = 0; start < lineCells.length; start += COLS) {
+      while (indentFirstLine && start > 0 && lineCells[start] === " ") {
+        start++
+      }
       const rowCells = lineCells.slice(start, start + COLS)
       cells.push(...rowCells)
       // Pad the rest of the row with empty strings
@@ -192,7 +203,8 @@ export function validateWongojip(cells: string[]): Record<number, string> {
 
     if (col === 0) {
       if (row > 0 && c === " ") {
-        errors[i] = "Chỉ lùi đầu dòng ở dòng đầu tiên của bài (câu 53 viết một đoạn duy nhất). Các dòng sau bắt đầu từ ô đầu tiên."
+        errors[i] =
+          "Chỉ lùi đầu dòng ở dòng đầu tiên của bài (câu 53 viết một đoạn duy nhất). Các dòng sau bắt đầu từ ô đầu tiên."
       }
       if (/^[.,?!\]})”’]$/.test(c)) {
         errors[i] = "Dấu câu không được đặt ở ô đầu tiên của dòng."
@@ -215,4 +227,3 @@ export function validateWongojip(cells: string[]): Record<number, string> {
 
   return errors
 }
-

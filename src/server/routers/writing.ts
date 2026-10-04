@@ -116,33 +116,57 @@ const gradeSchema = z.object({
 
 export const writingRouter = router({
   /** List questions (no imageData for performance) */
-  listQuestions: publicProcedure.query(async ({ ctx }) => {
-    const rows = await ctx.prisma.writingQuestion53.findMany({
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        examRef: true,
-        instruction: true,
-        imageAlt: true,
-        rangeMin: true,
-        rangeMax: true,
-        createdAt: true,
-        _count: { select: { attempts: true } },
-      },
-    })
-    return rows
-  }),
+  listQuestions: publicProcedure
+    .input(z.object({ page: z.number().int().min(1).default(1) }))
+    .query(async ({ input, ctx }) => {
+      const pageSize = 10
+      const [rows, total] = await Promise.all([
+        ctx.prisma.writingQuestion53.findMany({
+          orderBy: { createdAt: "desc" },
+          skip: (input.page - 1) * pageSize,
+          take: pageSize,
+          select: {
+            id: true,
+            examRef: true,
+            instruction: true,
+            imageAlt: true,
+            rangeMin: true,
+            rangeMax: true,
+            createdAt: true,
+            _count: { select: { attempts: true } },
+            attempts: {
+              orderBy: { createdAt: "desc" },
+              take: 1,
+              select: { totalScore: true, createdAt: true },
+            },
+          },
+        }),
+        ctx.prisma.writingQuestion53.count(),
+      ])
+
+      return {
+        questions: rows.map((row) => {
+          const { attempts, ...question } = row
+          return {
+            ...question,
+            latestScore: attempts[0]?.totalScore ?? null,
+          }
+        }),
+        total,
+        page: input.page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      }
+    }),
 
   /** Get one question with full imageData */
-  getQuestion: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ input, ctx }) => {
-      const q = await ctx.prisma.writingQuestion53.findUnique({
-        where: { id: input.id },
-      })
-      if (!q) throw new Error("Question not found")
-      return q
-    }),
+  getQuestion: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
+    const q = await ctx.prisma.writingQuestion53.findUnique({
+      where: { id: input.id },
+    })
+    if (!q) throw new Error("Question not found")
+    return q
+  }),
 
   /** Use Gemini Vision to extract question data from an uploaded image */
   extractFromImage: publicProcedure
@@ -213,12 +237,10 @@ export const writingRouter = router({
 
       let raw: unknown
       if (question.imageData && question.imageMimeType) {
-        raw = await callGeminiVisionJSON(
-          prompt,
-          question.imageData,
-          question.imageMimeType,
-          { temperature: 0.2, maxTokens: 4096 },
-        )
+        raw = await callGeminiVisionJSON(prompt, question.imageData, question.imageMimeType, {
+          temperature: 0.2,
+          maxTokens: 4096,
+        })
       } else {
         const { callGeminiJSON } = await import("../lib/gemini")
         raw = await callGeminiJSON(prompt, { temperature: 0.2, maxTokens: 4096 })
@@ -266,7 +288,14 @@ export const writingRouter = router({
         },
         orderBy: { createdAt: "desc" },
         take: 10,
-        select: { id: true, totalScore: true, createdAt: true, answer: true, gradeJson: true, cellsJson: true },
+        select: {
+          id: true,
+          totalScore: true,
+          createdAt: true,
+          answer: true,
+          gradeJson: true,
+          cellsJson: true,
+        },
       })
       return rows
     }),
