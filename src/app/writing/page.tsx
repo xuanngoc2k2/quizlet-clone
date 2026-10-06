@@ -24,12 +24,17 @@ export default function WritingListPage() {
             <h1 className="font-display text-xl font-bold text-slate-900">쓰기 연습</h1>
             <p className="mt-0.5 text-sm text-slate-500">TOPIK II · Câu 53 · 원고지 200~300자</p>
           </div>
-          <Link href="/writing/new">
-            <Button variant="gradient" size="sm">
-              <Plus className="h-4 w-4" />
-              Thêm đề
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/writing/51">
+              <Button variant="secondary" size="sm">Câu 51</Button>
+            </Link>
+            <Link href="/writing/new">
+              <Button variant="gradient" size="sm">
+                <Plus className="h-4 w-4" />
+                Thêm đề
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Loading */}

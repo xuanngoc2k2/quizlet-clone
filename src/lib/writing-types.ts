@@ -12,6 +12,44 @@ export type WritingQuestion53 = {
   createdAt: Date
 }
 
+export type WritingPassageSegment51 =
+  | { type: "text"; content: string }
+  | { type: "blank"; id: string; label: "ㄱ" | "ㄴ" }
+
+export type WritingBlank51 = {
+  id: string
+  label: "ㄱ" | "ㄴ"
+  answer: string[]
+  explanation?: string
+}
+
+export type WritingQuestion51 = {
+  id: string
+  questionNumber: number
+  title: string
+  instruction: string
+  passage: WritingPassageSegment51[]
+  blanks: WritingBlank51[]
+  score: number
+  difficulty: string | null
+  source: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type WritingAnswer51 = Record<string, string>
+
+export type WritingAttempt51 = {
+  id: string
+  questionId: string
+  deviceId: string
+  userId: string | null
+  answers: WritingAnswer51
+  score: number
+  maxScore: number
+  createdAt: Date
+}
+
 // Summary for list pages (excludes imageData for performance)
 export type WritingQuestion53Summary = Omit<WritingQuestion53, "imageData" | "imageMimeType">
 

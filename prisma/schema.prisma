@@ -27,6 +27,8 @@ model User {
   topikGoal        UserTopikGoal?
   writingQuestions WritingQuestion53[]
   writingAttempts  WritingAttempt53[]
+  writingQuestions51 WritingQuestion51[]
+  writingAttempts51  WritingAttempt51[]
 }
 
 model Account {
@@ -252,6 +254,46 @@ model WritingAttempt53 {
   createdAt  DateTime          @default(now())
   question   WritingQuestion53 @relation(fields: [questionId], references: [id], onDelete: Cascade)
   user       User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([questionId])
+  @@index([deviceId])
+  @@index([userId])
+}
+
+// ─── TOPIK II Writing 51 ─────────────────────────────────────────────────────
+
+model WritingQuestion51 {
+  id             String   @id @default(cuid())
+  questionNumber Int      @default(51)
+  title          String
+  instruction    String   @db.Text
+  passage        Json
+  blanks         Json
+  score          Int      @default(10)
+  difficulty     String?
+  source         String?
+  deviceId       String
+  userId         String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  attempts       WritingAttempt51[]
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([deviceId])
+  @@index([createdAt])
+}
+
+model WritingAttempt51 {
+  id         String           @id @default(cuid())
+  questionId String
+  deviceId   String
+  userId     String?
+  answers    Json
+  score      Int
+  maxScore   Int
+  createdAt  DateTime         @default(now())
+  question   WritingQuestion51 @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user       User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([questionId])
   @@index([deviceId])

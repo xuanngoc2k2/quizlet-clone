@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useCallback } from "react"
+import { useRef, useState, useCallback, useEffect } from "react"
 import { Upload, ImageIcon, Loader2, Sparkles, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { api } from "@/lib/trpc-provider"
@@ -101,6 +101,24 @@ export function QuestionImporter({ onSaved }: Props) {
     }
   }, [extractMutation])
 
+  useEffect(() => {
+    if (uploadState.step !== "idle") return
+
+    function handlePaste(event: ClipboardEvent) {
+      const image = Array.from(event.clipboardData?.items ?? [])
+        .find((item) => item.kind === "file" && item.type.startsWith("image/"))
+        ?.getAsFile()
+        ?? event.clipboardData?.files[0]
+
+      if (!image) return
+      event.preventDefault()
+      void handleFileSelect(image)
+    }
+
+    window.addEventListener("paste", handlePaste)
+    return () => window.removeEventListener("paste", handlePaste)
+  }, [handleFileSelect, uploadState.step])
+
   async function handleSave() {
     if (uploadState.step !== "review") return
     setError(null)
@@ -139,6 +157,15 @@ export function QuestionImporter({ onSaved }: Props) {
           className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50 px-6 py-10 text-center transition-colors hover:border-primary-400 hover:bg-primary-100 cursor-pointer"
           onClick={() => fileInputRef.current?.click()}
           onDragOver={(e) => e.preventDefault()}
+          onPaste={(e) => {
+            const image = Array.from(e.clipboardData.items)
+              .find((item) => item.kind === "file" && item.type.startsWith("image/"))
+              ?.getAsFile()
+              ?? e.clipboardData.files[0]
+            if (!image) return
+            e.preventDefault()
+            void handleFileSelect(image)
+          }}
           onDrop={(e) => {
             e.preventDefault()
             const file = e.dataTransfer.files[0]
@@ -148,8 +175,8 @@ export function QuestionImporter({ onSaved }: Props) {
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm">
             <Upload className="h-7 w-7 text-primary-500" />
           </div>
-          <p className="font-semibold text-primary-900">Kéo thả hoặc nhấn để chọn ảnh đề</p>
-          <p className="mt-1 text-xs text-primary-400">JPG, PNG, WebP · Tối đa 8MB</p>
+          <p className="font-semibold text-primary-900">Kéo thả, nhấn để chọn hoặc dán ảnh đề</p>
+          <p className="mt-1 text-xs text-primary-400">JPG, PNG, WebP · Ctrl+V · Tối đa 8MB</p>
           <input
             ref={fileInputRef}
             type="file"
