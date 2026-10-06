@@ -30,7 +30,8 @@ export function WritingQuestion51Card({ question }: Props) {
 
       <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-6">
         <p className="mb-4 text-xs font-semibold text-slate-500">
-          Câu {String(question.questionNumber).padStart(2, "0")} · {question.blanks.length} chỗ trống
+          Câu {String(question.questionNumber).padStart(2, "0")} · {question.blanks.length} chỗ
+          trống
         </p>
         <p className="whitespace-pre-wrap break-words text-base leading-8 text-slate-800 sm:text-lg">
           {question.passage.map((segment) =>

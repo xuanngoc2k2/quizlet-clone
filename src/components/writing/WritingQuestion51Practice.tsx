@@ -46,10 +46,15 @@ export function WritingQuestion51Practice({ question }: Props) {
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
           <div className="space-y-3">
             {question.blanks.map((blank, index) => (
-              <label key={blank.id} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+              <label
+                key={blank.id}
+                className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3"
+              >
                 <span className="shrink-0 text-sm font-bold text-primary-700">({blank.label})</span>
                 <input
-                  ref={(element) => { inputRefs.current[blank.id] = element }}
+                  ref={(element) => {
+                    inputRefs.current[blank.id] = element
+                  }}
                   value={answers[blank.id] ?? ""}
                   onChange={(event) => updateAnswer(blank.id, event.target.value)}
                   onKeyDown={(event) => {
@@ -66,11 +71,25 @@ export function WritingQuestion51Practice({ question }: Props) {
             ))}
           </div>
           {error && <p className="mt-4 text-sm text-rose-600">{error}</p>}
-          <Button onClick={checkAnswers} variant="gradient" size="lg" className="mt-5 w-full sm:w-auto" disabled={checkMutation.isLoading}>
-            {checkMutation.isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
+          <Button
+            onClick={checkAnswers}
+            variant="gradient"
+            size="lg"
+            className="mt-5 w-full sm:w-auto"
+            disabled={checkMutation.isLoading}
+          >
+            {checkMutation.isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Check className="h-5 w-5" />
+            )}
             {checkMutation.isLoading ? "AI đang chấm..." : "Kiểm tra đáp án"}
           </Button>
-          {checkMutation.isLoading && <p className="mt-2 text-xs text-slate-500">Gemini đang đối chiếu câu trả lời với đáp án chuẩn và ngữ cảnh câu.</p>}
+          {checkMutation.isLoading && (
+            <p className="mt-2 text-xs text-slate-500">
+              Gemini đang đối chiếu câu trả lời với đáp án chuẩn và ngữ cảnh câu.
+            </p>
+          )}
         </section>
       )}
       {grade && <WritingQuestion51Result grade={grade} />}

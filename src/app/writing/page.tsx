@@ -26,7 +26,9 @@ export default function WritingListPage() {
           </div>
           <div className="flex items-center gap-2">
             <Link href="/writing/51">
-              <Button variant="secondary" size="sm">Câu 51</Button>
+              <Button variant="secondary" size="sm">
+                Câu 51
+              </Button>
             </Link>
             <Link href="/writing/new">
               <Button variant="gradient" size="sm">
