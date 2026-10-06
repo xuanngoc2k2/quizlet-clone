@@ -117,6 +117,42 @@ export const setsRouter = router({
       return set
     }),
 
+  addCard: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        card: cardInput,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const set = await prisma.flashcardSet.findUnique({
+        where: { id: input.id },
+        select: { userId: true },
+      })
+      if (!set) throw new TRPCError({ code: "NOT_FOUND", message: "Set not found" })
+      if (set.userId !== ctx.userId) throw new TRPCError({ code: "FORBIDDEN" })
+
+      const lastCard = await prisma.flashcard.findFirst({
+        where: { setId: input.id },
+        orderBy: { order: "desc" },
+        select: { order: true },
+      })
+      const card = await prisma.flashcard.create({
+        data: {
+          setId: input.id,
+          term: input.card.term,
+          definition: input.card.definition,
+          type: input.card.type,
+          order: (lastCard?.order ?? -1) + 1,
+        },
+      })
+      await prisma.flashcardSet.update({
+        where: { id: input.id },
+        data: { updatedAt: new Date() },
+      })
+      return card
+    }),
+
   update: protectedProcedure
     .input(
       z.object({

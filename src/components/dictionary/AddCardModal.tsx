@@ -34,7 +34,7 @@ export function AddCardModal({ open, onClose, term, definition, editable = false
     { id: selectedId ?? "" },
     { enabled: !!selectedId },
   )
-  const update = api.sets.update.useMutation()
+  const addCard = api.sets.addCard.useMutation()
   const create = api.sets.create.useMutation()
 
   useEffect(() => {
@@ -77,22 +77,15 @@ export function AddCardModal({ open, onClose, term, definition, editable = false
           setFeedback({ kind: "error", text: "Chọn một set để thêm card." })
           return
         }
-        const existing = selected.data?.cards ?? []
+        const { data } = await selected.refetch()
+        const existing = data?.cards ?? []
         if (isDuplicateTerm(existing, finalTerm)) {
           setFeedback({ kind: "info", text: "Từ này đã có trong set — không thêm trùng." })
           return
         }
-        await update.mutateAsync({
+        await addCard.mutateAsync({
           id: selectedId,
-          cards: [
-            ...existing.map((c) => ({
-              id: c.id,
-              term: c.term,
-              definition: c.definition,
-              type: (c.type === "grammar" ? "grammar" : "vocabulary") as CardType,
-            })),
-            card,
-          ],
+          card,
         })
         setFeedback({ kind: "success", text: "Đã thêm card vào set." })
       }
@@ -222,7 +215,7 @@ export function AddCardModal({ open, onClose, term, definition, editable = false
 <Button
             variant="gradient"
             onClick={handleAdd}
-            loading={update.isLoading || create.isLoading}
+            loading={addCard.isLoading || create.isLoading}
             className="w-full"
           >
             {mode === "create" ? <FolderPlus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}

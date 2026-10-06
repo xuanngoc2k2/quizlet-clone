@@ -30,6 +30,7 @@ export function SearchInput() {
           onBlur={() => setTimeout(() => setFocused(false), 150)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
+              if (e.nativeEvent.isComposing || e.keyCode === 229) return
               e.preventDefault()
               handleSubmit()
             }

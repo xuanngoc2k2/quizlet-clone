@@ -8,7 +8,7 @@ import {
   type DictionaryMessage,
 } from "@/hooks/useDictionary"
 import { useDictionaryHistory } from "@/hooks/useDictionaryHistory"
-import type { Lang } from "@/lib/dictionary"
+import { normalizeCacheKey, type Lang } from "@/lib/dictionary"
 
 let messageId = 0
 const nextId = () => `m${++messageId}`
@@ -22,6 +22,7 @@ export function DictionaryProvider({ children }: { children: React.ReactNode }) 
   const [unread, setUnread] = useState(0)
   const { history, addHistory, removeHistory, clearHistory } = useDictionaryHistory()
   const panelRef = useRef<HTMLDivElement>(null)
+  const pendingQueries = useRef(new Set<string>())
 
   const lookup = api.dictionary.lookup.useMutation()
 
@@ -31,6 +32,9 @@ export function DictionaryProvider({ children }: { children: React.ReactNode }) 
       if (!query) return
       const f = opts?.from ?? from
       const t = opts?.to ?? to
+      const requestKey = `${f}->${t}:${normalizeCacheKey(query)}`
+      if (pendingQueries.current.has(requestKey)) return
+      pendingQueries.current.add(requestKey)
 
       const userMsg: DictionaryMessage = { id: nextId(), role: "user", text: query, from: f, to: t }
       const loadingId = nextId()
@@ -69,6 +73,9 @@ export function DictionaryProvider({ children }: { children: React.ReactNode }) 
                 : m,
             ),
           )
+        })
+        .finally(() => {
+          pendingQueries.current.delete(requestKey)
         })
     },
     [from, to, lookup, addHistory],
