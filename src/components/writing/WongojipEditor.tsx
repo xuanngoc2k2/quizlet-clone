@@ -13,33 +13,31 @@ import {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const COLS = 25
-const ROWS = 12
-const TOTAL = COLS * ROWS // 300
+const DEFAULT_ROWS = 12
 
 // Right-side markers: every 2 rows (every 50 chars)
 // Shown at the bottom edge of rows 1, 3, 5, 7, 9, 11 (0-indexed)
-const MARKER_ROWS: Record<number, string> = {
-  1: "50",
-  3: "100",
-  5: "150",
-  7: "200",
-  9: "250",
-  11: "300",
+function getMarkerRows(rows: number): Record<number, string> {
+  return Object.fromEntries(
+    Array.from({ length: rows }, (_, row) => [row, String((row + 1) * 25)]),
+  )
 }
 
 // ─── State / Reducer ──────────────────────────────────────────────────────────
 
 type EditorState = {
-  /** Array of actual logical cells. Padded with "" visually up to 300. */
+  /** Array of actual logical cells. Padded with "" visually up to maxCells. */
   cells: string[]
   cursorIndex: number
   composingText: string
+  maxCells: number
 }
 
-const makeInitialState = (initialCells?: string[]): EditorState => ({
+const makeInitialState = (initialCells: string[] | undefined, maxCells: number): EditorState => ({
   cells: initialCells ? [...initialCells] : [" "],
   cursorIndex: initialCells ? initialCells.length : 1,
   composingText: "",
+  maxCells,
 })
 
 type EditorAction =
@@ -66,7 +64,7 @@ function reducer(state: EditorState, action: EditorAction): EditorState {
 
       // Space is always an INSERT operation (shifts cells right)
       if (char === " ") {
-        if (cells.length >= TOTAL) return state // Do not exceed limit
+        if (cells.length >= state.maxCells) return state // Do not exceed limit
         const next = [...cells]
         next.splice(cursorIndex, 0, " ")
         return { ...state, cells: next, cursorIndex: cursorIndex + 1 }
@@ -82,7 +80,7 @@ function reducer(state: EditorState, action: EditorAction): EditorState {
           return { ...state, cells: next }
         }
         if (/^[0-9]{2}$/.test(prev)) {
-          if (cells.length >= TOTAL) return state
+          if (cells.length >= state.maxCells) return state
           const next = [...cells]
           next.splice(cursorIndex, 0, ".")
           return { ...state, cells: next, cursorIndex: cursorIndex + 1 }
@@ -122,7 +120,7 @@ function reducer(state: EditorState, action: EditorAction): EditorState {
       }
 
       // 2. Overtype/Replace insert for normal characters
-      if (cells.length >= TOTAL && cursorIndex >= cells.length) return state
+      if (cells.length >= state.maxCells && cursorIndex >= cells.length) return state
       const next = [...cells]
       if (cursorIndex < next.length) {
         next[cursorIndex] = char
@@ -169,7 +167,7 @@ function reducer(state: EditorState, action: EditorAction): EditorState {
     case "ENTER": {
       const currentCol = cursorIndex % COLS
       const padNeeded = COLS - currentCol
-      if (cells.length + padNeeded > TOTAL) return state
+      if (cells.length + padNeeded > state.maxCells) return state
       const next = [...cells]
       const pads = Array(padNeeded).fill("")
       next.splice(cursorIndex, 0, ...pads)
@@ -178,7 +176,7 @@ function reducer(state: EditorState, action: EditorAction): EditorState {
     case "COMPOSE":
       return { ...state, composingText: action.text.normalize("NFC") }
     case "RESET":
-      return makeInitialState()
+      return makeInitialState(undefined, state.maxCells)
     case "SET_ALL":
       return {
         ...state,
@@ -195,23 +193,31 @@ function reducer(state: EditorState, action: EditorAction): EditorState {
 export type WongojipEditorHandle = {
   reset: () => void
   getCells: () => string[]
-  setCells: (cells: string[]) => void
+  setCells: (_cells: string[]) => void
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 type WongojipEditorProps = {
   disabled?: boolean
-  onCellsChange?: (cells: string[]) => void
+  onCellsChange?: (_cells: string[]) => void
   errors?: Record<number, string>
   initialCells?: string[]
+  maxCells?: number
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorProps>(
-  function WongojipEditor({ disabled = false, onCellsChange, errors, initialCells }, ref) {
-    const [state, dispatch] = useReducer(reducer, initialCells, makeInitialState)
+  function WongojipEditor({ disabled = false, onCellsChange, errors, initialCells, maxCells }, ref) {
+    const total = maxCells ?? COLS * DEFAULT_ROWS
+    const rows = Math.ceil(total / COLS)
+    const markerRows = getMarkerRows(rows)
+    const [state, dispatch] = useReducer(
+      reducer,
+      initialCells,
+      (cells) => makeInitialState(cells, total),
+    )
     const { cells, cursorIndex, composingText } = state
 
     const isComposingRef = useRef(false)
@@ -224,8 +230,8 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
       reset: () => dispatch({ type: "RESET" }),
       getCells: () => {
         const padded = [...cells]
-        while (padded.length < TOTAL) padded.push("")
-        if (padded.length > TOTAL) padded.length = TOTAL
+        while (padded.length < total) padded.push("")
+        if (padded.length > total) padded.length = total
         return padded
       },
       setCells: (newCells: string[]) => {
@@ -236,10 +242,10 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
     // Notify parent on cells change
     useEffect(() => {
       const padded = [...cells]
-      while (padded.length < TOTAL) padded.push("")
-      if (padded.length > TOTAL) padded.length = TOTAL
+      while (padded.length < total) padded.push("")
+      if (padded.length > total) padded.length = total
       onCellsChange?.(padded)
-    }, [cells, onCellsChange])
+    }, [cells, onCellsChange, total])
 
     // Native "input" event — handles non-IME keypresses (space, numbers, latin, etc.)
     // We use the native event (not React onChange) for reliable character capture.
@@ -338,15 +344,15 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
         displayCells.push(composingText)
       }
     }
-    while (displayCells.length < TOTAL) displayCells.push("")
-    if (displayCells.length > TOTAL) displayCells.length = TOTAL
+    while (displayCells.length < total) displayCells.push("")
+    if (displayCells.length > total) displayCells.length = total
 
     return (
       <div className="select-none">
         {/* Header bar */}
         <div className="mb-1 flex items-center justify-between text-[11px] text-gray-400">
-          <span>25 ô × 12 dòng</span>
-          <span>{cellCount} / 300 ô</span>
+          <span>25 ô × {rows} dòng</span>
+          <span>{cellCount} / {total} ô</span>
         </div>
 
         {/* Grid wrapper — allows horizontal scroll on narrow screens */}
@@ -410,7 +416,7 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
                           ? "border-r-2 border-r-gray-500"
                           : "border-r border-r-gray-200"
                         : "",
-                      row !== ROWS - 1
+                      row !== rows - 1
                         ? isMajorBottom
                           ? "border-b-2 border-b-gray-500"
                           : "border-b border-b-gray-200"
@@ -447,11 +453,11 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
 
             {/* Right-side row markers (50, 100, ..., 300) */}
             <div className="pointer-events-none absolute inset-y-0 -right-9 flex flex-col">
-              {Array.from({ length: ROWS }, (_, row) => (
+              {Array.from({ length: rows }, (_, row) => (
                 <div key={row} className="flex flex-1 items-end justify-start pb-1 pl-1">
-                  {MARKER_ROWS[row] && (
+                  {markerRows[row] && (
                     <span className="font-mono text-[10px] leading-none text-gray-400">
-                      {MARKER_ROWS[row]}
+                      {markerRows[row]}
                     </span>
                   )}
                 </div>
@@ -461,7 +467,7 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
         </div>
 
         {/* Counter */}
-        <p className="mt-2 text-xs text-gray-500">{cellCount} ô đã dùng · tối đa 300 ô</p>
+        <p className="mt-2 text-xs text-gray-500">{cellCount} ô đã dùng · tối đa {total} ô</p>
       </div>
     )
   },

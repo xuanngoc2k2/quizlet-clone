@@ -107,7 +107,7 @@ export default function WritingPracticePage({ params }: PageProps) {
         <main className="flex-1 px-4 pt-8 text-center">
           <p className="text-red-600">Không tìm thấy đề bài</p>
           <Link
-            href="/writing"
+            href="/writing/53"
             className="mt-4 inline-block text-sm text-primary-600 hover:underline"
           >
             ← Quay lại danh sách
@@ -129,7 +129,7 @@ export default function WritingPracticePage({ params }: PageProps) {
       >
         {/* Back nav */}
         <Link
-          href="/writing"
+          href="/writing/53"
           className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-slate-700"
         >
           <ArrowLeft className="h-4 w-4" />

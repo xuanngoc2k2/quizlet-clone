@@ -17,6 +17,19 @@
 
 ## Tasks
 
+### [R-16] — TOPIK II Writing Question 54
+
+**Type:** Feature  
+**Description:** Thêm module câu 54 với upload/paste ảnh đề, AI trích xuất, chấm theo barem 50 điểm và nhập bài 600~700 ký tự hoặc upload/paste ảnh viết tay một trang.  
+**Acceptance Criteria:**
+- Route `/writing/54` có danh sách, thêm đề, luyện bài và lịch sử.
+- AI grading giới hạn đúng 4 tiêu chí `15/15/10/10`, tổng 50 điểm.
+- Ảnh đề và ảnh bài viết tay được OCR/lưu cùng attempt.
+- Editor/serializer hỗ trợ 700 ô, giữ tương thích câu 53.
+- Unit tests, typecheck và lint pass.
+**Status:** ✅ Done
+**Commit:** -
+
 <!-- 
 Khi user báo bug/feature, thêm task theo format:
 

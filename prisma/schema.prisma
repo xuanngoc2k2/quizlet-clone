@@ -29,6 +29,8 @@ model User {
   writingAttempts  WritingAttempt53[]
   writingQuestions51 WritingQuestion51[]
   writingAttempts51  WritingAttempt51[]
+  writingQuestions54 WritingQuestion54[]
+  writingAttempts54  WritingAttempt54[]
 }
 
 model Account {
@@ -259,6 +261,51 @@ model WritingAttempt53 {
   createdAt  DateTime          @default(now())
   question   WritingQuestion53 @relation(fields: [questionId], references: [id], onDelete: Cascade)
   user       User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([questionId])
+  @@index([deviceId])
+  @@index([userId])
+}
+
+// ─── TOPIK II Writing 54 ─────────────────────────────────────────────────────
+
+model WritingQuestion54 {
+  id            String             @id @default(cuid())
+  examRef       String?
+  instruction   String             @db.Text
+  imageData     String?            @db.Text
+  imageMimeType String?
+  imageAlt      String?            @db.Text
+  rangeMin      Int                @default(600)
+  rangeMax      Int                @default(700)
+  deviceId      String
+  userId        String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  attempts      WritingAttempt54[]
+  user          User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([deviceId])
+  @@index([createdAt])
+}
+
+model WritingAttempt54 {
+  id             String             @id @default(cuid())
+  questionId     String
+  deviceId       String
+  userId         String?
+  answer         String             @db.Text
+  cellsJson      Json?
+  submissionType String             @default("typed")
+  imageData      String?            @db.Text
+  imageMimeType  String?
+  ocrText        String?            @db.Text
+  ocrCellsJson   Json?
+  gradeJson      Json?
+  totalScore     Int?
+  createdAt      DateTime           @default(now())
+  question       WritingQuestion54 @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user           User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([questionId])
   @@index([deviceId])

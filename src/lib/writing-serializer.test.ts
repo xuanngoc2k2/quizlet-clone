@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { deserializeCells, tokenizeNumber, tokenizeWriting } from "./writing-serializer"
+import { deserializeCells, serializeCells, tokenizeNumber, tokenizeWriting } from "./writing-serializer"
 
 describe("TOPIK decimal number cell rules", () => {
   test.each([
@@ -89,5 +89,13 @@ describe("TOPIK decimal number cell rules", () => {
     expect(cells[0]).toBe(" ")
     expect(cells[24]).toBe("가")
     expect(cells[25]).toBe("나")
+  })
+
+  test("supports the 700-cell layout used by question 54", () => {
+    const text = "가".repeat(650)
+    const cells = deserializeCells(text, false, 700)
+
+    expect(cells).toHaveLength(700)
+    expect(serializeCells(cells, 700).replace(/\n/g, "")).toBe(text)
   })
 })

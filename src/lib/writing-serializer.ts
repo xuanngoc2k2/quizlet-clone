@@ -1,5 +1,5 @@
 const COLS = 25
-const ROWS = 12
+const DEFAULT_ROWS = 12
 
 export function isDecimalPoint(text: string, index: number): boolean {
   return (
@@ -77,9 +77,10 @@ export function tokenizeWriting(text: string): string[] {
  * Empty cells at end of each row are trimmed (paragraph break detection).
  * Trailing empty rows are removed.
  */
-export function serializeCells(cells: string[]): string {
+export function serializeCells(cells: string[], maxCells = COLS * DEFAULT_ROWS): string {
+  const rows = Math.ceil(maxCells / COLS)
   const lines: string[] = []
-  for (let row = 0; row < ROWS; row++) {
+  for (let row = 0; row < rows; row++) {
     const rowCells = cells.slice(row * COLS, (row + 1) * COLS)
     const rowText = rowCells.join("").trimEnd()
     lines.push(rowText)
@@ -91,7 +92,11 @@ export function serializeCells(cells: string[]): string {
   return lines.join("\n")
 }
 
-export function deserializeCells(text: string, indentFirstLine = false): string[] {
+export function deserializeCells(
+  text: string,
+  indentFirstLine = false,
+  maxCells = COLS * DEFAULT_ROWS,
+): string[] {
   const cells: string[] = []
   const lines = text.split("\n")
 
@@ -126,13 +131,13 @@ export function deserializeCells(text: string, indentFirstLine = false): string[
   }
 
   // Pad the rest of the 300 cells
-  while (cells.length < COLS * ROWS) {
+  while (cells.length < maxCells) {
     cells.push("")
   }
 
   // Trim to exact size
-  if (cells.length > COLS * ROWS) {
-    cells.length = COLS * ROWS
+  if (cells.length > maxCells) {
+    cells.length = maxCells
   }
 
   return cells
@@ -154,12 +159,13 @@ export function countChars(cells: string[]): number {
  * Validate Korean Wongojip formatting rules locally.
  * Returns a map of cellIndex -> errorMessage.
  */
-export function validateWongojip(cells: string[]): Record<number, string> {
+export function validateWongojip(
+  cells: string[],
+  maxCells = COLS * DEFAULT_ROWS,
+): Record<number, string> {
   const errors: Record<number, string> = {}
 
-  const COLS = 25
-  const ROWS = 12
-  const TOTAL = COLS * ROWS
+  const TOTAL = maxCells
 
   let lastContentIdx = -1
   for (let i = TOTAL - 1; i >= 0; i--) {

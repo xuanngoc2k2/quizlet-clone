@@ -53,6 +53,18 @@ export type WritingAttempt51 = {
 // Summary for list pages (excludes imageData for performance)
 export type WritingQuestion53Summary = Omit<WritingQuestion53, "imageData" | "imageMimeType">
 
+export type WritingQuestion54 = {
+  id: string
+  examRef: string | null
+  instruction: string
+  imageData: string | null
+  imageMimeType: string | null
+  imageAlt: string | null
+  rangeMin: number
+  rangeMax: number
+  createdAt: Date
+}
+
 // ─── Writing Grade ────────────────────────────────────────────────────────────
 
 export type GradingCriterion = {
@@ -120,4 +132,21 @@ export type WritingAttempt53 = {
   gradeJson: WritingGrade | null
   totalScore: number | null
   createdAt: Date
+}
+
+export type WritingGrade54 = {
+  totalScore: number
+  maxScore: 50
+  criteria: {
+    content: GradingCriterion & { maxScore: 15 }
+    organization: GradingCriterion & { maxScore: 15 }
+    expression: GradingCriterion
+    accuracy: GradingCriterion
+  }
+  overallFeedback: string
+  strengths: string[]
+  grammarCorrections: GrammarCorrection[]
+  vocabularyCorrections: VocabularyCorrection[]
+  sampleAnswer: string
+  handwriting?: WritingGrade["handwriting"]
 }
