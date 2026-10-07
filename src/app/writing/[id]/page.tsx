@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/Modal"
 import { WongojipEditor, type WongojipEditorHandle } from "@/components/writing/WongojipEditor"
 import { WritingQuestion } from "@/components/writing/WritingQuestion"
 import { WritingResult } from "@/components/writing/WritingResult"
+import { HandwrittenSubmission } from "@/components/writing/HandwrittenSubmission"
 import { api } from "@/lib/trpc-provider"
 import { serializeCells, countCells, validateWongojip } from "@/lib/writing-serializer"
 import type { WritingGrade } from "@/lib/writing-types"
@@ -34,6 +35,7 @@ export default function WritingPracticePage({ params }: PageProps) {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [showHistory, setShowHistory] = useState(false)
   const [questionLayout, setQuestionLayout] = useState<QuestionLayout>("top")
+  const [handwrittenImage, setHandwrittenImage] = useState<string | null>(null)
 
   const gradeMutation = api.writing.gradeWriting53.useMutation()
   const saveAttemptMutation = api.writing.saveAttempt.useMutation()
@@ -49,6 +51,7 @@ export default function WritingPracticePage({ params }: PageProps) {
   async function handleSubmit() {
     if (cellCount === 0) return
     setSubmitError(null)
+    setHandwrittenImage(null)
 
     const serialized = serializeCells(cells)
     setAnswer(serialized)
@@ -77,6 +80,7 @@ export default function WritingPracticePage({ params }: PageProps) {
     setGrade(null)
     setAnswer("")
     setSubmitError(null)
+    setHandwrittenImage(null)
     setFormatErrors({})
     editorRef.current?.reset()
     gradeMutation.reset()
@@ -139,6 +143,7 @@ export default function WritingPracticePage({ params }: PageProps) {
               grade={grade}
               answer={answer}
               viewCells={viewCells}
+              handwrittenImage={handwrittenImage}
               onWriteAgain={handleWriteAgain}
             />
           </>
@@ -218,6 +223,20 @@ export default function WritingPracticePage({ params }: PageProps) {
                     errors={formatErrors}
                   />
                 </div>
+                <HandwrittenSubmission
+                  questionId={id}
+                  onGraded={({
+                    grade: handwrittenGrade,
+                    answer: ocrAnswer,
+                    cells: ocrCells,
+                    imageSrc,
+                  }) => {
+                    setGrade(handwrittenGrade)
+                    setAnswer(ocrAnswer)
+                    setViewCells(ocrCells)
+                    setHandwrittenImage(imageSrc)
+                  }}
+                />
               </div>
             </div>
 
@@ -319,6 +338,11 @@ export default function WritingPracticePage({ params }: PageProps) {
                   setGrade(a.gradeJson as WritingGrade)
                   setAnswer(a.answer)
                   setViewCells(Array.isArray(a.cellsJson) ? (a.cellsJson as string[]) : null)
+                  setHandwrittenImage(
+                    a.imageData && a.imageMimeType
+                      ? `data:${a.imageMimeType};base64,${a.imageData}`
+                      : null,
+                  )
                   setShowHistory(false)
                 }}
               >

@@ -86,6 +86,17 @@ export type WritingGrade = {
   grammarCorrections: GrammarCorrection[]
   vocabularyCorrections: VocabularyCorrection[]
   sampleAnswer: string
+  handwriting?: {
+    ocrConfidence: number
+    spacingScore: number
+    spacingFeedback: string
+    spellingErrors: Array<{
+      original: string
+      corrected: string
+      explanation: string
+    }>
+    layoutWarnings: string[]
+  }
 }
 
 // ─── Extract Result (from AI vision) ─────────────────────────────────────────

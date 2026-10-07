@@ -23,6 +23,7 @@ const buildGradePrompt = (
   instruction: string,
   imageAlt: string | null,
   answer: string,
+  handwritingContext = "",
 ) => `Bạn là giám khảo chuyên chấm bài viết kỳ thi TOPIK II (쓰기 53번).
 
 ĐỀ BÀI:
@@ -30,6 +31,7 @@ ${instruction}
 ${imageAlt ? `\nMÔ TẢ BIỂU ĐỒ/DỮ LIỆU:\n${imageAlt}\n` : ""}
 BÀI VIẾT CỦA THÍ SINH:
 ${answer}
+${handwritingContext}
 
 ---
 Hãy đánh giá bài viết theo thang điểm TOPIK II 쓰기 53번 (tổng 30 điểm):
@@ -56,6 +58,7 @@ NGUYÊN TẮC CHẤM:
 - Không bịa ra lỗi không có. Nếu câu đúng, isCorrect = true
 - content.score + organization.score + language.score = totalScore
 - Điểm tối đa 30, KHÔNG được vượt quá
+- Nếu bài là OCR từ ảnh viết tay, không trừ điểm chỉ vì nét chữ xấu hoặc OCR không chắc chắn.
 
 Trả về JSON thuần túy (KHÔNG có markdown, KHÔNG có code fence):
 {
@@ -74,7 +77,14 @@ Trả về JSON thuần túy (KHÔNG có markdown, KHÔNG có code fence):
   "vocabularyCorrections": [
     { "original": "<từ/cụm từ gốc>", "suggested": "<đề xuất>", "explanation": "<giải thích tiếng Việt>" }
   ],
-  "sampleAnswer": "<bài mẫu tham khảo 200-300 ký tự bằng tiếng Hàn>"
+  "sampleAnswer": "<bài mẫu tham khảo 200-300 ký tự bằng tiếng Hàn>",
+  "handwriting": {
+    "ocrConfidence": <0-1>,
+    "spacingScore": <0-10>,
+    "spacingFeedback": "<nhận xét khoảng cách và bố cục ô>",
+    "spellingErrors": [{ "original": "<từ OCR>", "corrected": "<từ đúng>", "explanation": "<giải thích>" }],
+    "layoutWarnings": ["<cảnh báo nếu có>"]
+  }
 }`
 
 // ─── Zod schemas ──────────────────────────────────────────────────────────────
@@ -110,7 +120,50 @@ const gradeSchema = z.object({
     z.object({ original: z.string(), suggested: z.string(), explanation: z.string() }),
   ),
   sampleAnswer: z.string(),
+  handwriting: z
+    .object({
+      ocrConfidence: z.number().min(0).max(1),
+      spacingScore: z.number().min(0).max(10),
+      spacingFeedback: z.string(),
+      spellingErrors: z.array(
+        z.object({ original: z.string(), corrected: z.string(), explanation: z.string() }),
+      ),
+      layoutWarnings: z.array(z.string()),
+    })
+    .optional(),
 })
+
+const handwrittenOcrSchema = z.object({
+  text: z.string(),
+  cells: z.array(z.string()).length(300),
+  ocrConfidence: z.number().min(0).max(1),
+  spacingScore: z.number().min(0).max(10),
+  spacingFeedback: z.string(),
+  spellingErrors: z.array(
+    z.object({ original: z.string(), corrected: z.string(), explanation: z.string() }),
+  ),
+  layoutWarnings: z.array(z.string()),
+})
+
+const buildHandwrittenOcrPrompt = (rangeMin: number, rangeMax: number) => `Bạn là công cụ OCR chuyên đọc bài viết tiếng Hàn viết tay trên giấy 원고지.
+
+Hãy đọc ảnh và trả về JSON thuần túy (không markdown):
+{
+  "text": "<toàn bộ bài viết, giữ nguyên dấu câu và khoảng cách có ý nghĩa>",
+  "cells": ["<đúng 300 phần tử, mỗi phần tử là nội dung một ô; ô trống là chuỗi rỗng>"],
+  "ocrConfidence": <0-1, độ chắc chắn khi đọc chữ>,
+  "spacingScore": <0-10, chấm riêng việc dùng ô và khoảng cách 원고지>,
+  "spacingFeedback": "<nhận xét tiếng Việt>",
+  "spellingErrors": [{ "original": "<từ đọc được>", "corrected": "<từ đúng>", "explanation": "<tiếng Việt>" }],
+  "layoutWarnings": ["<cảnh báo tiếng Việt>"]
+}
+
+Quy tắc:
+- Đếm từng ô theo thứ tự trái sang phải, trên xuống dưới; không tự dồn chữ.
+- Khoảng trắng thật trong ảnh phải được giữ bằng ô trống.
+- Nếu không chắc một ký tự, giữ ký tự gần nhất và thêm cảnh báo.
+- Bài chuẩn có khoảng ${rangeMin}-${rangeMax} ký tự; không tự cắt bài.
+- Mảng cells bắt buộc có đúng 300 phần tử.`
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
@@ -250,6 +303,62 @@ export const writingRouter = router({
       return grade
     }),
 
+  /** OCR and grade a handwritten submission, keeping the original image for review. */
+  gradeHandwritten53: publicProcedure
+    .input(
+      z.object({
+        questionId: z.string(),
+        imageBase64: z.string().min(1),
+        imageMimeType: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const question = await ctx.prisma.writingQuestion53.findUnique({
+        where: { id: input.questionId },
+      })
+      if (!question) throw new Error("Question not found")
+
+      const ocrRaw = await callGeminiVisionJSON(
+        buildHandwrittenOcrPrompt(question.rangeMin, question.rangeMax),
+        input.imageBase64,
+        input.imageMimeType,
+        { temperature: 0.1, maxTokens: 4096 },
+      )
+      const ocr = handwrittenOcrSchema.parse(ocrRaw)
+      const handwritingContext = `\nTHÔNG TIN OCR BÀI VIẾT TAY:\n- Độ tin cậy OCR: ${ocr.ocrConfidence}\n- Điểm khoảng cách ô: ${ocr.spacingScore}/10\n- Nhận xét khoảng cách: ${ocr.spacingFeedback}\n- Cảnh báo bố cục: ${ocr.layoutWarnings.join("; ") || "Không có"}\n- Lỗi chính tả do OCR phát hiện: ${ocr.spellingErrors.map((item) => `${item.original} → ${item.corrected}`).join(", ") || "Không có"}`
+      const prompt = buildGradePrompt(question.instruction, question.imageAlt, ocr.text, handwritingContext)
+      const { callGeminiJSON } = await import("../lib/gemini")
+      const raw = await callGeminiJSON(prompt, { temperature: 0.2, maxTokens: 4096 })
+      const grade = gradeSchema.parse({
+        ...(raw as Record<string, unknown>),
+        handwriting: {
+          ocrConfidence: ocr.ocrConfidence,
+          spacingScore: ocr.spacingScore,
+          spacingFeedback: ocr.spacingFeedback,
+          spellingErrors: ocr.spellingErrors,
+          layoutWarnings: ocr.layoutWarnings,
+        },
+      }) as WritingGrade
+      const deviceId = ctx.deviceId || "anonymous"
+      await ctx.prisma.writingAttempt53.create({
+        data: {
+          questionId: input.questionId,
+          deviceId,
+          ...(ctx.userId ? { userId: ctx.userId } : {}),
+          answer: ocr.text,
+          cellsJson: ocr.cells,
+          submissionType: "handwritten",
+          imageData: input.imageBase64,
+          imageMimeType: input.imageMimeType,
+          ocrText: ocr.text,
+          ocrCellsJson: ocr.cells,
+          gradeJson: grade as object,
+          totalScore: grade.totalScore,
+        },
+      })
+      return { grade, answer: ocr.text, cells: ocr.cells, ocr }
+    }),
+
   /** Save a completed attempt to DB */
   saveAttempt: publicProcedure
     .input(
@@ -257,6 +366,7 @@ export const writingRouter = router({
         questionId: z.string(),
         answer: z.string(),
         cells: z.array(z.string()).optional(),
+        submissionType: z.enum(["typed", "handwritten"]).default("typed"),
         grade: gradeSchema,
       }),
     )
@@ -269,6 +379,7 @@ export const writingRouter = router({
           ...(ctx.userId ? { userId: ctx.userId } : {}),
           answer: input.answer,
           cellsJson: input.cells ? (input.cells as string[]) : undefined,
+          submissionType: input.submissionType,
           gradeJson: input.grade as object,
           totalScore: input.grade.totalScore,
         },
@@ -295,6 +406,9 @@ export const writingRouter = router({
           answer: true,
           gradeJson: true,
           cellsJson: true,
+          imageData: true,
+          imageMimeType: true,
+          submissionType: true,
         },
       })
       return rows

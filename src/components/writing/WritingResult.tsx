@@ -11,6 +11,7 @@ type Props = {
   grade: WritingGrade
   answer: string
   viewCells?: string[] | null
+  handwrittenImage?: string | null
   onWriteAgain: () => void
 }
 
@@ -32,7 +33,7 @@ function ScoreBar({ score, max }: { score: number; max: number }) {
   )
 }
 
-export function WritingResult({ grade, answer, viewCells, onWriteAgain }: Props) {
+export function WritingResult({ grade, answer, viewCells, handwrittenImage, onWriteAgain }: Props) {
   const [showAnswer, setShowAnswer] = useState(false)
   const [showSample, setShowSample] = useState(false)
   // Use exact cells (if available) otherwise fall back to deserializing the text
@@ -85,6 +86,39 @@ export function WritingResult({ grade, answer, viewCells, onWriteAgain }: Props)
           })}
         </div>
       </div>
+
+      {grade.handwriting && (
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
+          <div className="flex flex-wrap items-start gap-4">
+            {handwrittenImage && (
+              <img
+                src={handwrittenImage}
+                alt="Ảnh bài viết tay đã chấm"
+                className="h-32 w-24 rounded-lg border border-emerald-200 bg-white object-cover"
+              />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">
+                OCR bài viết tay
+              </p>
+              <p className="mt-2 text-sm text-emerald-900">
+                Độ tin cậy OCR: {Math.round(grade.handwriting.ocrConfidence * 100)}% · Khoảng cách
+                ô: {grade.handwriting.spacingScore}/10
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-emerald-800">
+                {grade.handwriting.spacingFeedback}
+              </p>
+              {grade.handwriting.layoutWarnings.length > 0 && (
+                <ul className="mt-2 list-disc pl-4 text-xs text-amber-800">
+                  {grade.handwriting.layoutWarnings.map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Overall Feedback */}
       {grade.overallFeedback && (
