@@ -7,7 +7,10 @@ import { api } from "@/lib/trpc-provider"
 import type { WritingQuestion54 } from "@/lib/writing-types"
 
 type Props = { onSaved: (_id: string) => void }
-type Extracted = Pick<WritingQuestion54, "examRef" | "instruction" | "imageAlt" | "rangeMin" | "rangeMax">
+type Extracted = Pick<
+  WritingQuestion54,
+  "examRef" | "instruction" | "imageAlt" | "rangeMin" | "rangeMax"
+>
 
 async function compressImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -20,7 +23,11 @@ async function compressImage(file: File): Promise<Blob> {
       const context = canvas.getContext("2d")
       if (!context) return reject(new Error("Canvas không khả dụng"))
       context.drawImage(image, 0, 0, canvas.width, canvas.height)
-      canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Không thể nén ảnh"))), "image/jpeg", 0.9)
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("Không thể nén ảnh"))),
+        "image/jpeg",
+        0.9,
+      )
     }
     image.onerror = () => reject(new Error("Không thể đọc ảnh"))
     image.src = URL.createObjectURL(file)
@@ -109,29 +116,122 @@ export function Writing54Importer({ onSaved }: Props) {
             void handleFile(file)
           }}
         >
-          {busy ? <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-primary-500" /> : <Upload className="mx-auto mb-3 h-8 w-8 text-primary-500" />}
+          {busy ? (
+            <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-primary-500" />
+          ) : (
+            <Upload className="mx-auto mb-3 h-8 w-8 text-primary-500" />
+          )}
           <p className="font-semibold text-primary-900">Upload hoặc kéo thả ảnh đề câu 54</p>
-          <p className="mt-1 text-xs text-primary-500">Có thể dán ảnh bằng Cmd/Ctrl+V · AI sẽ đọc đề</p>
-          <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) void handleFile(file) }} />
+          <p className="mt-1 text-xs text-primary-500">
+            Có thể dán ảnh bằng Cmd/Ctrl+V · AI sẽ đọc đề
+          </p>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) void handleFile(file)
+            }}
+          />
         </div>
       )}
 
       {draft && preview && (
         <div className="space-y-4 rounded-2xl border border-primary-100 bg-white p-5 shadow-sm">
           <div className="flex items-start gap-4">
-            <img src={preview} alt="Preview đề câu 54" className="h-40 w-28 rounded-lg border border-slate-200 object-cover" />
+            <img
+              src={preview}
+              alt="Preview đề câu 54"
+              className="h-40 w-28 rounded-lg border border-slate-200 object-cover"
+            />
             <div className="min-w-0 flex-1">
-              <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-primary-600"><Sparkles className="h-4 w-4" /> AI đã trích xuất, hãy kiểm tra lại</div>
-              <label className="block text-xs text-slate-500">Kỳ thi<input value={draft.examRef ?? ""} onChange={(event) => setDraft({ ...draft, examRef: event.target.value || null })} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" /></label>
-              <div className="mt-2 flex gap-2 text-xs text-slate-500"><label className="flex-1">Min<input type="number" value={draft.rangeMin} onChange={(event) => setDraft({ ...draft, rangeMin: Number(event.target.value) })} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" /></label><label className="flex-1">Max<input type="number" value={draft.rangeMax} onChange={(event) => setDraft({ ...draft, rangeMax: Number(event.target.value) })} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" /></label></div>
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-primary-600">
+                <Sparkles className="h-4 w-4" /> AI đã trích xuất, hãy kiểm tra lại
+              </div>
+              <label className="block text-xs text-slate-500">
+                Kỳ thi
+                <input
+                  value={draft.examRef ?? ""}
+                  onChange={(event) => setDraft({ ...draft, examRef: event.target.value || null })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                />
+              </label>
+              <div className="mt-2 flex gap-2 text-xs text-slate-500">
+                <label className="flex-1">
+                  Min
+                  <input
+                    type="number"
+                    value={draft.rangeMin}
+                    onChange={(event) =>
+                      setDraft({ ...draft, rangeMin: Number(event.target.value) })
+                    }
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  />
+                </label>
+                <label className="flex-1">
+                  Max
+                  <input
+                    type="number"
+                    value={draft.rangeMax}
+                    onChange={(event) =>
+                      setDraft({ ...draft, rangeMax: Number(event.target.value) })
+                    }
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  />
+                </label>
+              </div>
             </div>
           </div>
-          <label className="block text-xs font-medium text-slate-600">Đề bài<textarea value={draft.instruction} onChange={(event) => setDraft({ ...draft, instruction: event.target.value })} rows={4} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" /></label>
-          <label className="block text-xs font-medium text-slate-600">Mô tả/gợi ý nội dung<textarea value={draft.imageAlt ?? ""} onChange={(event) => setDraft({ ...draft, imageAlt: event.target.value })} rows={4} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" /></label>
-          <div className="flex gap-3"><Button variant="secondary" className="flex-1" onClick={() => { setDraft(null); setPreview(null); setUpload(null) }} disabled={busy}>Chọn ảnh khác</Button><Button variant="gradient" className="flex-1" onClick={() => void handleSave()} loading={busy}>Lưu đề câu 54</Button></div>
+          <label className="block text-xs font-medium text-slate-600">
+            Đề bài
+            <textarea
+              value={draft.instruction}
+              onChange={(event) => setDraft({ ...draft, instruction: event.target.value })}
+              rows={4}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-xs font-medium text-slate-600">
+            Mô tả/gợi ý nội dung
+            <textarea
+              value={draft.imageAlt ?? ""}
+              onChange={(event) => setDraft({ ...draft, imageAlt: event.target.value })}
+              rows={4}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            />
+          </label>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              className="flex-1"
+              onClick={() => {
+                setDraft(null)
+                setPreview(null)
+                setUpload(null)
+              }}
+              disabled={busy}
+            >
+              Chọn ảnh khác
+            </Button>
+            <Button
+              variant="gradient"
+              className="flex-1"
+              onClick={() => void handleSave()}
+              loading={busy}
+            >
+              Lưu đề câu 54
+            </Button>
+          </div>
         </div>
       )}
-      {error && <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600"><AlertCircle className="h-4 w-4 shrink-0" />{error}</div>}
+      {error && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {error}
+        </div>
+      )}
     </div>
   )
 }

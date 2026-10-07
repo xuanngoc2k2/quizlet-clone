@@ -18,9 +18,7 @@ const DEFAULT_ROWS = 12
 // Right-side markers: every 2 rows (every 50 chars)
 // Shown at the bottom edge of rows 1, 3, 5, 7, 9, 11 (0-indexed)
 function getMarkerRows(rows: number): Record<number, string> {
-  return Object.fromEntries(
-    Array.from({ length: rows }, (_, row) => [row, String((row + 1) * 25)]),
-  )
+  return Object.fromEntries(Array.from({ length: rows }, (_, row) => [row, String((row + 1) * 25)]))
 }
 
 // ─── State / Reducer ──────────────────────────────────────────────────────────
@@ -209,14 +207,15 @@ type WongojipEditorProps = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorProps>(
-  function WongojipEditor({ disabled = false, onCellsChange, errors, initialCells, maxCells }, ref) {
+  function WongojipEditor(
+    { disabled = false, onCellsChange, errors, initialCells, maxCells },
+    ref,
+  ) {
     const total = maxCells ?? COLS * DEFAULT_ROWS
     const rows = Math.ceil(total / COLS)
     const markerRows = getMarkerRows(rows)
-    const [state, dispatch] = useReducer(
-      reducer,
-      initialCells,
-      (cells) => makeInitialState(cells, total),
+    const [state, dispatch] = useReducer(reducer, initialCells, (cells) =>
+      makeInitialState(cells, total),
     )
     const { cells, cursorIndex, composingText } = state
 
@@ -352,7 +351,9 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
         {/* Header bar */}
         <div className="mb-1 flex items-center justify-between text-[11px] text-gray-400">
           <span>25 ô × {rows} dòng</span>
-          <span>{cellCount} / {total} ô</span>
+          <span>
+            {cellCount} / {total} ô
+          </span>
         </div>
 
         {/* Grid wrapper — allows horizontal scroll on narrow screens */}
@@ -467,7 +468,9 @@ export const WongojipEditor = forwardRef<WongojipEditorHandle, WongojipEditorPro
         </div>
 
         {/* Counter */}
-        <p className="mt-2 text-xs text-gray-500">{cellCount} ô đã dùng · tối đa {total} ô</p>
+        <p className="mt-2 text-xs text-gray-500">
+          {cellCount} ô đã dùng · tối đa {total} ô
+        </p>
       </div>
     )
   },
