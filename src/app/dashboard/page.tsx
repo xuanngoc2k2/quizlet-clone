@@ -34,12 +34,15 @@ export default function DashboardPage() {
   }, [status, router])
 
   // Fetch dashboard summary (only when authenticated)
-  const { data: summary, isLoading: summaryLoading, error } =
-    api.dashboard.summary.useQuery(undefined, {
-      enabled: status === "authenticated",
-      staleTime: 60_000, // 1 min
-      refetchOnWindowFocus: false,
-    })
+  const {
+    data: summary,
+    isLoading: summaryLoading,
+    error,
+  } = api.dashboard.summary.useQuery(undefined, {
+    enabled: status === "authenticated",
+    staleTime: 60_000, // 1 min
+    refetchOnWindowFocus: false,
+  })
 
   // Fetch user's sets to determine vocabulary CTA
   const { data: mySets = [] } = api.sets.my.useQuery(undefined, {
@@ -65,8 +68,7 @@ export default function DashboardPage() {
     <div className="flex min-h-screen-safe flex-col bg-slate-50">
       <Header />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
-
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 sm:px-6 md:px-8">
         {/* ── Greeting ─────────────────────────────────────── */}
         <DashboardGreeting
           streak={streak}
@@ -89,25 +91,41 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-8">
           {/* ── Row 1: Today's Study + TOPIK Goal ─────────────── */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <TodayStudyCard
-              reviewDue={today?.reviewDue ?? 0}
-              mySetsCount={mySets.length}
-              firstSetId={firstSetId}
-              isLoading={isLoading}
-            />
-            <TopikGoalCard goal={goal} isLoading={isLoading} />
-          </div>
+          <section>
+            <div className="mb-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                Today
+              </p>
+              <h2 className="mt-1 text-lg font-bold text-slate-900">Your learning plan</h2>
+            </div>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <TodayStudyCard
+                reviewDue={today?.reviewDue ?? 0}
+                mySetsCount={mySets.length}
+                firstSetId={firstSetId}
+                isLoading={isLoading}
+              />
+              <TopikGoalCard goal={goal} isLoading={isLoading} />
+            </div>
+          </section>
 
           {/* ── Today's Progress ───────────────────────────────── */}
-          <TodayProgress
-            completedTasks={today?.completedTasks ?? 0}
-            totalTasks={today?.totalTasks ?? 0}
-            progressPercent={today?.progressPercent ?? 0}
-            isLoading={isLoading}
-          />
+          <section>
+            <div className="mb-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                Momentum
+              </p>
+              <h2 className="mt-1 text-lg font-bold text-slate-900">Learning progress</h2>
+            </div>
+            <TodayProgress
+              completedTasks={today?.completedTasks ?? 0}
+              totalTasks={today?.totalTasks ?? 0}
+              progressPercent={today?.progressPercent ?? 0}
+              isLoading={isLoading}
+            />
+          </section>
 
           {/* ── Priority-2 sections (R-21) ── */}
           {summary?.progress && (
@@ -122,19 +140,18 @@ export default function DashboardPage() {
             />
           )}
 
-          <ContinueLearning
-            sets={summary?.continueLearning ?? []}
-            isLoading={isLoading}
-          />
+          <ContinueLearning sets={summary?.continueLearning ?? []} isLoading={isLoading} />
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <WeakAreas
-              areas={(summary?.weakAreas ?? []) as Array<{
-                type: string
-                accuracy: number | null
-                totalAttempts: number
-                severity: "weak" | "needs_practice" | "good" | "insufficient_data"
-              }>}
+              areas={
+                (summary?.weakAreas ?? []) as Array<{
+                  type: string
+                  accuracy: number | null
+                  totalAttempts: number
+                  severity: "weak" | "needs_practice" | "good" | "insufficient_data"
+                }>
+              }
               isLoading={isLoading}
             />
             <WeeklyStats
@@ -151,10 +168,7 @@ export default function DashboardPage() {
             />
           </div>
 
-          <RecentActivity
-            activities={summary?.recentActivity ?? []}
-            isLoading={isLoading}
-          />
+          <RecentActivity activities={summary?.recentActivity ?? []} isLoading={isLoading} />
         </div>
       </main>
 

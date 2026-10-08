@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { router, publicProcedure } from "../trpc"
+import { router, publicProcedure, aiProcedure } from "../trpc"
 import { callGeminiJSON, callGeminiVisionJSON } from "../lib/gemini"
 
 const buildExtractPrompt = () => `Bạn đang xem ảnh đề thi TOPIK II Câu 54 (쓰기 54번).
@@ -155,7 +155,7 @@ export const writing54Router = router({
     return question
   }),
 
-  extractFromImage: publicProcedure
+  extractFromImage: aiProcedure
     .input(z.object({ imageBase64: z.string().min(1), imageMimeType: z.string().min(1) }))
     .mutation(async ({ input }) => {
       const raw = await callGeminiVisionJSON(buildExtractPrompt(), input.imageBase64, input.imageMimeType, {
@@ -192,7 +192,7 @@ export const writing54Router = router({
       return { id: question.id }
     }),
 
-  gradeWriting54: publicProcedure
+  gradeWriting54: aiProcedure
     .input(z.object({ questionId: z.string(), answer: z.string().min(1, "Bài viết không được để trống") }))
     .mutation(async ({ input, ctx }) => {
       const question = await ctx.prisma.writingQuestion54.findUnique({ where: { id: input.questionId } })
@@ -204,7 +204,7 @@ export const writing54Router = router({
       return gradeSchema.parse(raw)
     }),
 
-  gradeHandwritten54: publicProcedure
+  gradeHandwritten54: aiProcedure
     .input(z.object({ questionId: z.string(), imageBase64: z.string().min(1), imageMimeType: z.string().min(1) }))
     .mutation(async ({ input, ctx }) => {
       const question = await ctx.prisma.writingQuestion54.findUnique({ where: { id: input.questionId } })

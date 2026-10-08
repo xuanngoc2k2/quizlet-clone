@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { router, publicProcedure } from "../trpc"
+import { router, aiProcedure } from "../trpc"
 import { callGeminiJSON, callGeminiText } from "../lib/gemini"
 import { normalizeConjugationAnswer } from "@/lib/set-test-conjugation"
 
@@ -250,14 +250,14 @@ const gradeInputSchema = z.object({
 })
 
 export const testRouter = router({
-  refinePrompt: publicProcedure
+  refinePrompt: aiProcedure
     .input(z.object({ prompt: z.string().min(1, "Prompt is required") }))
     .mutation(async ({ input }) => {
       const refined = await callGeminiText(buildRefinePrompt(input.prompt), { maxTokens: 1024 })
       return { refined }
     }),
 
-  generate: publicProcedure
+  generate: aiProcedure
     .input(z.object({ prompt: z.string().min(1, "Prompt is required") }))
     .mutation(async ({ input }) => {
       const raw = await callGeminiJSON(buildTestPrompt(input.prompt), { temperature: 0.4, maxTokens: 8192 })
@@ -271,7 +271,7 @@ export const testRouter = router({
       return parsed
     }),
 
-  grade: publicProcedure
+  grade: aiProcedure
     .input(gradeInputSchema)
     .mutation(async ({ input }) => {
       const normalizedAnswers: Record<string, string> = {}

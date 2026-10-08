@@ -3,6 +3,8 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import Google from "next-auth/providers/google"
 import { prisma } from "@/server/db"
 
+export const ADMIN_EMAIL = "xuanngoc2k2@gmail.com"
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -15,9 +17,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "database",
   },
   callbacks: {
-    session({ session, user }) {
+    async signIn({ user }) {
+      if (user.email?.toLowerCase() === ADMIN_EMAIL) {
+        await prisma.user.updateMany({
+          where: { email: ADMIN_EMAIL },
+          data: { role: "ADMIN" },
+        })
+      }
+      return true
+    },
+    authorized({ auth }) {
+      return !!auth?.user
+    },
+    async session({ session, user }) {
       if (session.user) {
         session.user.id = user.id
+        session.user.role = user.role
+        session.user.canUseAI = user.canUseAI
       }
       return session
     },

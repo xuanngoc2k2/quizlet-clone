@@ -2,22 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Plus, BookOpen, Sparkles, Brain, Clock, LayoutDashboard, PenLine } from "lucide-react"
+import { Home, BookOpen, Sparkles, MoreHorizontal, PenLine } from "lucide-react"
 import { api } from "@/lib/trpc-provider"
-
-const staticNavItems = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/set/new", label: "Create", icon: Plus },
-  { href: "/review", label: "Review", icon: Brain },
-  { href: "/test", label: "Test", icon: Sparkles },
-  { href: "/writing", label: "Viết", icon: PenLine },
-  { href: "/test/history", label: "History", icon: Clock },
-  { href: "/my-sets", label: "My Sets", icon: BookOpen },
-]
+import {
+  ModuleMenu,
+  learnMenuItems,
+  moreMenuItems,
+  practiceMenuItems,
+  writingMenuItems,
+} from "./ModuleMenu"
 
 export function BottomNav() {
-  const pathname = usePathname()
   const { data: dueCards = [] } = api.cardProgress.getDueWithDetails.useQuery(undefined, {
     // Poll mỗi 5 phút để badge luôn fresh
     refetchInterval: 5 * 60 * 1000,
@@ -26,38 +21,41 @@ export function BottomNav() {
   const dueCount = dueCards.length
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/80 backdrop-blur-lg safe-bottom">
-      <div className="mx-auto flex max-w-lg items-center justify-around overflow-x-auto no-scrollbar px-2">
-        {staticNavItems.map((item) => {
-          const isActive =
-            item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
-          const showBadge = item.href === "/review" && dueCount > 0
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`relative flex flex-col items-center gap-0.5 px-3 py-2 text-[10px] sm:text-xs transition-colors touch-target shrink-0 ${
-                isActive ? "text-primary-600" : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              {isActive && (
-                <span className="absolute -top-px left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary-500 to-primary-400" />
-              )}
-              <div className="relative">
-                <item.icon className={`h-5 w-5 ${isActive ? "text-primary-600" : ""}`} />
-                {showBadge && (
-                  <span className="absolute -right-2 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-violet-600 px-0.5 text-[9px] font-bold text-white">
-                    {dueCount > 99 ? "99+" : dueCount}
-                  </span>
-                )}
-              </div>
-              <span className={`font-medium ${isActive ? "font-semibold" : ""}`}>
-                {item.label}
-              </span>
-            </Link>
-          )
-        })}
+    <nav className="safe-bottom fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/80 backdrop-blur-lg">
+      <div className="mx-auto flex max-w-lg items-center justify-around px-2">
+        <BottomHomeLink />
+        <ModuleMenu label="Learn" icon={BookOpen} items={learnMenuItems} compact />
+        <div className="relative">
+          <ModuleMenu label="Practice" icon={Sparkles} items={practiceMenuItems} compact />
+          {dueCount > 0 && (
+            <span className="pointer-events-none absolute right-1 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-emerald-600 px-0.5 text-[9px] font-bold text-white">
+              {dueCount > 99 ? "99+" : dueCount}
+            </span>
+          )}
+        </div>
+        <ModuleMenu label="Writing" icon={PenLine} items={writingMenuItems} compact />
+        <ModuleMenu label="More" icon={MoreHorizontal} items={moreMenuItems} compact />
       </div>
     </nav>
+  )
+}
+
+function BottomHomeLink() {
+  const pathname = usePathname()
+  const isActive = pathname === "/"
+
+  return (
+    <Link
+      href="/"
+      className={`relative flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 text-[10px] transition-colors sm:text-xs ${
+        isActive ? "text-primary-600" : "text-slate-500 hover:text-slate-900"
+      }`}
+    >
+      {isActive && (
+        <span className="absolute -top-px left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-primary-500" />
+      )}
+      <Home className="h-5 w-5" />
+      <span className={isActive ? "font-semibold" : "font-medium"}>Home</span>
+    </Link>
   )
 }

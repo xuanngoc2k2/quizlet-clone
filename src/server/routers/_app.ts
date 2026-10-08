@@ -11,6 +11,7 @@ import { dashboardRouter } from "./dashboard"
 import { writingRouter } from "./writing"
 import { writing51Router } from "./writing51"
 import { writing54Router } from "./writing54"
+import { adminRouter } from "./admin"
 
 export const appRouter = router({
   sets: setsRouter,
@@ -25,6 +26,7 @@ export const appRouter = router({
   writing: writingRouter,
   writing51: writing51Router,
   writing54: writing54Router,
+  admin: adminRouter,
 })
 
 export type AppRouter = typeof appRouter

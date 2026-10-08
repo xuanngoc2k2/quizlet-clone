@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { router, publicProcedure } from "../trpc"
+import { router, aiProcedure } from "../trpc"
 import { prisma } from "../db"
 import { callGeminiJSON } from "../lib/gemini"
 import type { Prisma } from "@prisma/client"
@@ -12,7 +12,7 @@ import {
 } from "@/lib/dictionary"
 
 export const dictionaryRouter = router({
-  lookup: publicProcedure
+  lookup: aiProcedure
     .input(
       z.object({
         text: z.string().min(1, "Query is required").max(500),

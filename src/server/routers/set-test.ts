@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { router, publicProcedure } from "../trpc"
+import { router, publicProcedure, aiProcedure } from "../trpc"
 import { prisma } from "../db"
 import { callGeminiJSON } from "../lib/gemini"
 import type { Prisma } from "@prisma/client"
@@ -170,20 +170,20 @@ export function buildSetTestPrompt(args: {
 
   const itemsStr = partAssignments
     ? [1, 2, 3, 4]
-        .filter((p) => counts[p] > 0)
-        .map((p) => {
-          const pItems = partAssignments
-            .filter((a) => a.part === p)
-            .map((a) => items.find((i) => i.key === a.itemKey)!)
-            .filter(Boolean)
-          if (pItems.length === 0) return ""
-          return `Part ${p}:\n` + pItems.map((it) => `- ${it.key} | term: ${it.term} | type: ${it.type} | meaning: ${it.definition}`).join("\n")
-        })
-        .filter(Boolean)
-        .join("\n\n")
+      .filter((p) => counts[p] > 0)
+      .map((p) => {
+        const pItems = partAssignments
+          .filter((a) => a.part === p)
+          .map((a) => items.find((i) => i.key === a.itemKey)!)
+          .filter(Boolean)
+        if (pItems.length === 0) return ""
+        return `Part ${p}:\n` + pItems.map((it) => `- ${it.key} | term: ${it.term} | type: ${it.type} | meaning: ${it.definition}`).join("\n")
+      })
+      .filter(Boolean)
+      .join("\n\n")
     : items
-        .map((it) => `- ${it.key} | term: ${it.term} | type: ${it.type} | meaning: ${it.definition}`)
-        .join("\n")
+      .map((it) => `- ${it.key} | term: ${it.term} | type: ${it.type} | meaning: ${it.definition}`)
+      .join("\n")
 
   const assignmentNote = partAssignments
     ? `\n## PHÂN BỔ PART BẮT BUỘC\nBạn PHẢI tạo câu hỏi cho mỗi item vào ĐÚNG Part đã được chỉ định ở mục "Set items" phía trên. KHÔNG ĐƯỢC tự ý chuyển item sang Part khác.`
@@ -200,9 +200,9 @@ export function buildSetTestPrompt(args: {
   const prevBlock =
     previousTexts.length > 0
       ? `\n## CÂU HỎI ĐÃ DÙNG TRƯỚC ĐÂY (PHẢI TRÁNH — KHÔNG lặp ngữ cảnh, pattern, cấu trúc câu)\n${previousTexts
-          .slice(0, 50)
-          .map((t, i) => `${i + 1}. ${t}`)
-          .join("\n")}`
+        .slice(0, 50)
+        .map((t, i) => `${i + 1}. ${t}`)
+        .join("\n")}`
       : ""
 
   return `You are a TOPIK II exam generator. Build a Korean-language assessment based STRICTLY on the exact vocabulary/grammar items listed below.
@@ -336,7 +336,7 @@ export async function generateFullTest(
       const parsed = generatedTestSchema.parse(raw)
       const { missing, extraCount } = computeCoverageStats(parsed.questions, itemKeys)
       const uniqueKeys = new Set(parsed.questions.map((q) => q.itemKey)).size === parsed.questions.length
-      
+
       let mismatchCount = 0
       if (partAssignments) {
         for (const q of parsed.questions) {
@@ -544,11 +544,11 @@ export async function runConjugationValidation(
           it.itemKey,
           r
             ? {
-                isValid: r.isValid,
-                correctAnswer: r.correctAnswer ?? it.correctAnswer,
-                expectedAnswers: r.expectedAnswers ?? [],
-                issues: r.issues,
-              }
+              isValid: r.isValid,
+              correctAnswer: r.correctAnswer ?? it.correctAnswer,
+              expectedAnswers: r.expectedAnswers ?? [],
+              issues: r.issues,
+            }
             : { isValid: false, correctAnswer: it.correctAnswer, expectedAnswers: [], issues: ["Validator bỏ sót item này"] },
         )
       }
@@ -892,7 +892,7 @@ function buildHistoryMap(histories: Awaited<ReturnType<typeof loadSetHistories>>
     const h = histories[i]
     const qMap = h.questionItemMap as Record<string, string>
     if (!qMap) continue
-    
+
     const sections = h.sections as { questions: { id: number, part: number }[] }[]
     if (!sections) continue
 
@@ -928,7 +928,7 @@ function buildHistoryMap(histories: Awaited<ReturnType<typeof loadSetHistories>>
 }
 
 export const setTestRouter = router({
-  generate: publicProcedure
+  generate: aiProcedure
     .input(z.object({ setId: z.string().min(1) }))
     .mutation(async ({ input, ctx }) => {
       const deviceId = ctx.deviceId || "anonymous"

@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { router, publicProcedure } from "../trpc"
+import { router, publicProcedure, aiProcedure } from "../trpc"
 import { callGeminiJSON, callGeminiVisionJSON } from "../lib/gemini"
 import {
   gradeWritingQuestion51,
@@ -123,7 +123,7 @@ function parseQuestionContent(question: { passage: unknown; blanks: unknown }) {
 }
 
 export const writing51Router = router({
-  extractFromImage: publicProcedure
+  extractFromImage: aiProcedure
     .input(z.object({ imageBase64: z.string().min(1), imageMimeType: z.string().min(1) }))
     .mutation(async ({ input }) => {
       const raw = await callGeminiVisionJSON(
@@ -213,7 +213,7 @@ export const writing51Router = router({
     return { id: question.id }
   }),
 
-  checkAnswer: publicProcedure
+  checkAnswer: aiProcedure
     .input(z.object({ questionId: z.string(), answers: answerSchema }))
     .mutation(async ({ input, ctx }) => {
       const question = await ctx.prisma.writingQuestion51.findUnique({ where: { id: input.questionId } })

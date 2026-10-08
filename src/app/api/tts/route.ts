@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/server/db"
+import { auth } from "@/lib/auth"
+
+export const dynamic = "force-dynamic"
 
 export async function GET(req: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { searchParams } = new URL(req.url)
     const text = searchParams.get("text")
     const lang = searchParams.get("lang") || "ko"
@@ -37,7 +45,7 @@ export async function GET(req: NextRequest) {
 
     // 2. Nếu chưa có, gọi Google Translate TTS API
     const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodeURIComponent(text)}`
-    
+
     const response = await fetch(googleTtsUrl, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36"

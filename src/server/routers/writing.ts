@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { router, publicProcedure } from "../trpc"
+import { router, publicProcedure, aiProcedure } from "../trpc"
 import { callGeminiVisionJSON } from "../lib/gemini"
 import type { WritingGrade, ExtractedQuestion } from "@/lib/writing-types"
 
@@ -222,7 +222,7 @@ export const writingRouter = router({
   }),
 
   /** Use Gemini Vision to extract question data from an uploaded image */
-  extractFromImage: publicProcedure
+  extractFromImage: aiProcedure
     .input(
       z.object({
         imageBase64: z.string().min(1),
@@ -272,7 +272,7 @@ export const writingRouter = router({
     }),
 
   /** Grade a writing submission with AI */
-  gradeWriting53: publicProcedure
+  gradeWriting53: aiProcedure
     .input(
       z.object({
         questionId: z.string(),
@@ -304,7 +304,7 @@ export const writingRouter = router({
     }),
 
   /** OCR and grade a handwritten submission, keeping the original image for review. */
-  gradeHandwritten53: publicProcedure
+  gradeHandwritten53: aiProcedure
     .input(
       z.object({
         questionId: z.string(),

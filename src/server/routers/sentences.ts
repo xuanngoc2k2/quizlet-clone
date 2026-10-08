@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { router, publicProcedure } from "../trpc"
+import { router, aiProcedure } from "../trpc"
 import { callGeminiJSON } from "../lib/gemini"
 
 const langLabels = {
@@ -77,7 +77,7 @@ type ExamplesResponse = {
 }
 
 export const sentencesRouter = router({
-  check: publicProcedure
+  check: aiProcedure
     .input(
       z.object({
         sentence: z.string().min(1, "Sentence is required"),
@@ -99,7 +99,7 @@ export const sentencesRouter = router({
       }
     }),
 
-  explain: publicProcedure
+  explain: aiProcedure
     .input(
       z.object({
         sentence: z.string().min(1, "Sentence is required"),
@@ -119,7 +119,7 @@ export const sentencesRouter = router({
       }
     }),
 
-  examples: publicProcedure
+  examples: aiProcedure
     .input(
       z.object({
         word: z.string().min(1, "Word is required"),
@@ -135,7 +135,7 @@ export const sentencesRouter = router({
       return { examples: result.examples }
     }),
 
-  generateAndSaveExamples: publicProcedure
+  generateAndSaveExamples: aiProcedure
     .input(
       z.object({
         cardId: z.string(),
@@ -149,7 +149,7 @@ export const sentencesRouter = router({
         where: { id: input.cardId }
       })
       if (!existingCard) throw new Error("Card not found")
-      
+
       // Do not re-fetch if already cached
       if (existingCard.examples) {
         return { examples: existingCard.examples }
@@ -159,7 +159,7 @@ export const sentencesRouter = router({
         buildExamplesPrompt(input.word, input.definition, input.language),
         { temperature: 0.4 },
       ) as ExamplesResponse
-      
+
       await ctx.prisma.flashcard.update({
         where: { id: input.cardId },
         data: { examples: result.examples }

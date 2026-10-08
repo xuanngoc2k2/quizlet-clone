@@ -7,9 +7,9 @@ export const config = {
      * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
+    * - login, favicon.ico, sitemap.xml, robots.txt (public routes/metadata files)
      * - icon.svg, manifest.json (PWA files)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|icon.svg|manifest.json).*)",
+    "/((?!api|login|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|icon.svg|manifest.json).*)",
   ],
 }

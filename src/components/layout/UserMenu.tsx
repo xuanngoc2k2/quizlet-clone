@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useSession, signOut } from "next-auth/react"
-import { LogOut, User } from "lucide-react"
+import { LogOut, ShieldCheck, User } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 
@@ -32,7 +32,11 @@ export function UserMenu() {
         className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-slate-200 transition-all hover:border-slate-300 active:scale-95"
       >
         {session.user.image ? (
-          <img src={session.user.image} alt={session.user.name || "User"} className="h-full w-full object-cover" />
+          <img
+            src={session.user.image}
+            alt={session.user.name || "User"}
+            className="h-full w-full object-cover"
+          />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-slate-50 text-primary-600">
             {session.user.name?.[0] || <User className="h-4 w-4" />}
@@ -56,6 +60,17 @@ export function UserMenu() {
                 <p className="truncate text-xs text-gray-500">{session.user.email}</p>
               </div>
               <div className="my-1 h-px bg-gray-100" />
+              {(session.user.role === "ADMIN" ||
+                session.user.email?.toLowerCase() === "xuanngoc2k2@gmail.com") && (
+                <Link
+                  href="/admin/users"
+                  onClick={() => setIsOpen(false)}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-primary-700 transition-colors hover:bg-primary-50"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  Quản lý user
+                </Link>
+              )}
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50 active:scale-[0.98]"

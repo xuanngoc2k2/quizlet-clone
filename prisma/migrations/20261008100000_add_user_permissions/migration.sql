@@ -1,0 +1,7 @@
+ALTER TABLE "User"
+ADD COLUMN "role" TEXT NOT NULL DEFAULT 'USER',
+ADD COLUMN "canUseAI" BOOLEAN NOT NULL DEFAULT true;
+
+UPDATE "User"
+SET "role" = 'ADMIN'
+WHERE LOWER("email") = 'xuanngoc2k2@gmail.com';

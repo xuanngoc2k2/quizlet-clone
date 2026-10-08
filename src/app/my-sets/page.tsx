@@ -6,7 +6,7 @@ import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
-import { BookOpen, LogIn } from "lucide-react"
+import { BookOpen, LogIn, Plus } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 
 export default function MySetsPage() {
@@ -16,8 +16,21 @@ export default function MySetsPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
-        <h1 className="mb-6 font-display text-2xl font-bold text-slate-900">My Sets</h1>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-6 sm:px-6 md:px-8">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+              Learn
+            </p>
+            <h1 className="mt-1 font-display text-2xl font-bold text-slate-900">My Sets</h1>
+          </div>
+          <Link href="/set/new">
+            <Button variant="primary" size="sm">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Create Set</span>
+            </Button>
+          </Link>
+        </div>
 
         {status === "unauthenticated" ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-16 text-center">
