@@ -1,6 +1,8 @@
 "use client"
 
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { ArrowLeft } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
@@ -8,6 +10,16 @@ import { Writing54Importer } from "@/components/writing/Writing54Importer"
 
 export default function NewWriting54Page() {
   const router = useRouter()
+  const { data: session, status } = useSession()
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.role !== "ADMIN") {
+      router.replace("/writing/54")
+    }
+  }, [router, session?.user?.role, status])
+
+  if (status !== "authenticated" || session.user.role !== "ADMIN") return null
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 import { Plus, FileText, Loader2, PenLine, Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { api } from "@/lib/trpc-provider"
@@ -9,8 +10,10 @@ import { getWritingScoreStatus } from "@/lib/writing-score-status"
 
 export function Writing53List() {
   const [page, setPage] = useState(1)
+  const { data: session } = useSession()
   const { data, isLoading } = api.writing.listQuestions.useQuery({ page })
   const questions = data?.questions
+  const isAdmin = session?.user?.role === "ADMIN"
 
   return (
     <>
@@ -19,12 +22,14 @@ export function Writing53List() {
           <h1 className="font-display text-xl font-bold text-slate-900">쓰기 연습 · Câu 53</h1>
           <p className="mt-0.5 text-sm text-slate-500">TOPIK II · 원고지 200~300자</p>
         </div>
-        <Link href="/writing/new">
-          <Button variant="gradient" size="sm">
-            <Plus className="h-4 w-4" />
-            Thêm đề
-          </Button>
-        </Link>
+        {isAdmin && (
+          <Link href="/writing/new">
+            <Button variant="gradient" size="sm">
+              <Plus className="h-4 w-4" />
+              Thêm đề
+            </Button>
+          </Link>
+        )}
       </div>
 
       {isLoading && (
@@ -39,13 +44,19 @@ export function Writing53List() {
             <PenLine className="h-7 w-7 text-slate-500" />
           </div>
           <p className="font-semibold text-slate-700">Chưa có đề nào</p>
-          <p className="mt-1 text-sm text-slate-500">Nhấn “Thêm đề” để upload ảnh đề thi TOPIK</p>
-          <Link href="/writing/new" className="mt-4">
-            <Button variant="primary" size="sm">
-              <Plus className="h-4 w-4" />
-              Thêm đề đầu tiên
-            </Button>
-          </Link>
+          {isAdmin && (
+            <>
+              <p className="mt-1 text-sm text-slate-500">
+                Nhấn “Thêm đề” để upload ảnh đề thi TOPIK
+              </p>
+              <Link href="/writing/new" className="mt-4">
+                <Button variant="primary" size="sm">
+                  <Plus className="h-4 w-4" />
+                  Thêm đề đầu tiên
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       )}
 

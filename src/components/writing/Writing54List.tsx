@@ -2,13 +2,16 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 import { ChevronLeft, ChevronRight, Clock, FileText, Loader2, PenLine, Plus } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { api } from "@/lib/trpc-provider"
 
 export function Writing54List() {
   const [page, setPage] = React.useState(1)
+  const { data: session } = useSession()
   const { data, isLoading } = api.writing54.listQuestions.useQuery({ page })
+  const isAdmin = session?.user?.role === "ADMIN"
   return (
     <>
       <div className="mb-6 flex items-center justify-between">
@@ -16,12 +19,14 @@ export function Writing54List() {
           <h1 className="font-display text-xl font-bold text-slate-900">쓰기 연습 · Câu 54</h1>
           <p className="mt-0.5 text-sm text-slate-500">TOPIK II · 원고지 600~700자 · 50 điểm</p>
         </div>
-        <Link href="/writing/54/new">
-          <Button variant="gradient" size="sm">
-            <Plus className="h-4 w-4" />
-            Thêm đề
-          </Button>
-        </Link>
+        {isAdmin && (
+          <Link href="/writing/54/new">
+            <Button variant="gradient" size="sm">
+              <Plus className="h-4 w-4" />
+              Thêm đề
+            </Button>
+          </Link>
+        )}
       </div>
       {isLoading && (
         <div className="flex justify-center py-16">
@@ -32,12 +37,14 @@ export function Writing54List() {
         <div className="flex flex-col items-center rounded-2xl border border-dashed border-slate-200 bg-white py-14 text-center">
           <PenLine className="mb-3 h-8 w-8 text-slate-400" />
           <p className="font-semibold text-slate-700">Chưa có đề câu 54</p>
-          <Link href="/writing/54/new" className="mt-4">
-            <Button size="sm">
-              <Plus className="h-4 w-4" />
-              Thêm đề đầu tiên
-            </Button>
-          </Link>
+          {isAdmin && (
+            <Link href="/writing/54/new" className="mt-4">
+              <Button size="sm">
+                <Plus className="h-4 w-4" />
+                Thêm đề đầu tiên
+              </Button>
+            </Link>
+          )}
         </div>
       )}
       <div className="space-y-2">

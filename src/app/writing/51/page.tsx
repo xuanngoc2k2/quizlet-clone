@@ -6,11 +6,14 @@ import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
 import { api } from "@/lib/trpc-provider"
+import { useSession } from "next-auth/react"
 import { useState } from "react"
 
 export default function Writing51ListPage() {
   const [page, setPage] = useState(1)
+  const { data: session } = useSession()
   const { data, isLoading } = api.writing51.listQuestions.useQuery({ page })
+  const isAdmin = session?.user?.role === "ADMIN"
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -20,12 +23,14 @@ export default function Writing51ListPage() {
             <h1 className="font-display text-xl font-bold text-slate-900">쓰기 연습 · Câu 51</h1>
             <p className="mt-1 text-sm text-slate-500">Điền cụm từ thích hợp vào chỗ trống</p>
           </div>
-          <Link href="/writing/51/new">
-            <Button variant="gradient" size="sm">
-              <Plus className="h-4 w-4" />
-              Thêm đề câu 51
-            </Button>
-          </Link>
+          {isAdmin && (
+            <Link href="/writing/51/new">
+              <Button variant="gradient" size="sm">
+                <Plus className="h-4 w-4" />
+                Thêm đề câu 51
+              </Button>
+            </Link>
+          )}
         </div>
         {isLoading && (
           <div className="flex justify-center py-16">
@@ -35,12 +40,14 @@ export default function Writing51ListPage() {
         {!isLoading && data?.questions.length === 0 && (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-14 text-center">
             <p className="font-semibold text-slate-700">Chưa có đề câu 51</p>
-            <Link href="/writing/51/new" className="mt-4 inline-block">
-              <Button size="sm">
-                <Plus className="h-4 w-4" />
-                Thêm đề đầu tiên
-              </Button>
-            </Link>
+            {isAdmin && (
+              <Link href="/writing/51/new" className="mt-4 inline-block">
+                <Button size="sm">
+                  <Plus className="h-4 w-4" />
+                  Thêm đề đầu tiên
+                </Button>
+              </Link>
+            )}
           </div>
         )}
         <div className="space-y-2">

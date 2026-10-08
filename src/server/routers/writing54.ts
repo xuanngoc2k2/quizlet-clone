@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { router, publicProcedure, aiProcedure } from "../trpc"
+import { router, publicProcedure, aiProcedure, adminProcedure } from "../trpc"
 import { callGeminiJSON, callGeminiVisionJSON } from "../lib/gemini"
 
 const buildExtractPrompt = () => `Bạn đang xem ảnh đề thi TOPIK II Câu 54 (쓰기 54번).
@@ -123,6 +123,7 @@ export const writing54Router = router({
     .input(z.object({ page: z.number().int().min(1).default(1) }))
     .query(async ({ input, ctx }) => {
       const pageSize = 10
+      const attemptScope = ctx.userId ? { userId: ctx.userId } : { deviceId: ctx.deviceId }
       const [rows, total] = await Promise.all([
         ctx.prisma.writingQuestion54.findMany({
           orderBy: { createdAt: "desc" },
@@ -131,8 +132,13 @@ export const writing54Router = router({
           select: {
             id: true, examRef: true, instruction: true, imageAlt: true,
             rangeMin: true, rangeMax: true, createdAt: true,
-            _count: { select: { attempts: true } },
-            attempts: { orderBy: { createdAt: "desc" }, take: 1, select: { totalScore: true } },
+            _count: { select: { attempts: { where: attemptScope } } },
+            attempts: {
+              where: attemptScope,
+              orderBy: { createdAt: "desc" },
+              take: 1,
+              select: { totalScore: true },
+            },
           },
         }),
         ctx.prisma.writingQuestion54.count(),
@@ -155,7 +161,7 @@ export const writing54Router = router({
     return question
   }),
 
-  extractFromImage: aiProcedure
+  extractFromImage: adminProcedure
     .input(z.object({ imageBase64: z.string().min(1), imageMimeType: z.string().min(1) }))
     .mutation(async ({ input }) => {
       const raw = await callGeminiVisionJSON(buildExtractPrompt(), input.imageBase64, input.imageMimeType, {
@@ -165,7 +171,7 @@ export const writing54Router = router({
       return extractedSchema.parse(raw)
     }),
 
-  saveQuestion: publicProcedure
+  saveQuestion: adminProcedure
     .input(z.object({
       examRef: z.string().optional(),
       instruction: z.string().min(1),

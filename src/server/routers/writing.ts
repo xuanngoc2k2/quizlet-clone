@@ -1,6 +1,7 @@
 import { z } from "zod"
-import { router, publicProcedure, aiProcedure } from "../trpc"
+import { router, publicProcedure, aiProcedure, adminProcedure } from "../trpc"
 import { callGeminiVisionJSON } from "../lib/gemini"
+import { ADMIN_EMAIL } from "@/lib/auth"
 import type { WritingGrade, ExtractedQuestion } from "@/lib/writing-types"
 
 // ─── Prompts ─────────────────────────────────────────────────────────────────
@@ -173,6 +174,7 @@ export const writingRouter = router({
     .input(z.object({ page: z.number().int().min(1).default(1) }))
     .query(async ({ input, ctx }) => {
       const pageSize = 10
+      const attemptScope = ctx.userId ? { userId: ctx.userId } : { deviceId: ctx.deviceId }
       const [rows, total] = await Promise.all([
         ctx.prisma.writingQuestion53.findMany({
           orderBy: { createdAt: "desc" },
@@ -186,8 +188,9 @@ export const writingRouter = router({
             rangeMin: true,
             rangeMax: true,
             createdAt: true,
-            _count: { select: { attempts: true } },
+            _count: { select: { attempts: { where: attemptScope } } },
             attempts: {
+              where: attemptScope,
               orderBy: { createdAt: "desc" },
               take: 1,
               select: { totalScore: true, createdAt: true },
@@ -222,7 +225,7 @@ export const writingRouter = router({
   }),
 
   /** Use Gemini Vision to extract question data from an uploaded image */
-  extractFromImage: aiProcedure
+  extractFromImage: adminProcedure
     .input(
       z.object({
         imageBase64: z.string().min(1),
@@ -241,7 +244,7 @@ export const writingRouter = router({
     }),
 
   /** Save a new question to DB */
-  saveQuestion: publicProcedure
+  saveQuestion: adminProcedure
     .input(
       z.object({
         examRef: z.string().optional(),
@@ -387,18 +390,24 @@ export const writingRouter = router({
       return { id: attempt.id }
     }),
 
-  /** List attempts for a question (for the current device/user) */
+  /** List attempts for a question; admins can review attempts from all users. */
   listAttempts: publicProcedure
     .input(z.object({ questionId: z.string() }))
     .query(async ({ input, ctx }) => {
       if (!ctx.userId && !ctx.deviceId) return []
+      const isAdmin =
+        ctx.user?.role === "ADMIN" || ctx.user?.email?.toLowerCase() === ADMIN_EMAIL
       const rows = await ctx.prisma.writingAttempt53.findMany({
         where: {
           questionId: input.questionId,
-          ...(ctx.userId ? { userId: ctx.userId } : { deviceId: ctx.deviceId }),
+          ...(isAdmin
+            ? {}
+            : ctx.userId
+              ? { userId: ctx.userId }
+              : { deviceId: ctx.deviceId }),
         },
         orderBy: { createdAt: "desc" },
-        take: 10,
+        ...(isAdmin ? {} : { take: 10 }),
         select: {
           id: true,
           totalScore: true,
@@ -409,6 +418,12 @@ export const writingRouter = router({
           imageData: true,
           imageMimeType: true,
           submissionType: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
         },
       })
       return rows

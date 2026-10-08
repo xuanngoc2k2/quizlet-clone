@@ -330,6 +330,9 @@ export default function WritingPracticePage({ params }: PageProps) {
                 <p className="text-[11px] text-slate-500">
                   {new Date(a.createdAt).toLocaleString("vi-VN")}
                 </p>
+                <p className="mt-1 text-[11px] font-medium text-primary-600">
+                  Người làm: {a.user?.name || a.user?.email || "Khách chưa đăng nhập"}
+                </p>
               </div>
               <Button
                 variant="secondary"

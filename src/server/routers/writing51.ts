@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { router, publicProcedure, aiProcedure } from "../trpc"
+import { router, publicProcedure, aiProcedure, adminProcedure } from "../trpc"
 import { callGeminiJSON, callGeminiVisionJSON } from "../lib/gemini"
 import {
   gradeWritingQuestion51,
@@ -123,7 +123,7 @@ function parseQuestionContent(question: { passage: unknown; blanks: unknown }) {
 }
 
 export const writing51Router = router({
-  extractFromImage: aiProcedure
+  extractFromImage: adminProcedure
     .input(z.object({ imageBase64: z.string().min(1), imageMimeType: z.string().min(1) }))
     .mutation(async ({ input }) => {
       const raw = await callGeminiVisionJSON(
@@ -142,6 +142,7 @@ export const writing51Router = router({
     .input(z.object({ page: z.number().int().min(1).default(1) }))
     .query(async ({ input, ctx }) => {
       const pageSize = 10
+      const attemptScope = ctx.userId ? { userId: ctx.userId } : { deviceId: ctx.deviceId }
       const [questions, total] = await Promise.all([
         ctx.prisma.writingQuestion51.findMany({
           orderBy: { createdAt: "desc" },
@@ -157,8 +158,9 @@ export const writing51Router = router({
             source: true,
             createdAt: true,
             blanks: true,
-            _count: { select: { attempts: true } },
+            _count: { select: { attempts: { where: attemptScope } } },
             attempts: {
+              where: attemptScope,
               orderBy: { createdAt: "desc" },
               take: 1,
               select: { score: true, maxScore: true },
@@ -189,7 +191,7 @@ export const writing51Router = router({
     return { ...question, ...content }
   }),
 
-  saveQuestion: publicProcedure.input(contentSchema).mutation(async ({ input, ctx }) => {
+  saveQuestion: adminProcedure.input(contentSchema).mutation(async ({ input, ctx }) => {
     const validationErrors = validateWritingQuestion51Content(input)
     if (validationErrors.length) {
       throw new Error(validationErrors.join("; "))
