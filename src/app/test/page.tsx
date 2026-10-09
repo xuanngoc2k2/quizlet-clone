@@ -9,7 +9,17 @@ import { Button } from "@/components/ui/Button"
 import { TestViewer } from "@/components/test/TestViewer"
 import { SetTestGenerator } from "@/components/test/SetTestGenerator"
 import { isAnswerWrong } from "@/lib/test-results"
-import { Sparkles, Loader2, BookOpen, PenTool, BookMarked, Languages, Wand2, X, Clock } from "lucide-react"
+import {
+  Sparkles,
+  Loader2,
+  BookOpen,
+  PenTool,
+  BookMarked,
+  Languages,
+  Wand2,
+  X,
+  Clock,
+} from "lucide-react"
 
 function TestContent() {
   const searchParams = useSearchParams()
@@ -45,11 +55,25 @@ function TestContent() {
 
   useEffect(() => {
     if (retakeData) {
-      const sections = retakeData.sections as unknown as { name: string; instruction: string; questions: { id: number; type: string; question: string; options?: string[]; correctAnswer: string; explanation: string }[] }[]
+      const sections = retakeData.sections as unknown as {
+        name: string
+        instruction: string
+        questions: {
+          id: number
+          type: string
+          question: string
+          options?: string[]
+          correctAnswer: string
+          explanation: string
+        }[]
+      }[]
       if (localAttemptId) {
         const attempt = retakeData.attempts.find((a) => a.id === localAttemptId)
         const wrongIds = new Set(
-          (attempt?.results as { questionId: number; isCorrect: boolean; score?: number }[] | undefined)
+          (
+            attempt?.results as
+              { questionId: number; isCorrect: boolean; score?: number }[] | undefined
+          )
             ?.filter((r) => isAnswerWrong(r))
             .map((r) => r.questionId) ?? [],
         )
@@ -114,12 +138,14 @@ function TestContent() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
-        <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl bg-primary-50 p-1">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-5 sm:px-6 md:px-8 lg:pt-7">
+        <div className="mb-5 grid grid-cols-2 gap-2 rounded-xl bg-orange-50 p-1">
           <button
             onClick={() => setMode("prompt")}
             className={`rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
-              mode === "prompt" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-primary-600"
+              mode === "prompt"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-orange-600"
             }`}
           >
             Generator
@@ -127,7 +153,9 @@ function TestContent() {
           <button
             onClick={() => setMode("set")}
             className={`rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
-              mode === "set" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-primary-600"
+              mode === "set"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-orange-600"
             }`}
           >
             Set Test
@@ -139,7 +167,7 @@ function TestContent() {
         ) : !testData ? (
           <>
             <div className="mb-6 text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-amber-500 shadow-lg">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500 shadow-sm">
                 <Sparkles className="h-6 w-6 text-white" />
               </div>
               <h1 className="font-display text-2xl font-bold text-slate-900">Test Generator</h1>
@@ -147,7 +175,7 @@ function TestContent() {
                 30 câu — 4 phần: Trắc nghiệm, Chia từ, Đồng nghĩa, Dịch Việt→Hàn
               </p>
               <button
-                onClick={() => window.location.href = "/test/history"}
+                onClick={() => (window.location.href = "/test/history")}
                 className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
               >
                 <Clock className="h-3 w-3" />
@@ -179,12 +207,35 @@ function TestContent() {
 
                 <div className="mb-6 grid grid-cols-2 gap-2">
                   {[
-                    { icon: BookOpen, label: "Trắc nghiệm", desc: "10 câu", color: "text-blue-600 bg-blue-50" },
-                    { icon: PenTool, label: "Chia từ", desc: "10 câu", color: "text-emerald-600 bg-emerald-50" },
-                    { icon: BookMarked, label: "Đồng nghĩa", desc: "5 câu", color: "text-violet-600 bg-violet-50" },
-                    { icon: Languages, label: "Dịch Việt→Hàn", desc: "5 câu", color: "text-amber-600 bg-amber-50" },
+                    {
+                      icon: BookOpen,
+                      label: "Trắc nghiệm",
+                      desc: "10 câu",
+                      color: "text-blue-600 bg-blue-50",
+                    },
+                    {
+                      icon: PenTool,
+                      label: "Chia từ",
+                      desc: "10 câu",
+                      color: "text-emerald-600 bg-emerald-50",
+                    },
+                    {
+                      icon: BookMarked,
+                      label: "Đồng nghĩa",
+                      desc: "5 câu",
+                      color: "text-violet-600 bg-violet-50",
+                    },
+                    {
+                      icon: Languages,
+                      label: "Dịch Việt→Hàn",
+                      desc: "5 câu",
+                      color: "text-amber-600 bg-amber-50",
+                    },
                   ].map((item) => (
-                    <div key={item.label} className={`flex items-center gap-2 rounded-xl border p-3 ${item.color}`}>
+                    <div
+                      key={item.label}
+                      className={`flex items-center gap-2 rounded-xl border p-3 ${item.color}`}
+                    >
                       <item.icon className="h-4 w-4 shrink-0" />
                       <div>
                         <p className="text-xs font-semibold">{item.label}</p>
@@ -208,7 +259,11 @@ function TestContent() {
                     disabled={!prompt.trim() || refine.isLoading}
                     loading={refine.isLoading}
                   >
-                    {refine.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+                    {refine.isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="h-4 w-4" />
+                    )}
                     Optimize
                   </Button>
                 </div>
@@ -234,7 +289,11 @@ function TestContent() {
                       Refined Prompt — bạn có thể chỉnh sửa trước khi Generate
                     </p>
                     <button
-                      onClick={() => { setRefinedPrompt(null); setEditingPrompt(""); refine.reset() }}
+                      onClick={() => {
+                        setRefinedPrompt(null)
+                        setEditingPrompt("")
+                        refine.reset()
+                      }}
                       className="text-xs font-medium text-slate-500 hover:text-slate-700"
                     >
                       <X className="h-4 w-4" />
@@ -256,7 +315,11 @@ function TestContent() {
                     disabled={!editingPrompt.trim() || generate.isLoading}
                     loading={generate.isLoading}
                   >
-                    {generate.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    {generate.isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
                     Generate
                   </Button>
                 </div>
@@ -285,7 +348,26 @@ function TestContent() {
               &larr; Back
             </button>
             <TestViewer
-              test={testData as { title: string; description: string; sections: { name: string; instruction: string; questions: { id: number; type: "multiple-choice" | "conjugation" | "synonym" | "translation"; part: number; question: string; options?: string[]; grammarHint?: string; correctAnswer: string; explanation: string }[] }[] }}
+              test={
+                testData as {
+                  title: string
+                  description: string
+                  sections: {
+                    name: string
+                    instruction: string
+                    questions: {
+                      id: number
+                      type: "multiple-choice" | "conjugation" | "synonym" | "translation"
+                      part: number
+                      question: string
+                      options?: string[]
+                      grammarHint?: string
+                      correctAnswer: string
+                      explanation: string
+                    }[]
+                  }[]
+                }
+              }
               testHistoryId={testHistoryId ?? undefined}
               onReset={handleReset}
             />
@@ -299,17 +381,19 @@ function TestContent() {
 
 export default function TestPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen-safe flex-col">
-        <Header />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 md:px-8 pb-24 pt-6">
-          <div className="flex flex-col items-center py-16">
-            <Loader2 className="mb-4 h-10 w-10 animate-spin text-slate-500" />
-          </div>
-        </main>
-        <BottomNav />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen-safe flex-col">
+          <Header />
+          <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-6 sm:px-6 md:px-8">
+            <div className="flex flex-col items-center py-16">
+              <Loader2 className="mb-4 h-10 w-10 animate-spin text-slate-500" />
+            </div>
+          </main>
+          <BottomNav />
+        </div>
+      }
+    >
       <TestContent />
     </Suspense>
   )

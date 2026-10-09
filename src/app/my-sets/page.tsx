@@ -16,12 +16,10 @@ export default function MySetsPage() {
   return (
     <div className="flex min-h-screen-safe flex-col">
       <Header />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-6 sm:px-6 md:px-8">
-        <div className="mb-6 flex items-end justify-between gap-4">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-24 pt-5 sm:px-6 md:px-8 lg:pt-7">
+        <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-              Learn
-            </p>
+            <p className="section-kicker">Learn</p>
             <h1 className="mt-1 font-display text-2xl font-bold text-slate-900">My Sets</h1>
           </div>
           <Link href="/set/new">
@@ -42,7 +40,7 @@ export default function MySetsPage() {
             </Link>
           </div>
         ) : isLoading ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-28 animate-pulse rounded-2xl bg-primary-100" />
             ))}
@@ -54,7 +52,7 @@ export default function MySetsPage() {
             <p className="text-sm text-slate-500">Sets you create will appear here</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {mySets?.map((set) => (
               <SetCard
                 key={set.id}

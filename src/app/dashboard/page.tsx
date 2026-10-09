@@ -68,7 +68,7 @@ export default function DashboardPage() {
     <div className="flex min-h-screen-safe flex-col bg-slate-50">
       <Header />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 sm:px-6 md:px-8">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-24 pt-5 sm:px-6 md:px-8 lg:pt-7">
         {/* ── Greeting ─────────────────────────────────────── */}
         <DashboardGreeting
           streak={streak}
@@ -91,13 +91,11 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="space-y-8">
+        <div className="space-y-6 lg:space-y-7">
           {/* ── Row 1: Today's Study + TOPIK Goal ─────────────── */}
           <section>
             <div className="mb-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Today
-              </p>
+              <p className="section-kicker">Today</p>
               <h2 className="mt-1 text-lg font-bold text-slate-900">Your learning plan</h2>
             </div>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -114,9 +112,7 @@ export default function DashboardPage() {
           {/* ── Today's Progress ───────────────────────────────── */}
           <section>
             <div className="mb-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Momentum
-              </p>
+              <p className="section-kicker">Momentum</p>
               <h2 className="mt-1 text-lg font-bold text-slate-900">Learning progress</h2>
             </div>
             <TodayProgress

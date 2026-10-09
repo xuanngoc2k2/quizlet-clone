@@ -9,8 +9,8 @@ export default function WritingListPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-6 sm:px-6 md:px-8">
-        <div className="mb-7">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-5 sm:px-6 md:px-8 lg:pt-7">
+        <div className="mb-5">
           <div>
             <h1 className="font-display text-xl font-bold text-slate-900">쓰기 연습</h1>
             <p className="mt-1 text-sm text-slate-500">
@@ -71,7 +71,7 @@ function WritingTypeCard({
 }) {
   const content = (
     <div
-      className={`card-hover flex min-h-36 items-center gap-4 p-5 ${
+      className={`card-hover flex min-h-32 items-center gap-4 p-4 ${
         disabled ? "cursor-not-allowed opacity-65" : ""
       }`}
     >

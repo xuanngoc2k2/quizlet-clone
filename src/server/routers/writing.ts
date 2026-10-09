@@ -341,7 +341,7 @@ export const writingRouter = router({
         buildHandwrittenOcrPrompt(question.rangeMin, question.rangeMax),
         input.imageBase64,
         input.imageMimeType,
-        { temperature: 0.1, maxTokens: 4096 },
+        { temperature: 0.1, maxTokens: 8192 },
       )
       const ocr = handwrittenOcrSchema.parse(ocrRaw)
       const handwritingContext = `\nTHÔNG TIN OCR BÀI VIẾT TAY:\n- Độ tin cậy OCR: ${ocr.ocrConfidence}\n- Điểm khoảng cách ô: ${ocr.spacingScore}/10\n- Nhận xét khoảng cách: ${ocr.spacingFeedback}\n- Cảnh báo bố cục: ${ocr.layoutWarnings.join("; ") || "Không có"}\n- Lỗi chính tả do OCR phát hiện: ${ocr.spellingErrors.map((item) => `${item.original} → ${item.corrected}`).join(", ") || "Không có"}`

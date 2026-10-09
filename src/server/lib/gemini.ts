@@ -7,10 +7,11 @@ export type GeminiOptions = {
   temperature?: number
   maxTokens?: number
   userText?: string
+  responseMimeType?: "application/json"
 }
 
 export async function callGeminiRaw(prompt: string, opts: GeminiOptions = {}) {
-  const { temperature = 0.3, maxTokens = 4096, userText } = opts
+  const { temperature = 0.3, maxTokens = 4096, userText, responseMimeType } = opts
   const parts = userText ? [{ text: prompt }, { text: userText }] : [{ text: prompt }]
 
   const res = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
@@ -18,7 +19,7 @@ export async function callGeminiRaw(prompt: string, opts: GeminiOptions = {}) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       contents: [{ parts }],
-      generationConfig: { temperature, maxOutputTokens: maxTokens },
+      generationConfig: { temperature, maxOutputTokens: maxTokens, responseMimeType },
     }),
   })
 
@@ -42,17 +43,21 @@ export async function callGeminiRaw(prompt: string, opts: GeminiOptions = {}) {
 }
 
 export async function callGeminiJSON(prompt: string, opts: GeminiOptions = {}): Promise<unknown> {
-  let text = await callGeminiRaw(prompt, opts)
-  text = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim()
-  const firstBrace = text.indexOf("{")
-  const lastBrace = text.lastIndexOf("}")
-  if (firstBrace !== -1 && lastBrace !== -1) {
-    text = text.slice(firstBrace, lastBrace + 1)
-  }
+  return parseGeminiJSON(await callGeminiRaw(prompt, { ...opts, responseMimeType: "application/json" }), "Gemini")
+}
+
+export function parseGeminiJSON(text: string, source = "Gemini"): unknown {
+  const cleaned = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim()
+  const firstBrace = cleaned.indexOf("{")
+  const lastBrace = cleaned.lastIndexOf("}")
+  const json = firstBrace !== -1 && lastBrace !== -1
+    ? cleaned.slice(firstBrace, lastBrace + 1)
+    : cleaned
+
   try {
-    return JSON.parse(text)
+    return JSON.parse(json)
   } catch {
-    throw new Error(`Invalid JSON from Gemini (${text.length} chars): ${text.slice(0, 300)}`)
+    throw new Error(`Invalid JSON from ${source} (${json.length} chars): ${json.slice(0, 300)}`)
   }
 }
 
@@ -71,7 +76,7 @@ export async function callGeminiVision(
   imageMimeType: string,
   opts: GeminiOptions = {},
 ): Promise<string> {
-  const { temperature = 0.3, maxTokens = 4096 } = opts
+  const { temperature = 0.3, maxTokens = 4096, responseMimeType } = opts
   const parts = [
     { text: prompt },
     { inlineData: { mimeType: imageMimeType, data: imageBase64 } },
@@ -82,7 +87,7 @@ export async function callGeminiVision(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       contents: [{ parts }],
-      generationConfig: { temperature, maxOutputTokens: maxTokens },
+      generationConfig: { temperature, maxOutputTokens: maxTokens, responseMimeType },
     }),
   })
 
@@ -93,7 +98,11 @@ export async function callGeminiVision(
   }
 
   const data = await res.json()
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+  const candidate = data?.candidates?.[0]
+  if (candidate?.finishReason === "MAX_TOKENS") {
+    throw new Error(`Gemini Vision response was truncated at ${maxTokens} output tokens`)
+  }
+  const text = candidate?.content?.parts?.[0]?.text
   if (!text) throw new Error("Empty content from Gemini Vision")
   return text
 }
@@ -104,16 +113,9 @@ export async function callGeminiVisionJSON(
   imageMimeType: string,
   opts: GeminiOptions = {},
 ): Promise<unknown> {
-  let text = await callGeminiVision(prompt, imageBase64, imageMimeType, opts)
-  text = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim()
-  const firstBrace = text.indexOf("{")
-  const lastBrace = text.lastIndexOf("}")
-  if (firstBrace !== -1 && lastBrace !== -1) {
-    text = text.slice(firstBrace, lastBrace + 1)
-  }
-  try {
-    return JSON.parse(text)
-  } catch {
-    throw new Error(`Invalid JSON from Gemini Vision (${text.length} chars): ${text.slice(0, 300)}`)
-  }
+  const text = await callGeminiVision(prompt, imageBase64, imageMimeType, {
+    ...opts,
+    responseMimeType: "application/json",
+  })
+  return parseGeminiJSON(text, "Gemini Vision")
 }

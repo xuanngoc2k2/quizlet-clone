@@ -21,8 +21,8 @@ export function BottomNav() {
   const dueCount = dueCards.length
 
   return (
-    <nav className="safe-bottom fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/80 backdrop-blur-lg">
-      <div className="mx-auto flex max-w-lg items-center justify-around px-2">
+    <nav className="safe-bottom fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white md:hidden">
+      <div className="mx-auto flex max-w-lg items-center justify-around px-1">
         <BottomHomeLink />
         <ModuleMenu label="Learn" icon={BookOpen} items={learnMenuItems} compact />
         <div className="relative">
