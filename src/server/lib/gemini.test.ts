@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 process.env.DATABASE_URL = "file:./test.db"
 process.env.GEMINI_API_KEY = "test-key"
 process.env.GEMINI_API_KEYS = "test-key, fallback-key"
+process.env.GEMINI_API_BACKUP = '["backup-key"]'
 
 const { callGeminiRaw, parseGeminiJSON } = await import("./gemini")
 
@@ -22,7 +23,7 @@ describe("parseGeminiJSON", () => {
     const requestedUrls: string[] = []
     globalThis.fetch = async (input) => {
       requestedUrls.push(String(input))
-      if (requestedUrls.length === 1) {
+      if (requestedUrls.length < 3) {
         return new Response('{"error":{"code":503}}', { status: 503 })
       }
       return new Response(
@@ -35,6 +36,7 @@ describe("parseGeminiJSON", () => {
       await expect(callGeminiRaw("test prompt")).resolves.toBe("ok")
       expect(requestedUrls[0]).toContain("key=test-key")
       expect(requestedUrls[1]).toContain("key=fallback-key")
+      expect(requestedUrls[2]).toContain("key=backup-key")
     } finally {
       globalThis.fetch = originalFetch
     }

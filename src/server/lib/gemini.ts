@@ -11,9 +11,23 @@ export type GeminiOptions = {
 }
 
 function getGeminiApiKeys() {
+  let backupKeys: string[] = []
+  if (env.GEMINI_API_BACKUP) {
+    try {
+      const parsed = JSON.parse(env.GEMINI_API_BACKUP)
+      backupKeys = Array.isArray(parsed) ? parsed.filter((key): key is string => typeof key === "string") : []
+    } catch {
+      backupKeys = env.GEMINI_API_BACKUP.split(",")
+    }
+  }
+
   return Array.from(
     new Set(
-      [env.GEMINI_API_KEY, ...(env.GEMINI_API_KEYS?.split(",") ?? [])]
+      [
+        env.GEMINI_API_KEY,
+        ...(env.GEMINI_API_KEYS?.split(",") ?? []),
+        ...backupKeys,
+      ]
         .map((key) => key.trim())
         .filter(Boolean),
     ),
@@ -64,9 +78,9 @@ export async function callGeminiRaw(prompt: string, opts: GeminiOptions = {}) {
   const parts = userText ? [{ text: prompt }, { text: userText }] : [{ text: prompt }]
 
   const data = await requestGemini({
-      contents: [{ parts }],
-      generationConfig: { temperature, maxOutputTokens: maxTokens, responseMimeType },
-    }, "Gemini")
+    contents: [{ parts }],
+    generationConfig: { temperature, maxOutputTokens: maxTokens, responseMimeType },
+  }, "Gemini")
   const candidate = data?.candidates?.[0]
   if (!candidate) {
     const finishReason = data?.candidates?.[0]?.finishReason ?? "unknown"
@@ -118,9 +132,9 @@ export async function callGeminiVision(
   ]
 
   const data = await requestGemini({
-      contents: [{ parts }],
-      generationConfig: { temperature, maxOutputTokens: maxTokens, responseMimeType },
-    }, "Gemini Vision")
+    contents: [{ parts }],
+    generationConfig: { temperature, maxOutputTokens: maxTokens, responseMimeType },
+  }, "Gemini Vision")
   const candidate = data?.candidates?.[0]
   if (candidate?.finishReason === "MAX_TOKENS") {
     throw new Error(`Gemini Vision response was truncated at ${maxTokens} output tokens`)
