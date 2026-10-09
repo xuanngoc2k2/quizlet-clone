@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { router, publicProcedure, aiProcedure, adminProcedure } from "../trpc"
 import { callGeminiJSON, callGeminiVisionJSON } from "../lib/gemini"
+import { ADMIN_EMAIL } from "@/lib/auth"
 
 const buildExtractPrompt = () => `Bạn đang xem ảnh đề thi TOPIK II Câu 54 (쓰기 54번).
 
@@ -143,10 +144,25 @@ export const writing54Router = router({
         }),
         ctx.prisma.writingQuestion54.count(),
       ])
+      const isAdmin = ctx.user?.role === "ADMIN" || ctx.user?.email?.toLowerCase() === ADMIN_EMAIL
+      const participantCounts = new Map<string, number>()
+      if (isAdmin && rows.length > 0) {
+        const participants = await ctx.prisma.writingAttempt54.groupBy({
+          by: ["questionId", "userId", "deviceId"],
+          where: { questionId: { in: rows.map((row) => row.id) } },
+        })
+        for (const participant of participants) {
+          participantCounts.set(
+            participant.questionId,
+            (participantCounts.get(participant.questionId) ?? 0) + 1,
+          )
+        }
+      }
       return {
         questions: rows.map(({ attempts, ...question }) => ({
           ...question,
           latestScore: attempts[0]?.totalScore ?? null,
+          participantCount: participantCounts.get(question.id) ?? 0,
         })),
         total,
         page: input.page,

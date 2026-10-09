@@ -200,12 +200,28 @@ export const writingRouter = router({
         ctx.prisma.writingQuestion53.count(),
       ])
 
+      const isAdmin = ctx.user?.role === "ADMIN" || ctx.user?.email?.toLowerCase() === ADMIN_EMAIL
+      const participantCounts = new Map<string, number>()
+      if (isAdmin && rows.length > 0) {
+        const participants = await ctx.prisma.writingAttempt53.groupBy({
+          by: ["questionId", "userId", "deviceId"],
+          where: { questionId: { in: rows.map((row) => row.id) } },
+        })
+        for (const participant of participants) {
+          participantCounts.set(
+            participant.questionId,
+            (participantCounts.get(participant.questionId) ?? 0) + 1,
+          )
+        }
+      }
+
       return {
         questions: rows.map((row) => {
           const { attempts, ...question } = row
           return {
             ...question,
             latestScore: attempts[0]?.totalScore ?? null,
+            participantCount: participantCounts.get(row.id) ?? 0,
           }
         }),
         total,

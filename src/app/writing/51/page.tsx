@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Plus, ChevronLeft, ChevronRight, FileText, Loader2 } from "lucide-react"
+import { Plus, ChevronLeft, ChevronRight, FileText, Loader2, Users } from "lucide-react"
 import { Header } from "@/components/layout/Header"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Button } from "@/components/ui/Button"
@@ -71,6 +71,12 @@ export default function Writing51ListPage() {
                   <FileText className="h-3 w-3" />
                   {question._count.attempts} lần làm
                 </span>
+                {isAdmin && (
+                  <span className="flex items-center gap-1 font-medium text-primary-600">
+                    <Users className="h-3 w-3" />
+                    {question.participantCount} người
+                  </span>
+                )}
                 {question.latestScore !== null && (
                   <span>
                     Gần nhất: {question.latestScore}/{question.latestMaxScore}

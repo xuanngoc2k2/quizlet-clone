@@ -3,7 +3,16 @@
 import * as React from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
-import { ChevronLeft, ChevronRight, Clock, FileText, Loader2, PenLine, Plus } from "lucide-react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  FileText,
+  Loader2,
+  PenLine,
+  Plus,
+  Users,
+} from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { api } from "@/lib/trpc-provider"
 
@@ -70,6 +79,12 @@ export function Writing54List() {
                   <FileText className="h-3 w-3" />
                   {question._count.attempts} lần làm
                 </span>
+                {isAdmin && (
+                  <span className="flex items-center gap-1 font-medium text-orange-700">
+                    <Users className="h-3 w-3" />
+                    {question.participantCount} người
+                  </span>
+                )}
                 {question.latestScore !== null && (
                   <span className="font-semibold text-emerald-600">
                     Gần nhất: {question.latestScore}/50

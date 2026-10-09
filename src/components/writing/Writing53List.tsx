@@ -3,7 +3,16 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
-import { Plus, FileText, Loader2, PenLine, Clock, ChevronLeft, ChevronRight } from "lucide-react"
+import {
+  Plus,
+  FileText,
+  Loader2,
+  PenLine,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Users,
+} from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { api } from "@/lib/trpc-provider"
 import { getWritingScoreStatus } from "@/lib/writing-score-status"
@@ -95,6 +104,12 @@ export function Writing53List() {
                       <FileText className="h-3 w-3" />
                       {question._count.attempts} lần làm
                     </span>
+                    {isAdmin && (
+                      <span className="flex items-center gap-1 font-medium text-primary-600">
+                        <Users className="h-3 w-3" />
+                        {question.participantCount} người
+                      </span>
+                    )}
                     {question.latestScore !== null && (
                       <span>Gần nhất: {question.latestScore}/30 điểm</span>
                     )}

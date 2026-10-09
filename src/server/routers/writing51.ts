@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { router, publicProcedure, aiProcedure, adminProcedure } from "../trpc"
 import { callGeminiJSON, callGeminiVisionJSON } from "../lib/gemini"
+import { ADMIN_EMAIL } from "@/lib/auth"
 import {
   gradeWritingQuestion51,
   WRITING_QUESTION_51_BLANK_SCORE,
@@ -169,6 +170,20 @@ export const writing51Router = router({
         }),
         ctx.prisma.writingQuestion51.count(),
       ])
+      const isAdmin = ctx.user?.role === "ADMIN" || ctx.user?.email?.toLowerCase() === ADMIN_EMAIL
+      const participantCounts = new Map<string, number>()
+      if (isAdmin && questions.length > 0) {
+        const participants = await ctx.prisma.writingAttempt51.groupBy({
+          by: ["questionId", "userId", "deviceId"],
+          where: { questionId: { in: questions.map((question) => question.id) } },
+        })
+        for (const participant of participants) {
+          participantCounts.set(
+            participant.questionId,
+            (participantCounts.get(participant.questionId) ?? 0) + 1,
+          )
+        }
+      }
 
       return {
         questions: questions.map(({ attempts, ...question }) => ({
@@ -176,6 +191,7 @@ export const writing51Router = router({
           blankCount: z.array(blankSchema).parse(question.blanks).length,
           latestScore: attempts[0]?.score ?? null,
           latestMaxScore: attempts[0]?.maxScore ?? question.score,
+          participantCount: participantCounts.get(question.id) ?? 0,
         })),
         total,
         page: input.page,
