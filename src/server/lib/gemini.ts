@@ -10,28 +10,63 @@ export type GeminiOptions = {
   responseMimeType?: "application/json"
 }
 
+function getGeminiApiKeys() {
+  return Array.from(
+    new Set(
+      [env.GEMINI_API_KEY, ...(env.GEMINI_API_KEYS?.split(",") ?? [])]
+        .map((key) => key.trim())
+        .filter(Boolean),
+    ),
+  )
+}
+
+function isRetryableGeminiError(status: number) {
+  return status === 429 || status === 500 || status === 502 || status === 503 || status === 504
+}
+
+async function requestGemini(body: object, source: string) {
+  const apiKeys = getGeminiApiKeys()
+  let lastError = ""
+
+  for (const [index, apiKey] of apiKeys.entries()) {
+    try {
+      const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+
+      if (res.ok) return res.json()
+
+      const errorText = await res.text()
+      lastError = `${source} API error (${res.status}): ${errorText}`
+      if (!isRetryableGeminiError(res.status) || index === apiKeys.length - 1) {
+        if (res.status === 429) throw new Error("AI quota exceeded. Please wait and try again.")
+        throw new Error(lastError)
+      }
+    } catch (error) {
+      const status = Number(error instanceof Error ? error.message.match(/\((\d+)\)/)?.[1] : undefined)
+      const isApiError = error instanceof Error && status > 0
+      if (isApiError && !isRetryableGeminiError(status)) throw error
+      if (index === apiKeys.length - 1) {
+        throw error instanceof Error
+          ? error
+          : new Error(`${source} request failed: ${String(error)}`)
+      }
+    }
+  }
+
+  throw new Error(lastError || `${source} request failed`)
+}
+
 export async function callGeminiRaw(prompt: string, opts: GeminiOptions = {}) {
   const { temperature = 0.3, maxTokens = 4096, userText, responseMimeType } = opts
   const parts = userText ? [{ text: prompt }, { text: userText }] : [{ text: prompt }]
 
-  const res = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  const data = await requestGemini({
       contents: [{ parts }],
       generationConfig: { temperature, maxOutputTokens: maxTokens, responseMimeType },
-    }),
-  })
-
-  if (!res.ok) {
-    const errorText = await res.text()
-    if (res.status === 429) {
-      throw new Error("AI quota exceeded. Please wait and try again.")
-    }
-    throw new Error(`Gemini API error (${res.status}): ${errorText}`)
-  }
-
-  const data = await res.json()
+    }, "Gemini")
   const candidate = data?.candidates?.[0]
   if (!candidate) {
     const finishReason = data?.candidates?.[0]?.finishReason ?? "unknown"
@@ -82,22 +117,10 @@ export async function callGeminiVision(
     { inlineData: { mimeType: imageMimeType, data: imageBase64 } },
   ]
 
-  const res = await fetch(`${GEMINI_API_URL}?key=${env.GEMINI_API_KEY}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  const data = await requestGemini({
       contents: [{ parts }],
       generationConfig: { temperature, maxOutputTokens: maxTokens, responseMimeType },
-    }),
-  })
-
-  if (!res.ok) {
-    const errorText = await res.text()
-    if (res.status === 429) throw new Error("AI quota exceeded. Please wait and try again.")
-    throw new Error(`Gemini Vision API error (${res.status}): ${errorText}`)
-  }
-
-  const data = await res.json()
+    }, "Gemini Vision")
   const candidate = data?.candidates?.[0]
   if (candidate?.finishReason === "MAX_TOKENS") {
     throw new Error(`Gemini Vision response was truncated at ${maxTokens} output tokens`)
