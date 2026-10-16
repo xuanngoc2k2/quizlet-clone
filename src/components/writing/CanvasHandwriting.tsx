@@ -22,7 +22,7 @@ const COLOR_GRID_MINOR = "#d1d5db" // gray-300
 const COLOR_GRID_MAJOR = "#6b7280" // gray-500
 const COLOR_INK = "#1a1a1a"
 
-// ─── Draw 원고지 grid onto a canvas context ────────────────────────────────────
+// ─── Draw 원고지 grid onto background canvas ──────────────────────────────────
 
 function drawGrid(ctx: CanvasRenderingContext2D, totalRows: number, canvasW: number, canvasH: number) {
   ctx.fillStyle = COLOR_CELL_BG
@@ -68,12 +68,7 @@ type Point = { x: number; y: number; pressure?: number }
 type Stroke = {
   points: Point[]
   width: number
-  color: string
-}
-
-export type CanvasHandwritingHandle = {
-  /** Returns null if canvas is blank (no strokes) */
-  exportJpeg: () => string | null
+  isEraser: boolean
 }
 
 type Props = {
@@ -98,7 +93,8 @@ export function CanvasHandwriting({
   const canvasW = COLS * CELL // 900px
   const canvasH = rows * CELL // 432px for 12 rows, 1008px for 28 rows
 
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const gridCanvasRef = useRef<HTMLCanvasElement>(null)
+  const drawCanvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   /** All committed strokes */
@@ -126,64 +122,81 @@ export function CanvasHandwriting({
     return () => ro.disconnect()
   }, [canvasW])
 
-  // ── Initial grid draw ─────────────────────────────────────────────────────
+  // ── Initial grid draw onto background canvas ──────────────────────────────
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext("2d")
+    const gridCanvas = gridCanvasRef.current
+    if (!gridCanvas) return
+    const ctx = gridCanvas.getContext("2d")
     if (!ctx) return
     drawGrid(ctx, rows, canvasW, canvasH)
   }, [rows, canvasW, canvasH])
 
-  // ─── Redraw: grid + all strokes + current stroke ──────────────────────────
+  // ─── Redraw drawing canvas: all strokes + current stroke ──────────────────
 
-  const redraw = useCallback(() => {
-    const canvas = canvasRef.current
+  const redrawStrokes = useCallback(() => {
+    const canvas = drawCanvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    drawGrid(ctx, rows, canvasW, canvasH)
+    // Clear entire transparent drawing layer
+    ctx.clearRect(0, 0, canvasW, canvasH)
 
-    // Committed strokes
+    // Render committed strokes
     for (const stroke of strokesRef.current) {
       if (stroke.points.length < 2) continue
-      ctx.beginPath()
-      ctx.strokeStyle = stroke.color
+      ctx.save()
+      if (stroke.isEraser) {
+        ctx.globalCompositeOperation = "destination-out"
+        ctx.strokeStyle = "rgba(0,0,0,1)"
+      } else {
+        ctx.globalCompositeOperation = "source-over"
+        ctx.strokeStyle = COLOR_INK
+      }
       ctx.lineCap = "round"
       ctx.lineJoin = "round"
       ctx.lineWidth = stroke.width
+      ctx.beginPath()
       ctx.moveTo(stroke.points[0].x, stroke.points[0].y)
       for (let i = 1; i < stroke.points.length; i++) {
         const p = stroke.points[i]
         ctx.lineTo(p.x, p.y)
       }
       ctx.stroke()
+      ctx.restore()
     }
 
     // In-progress stroke
     const cur = currentRef.current
     if (cur.length >= 2) {
-      ctx.beginPath()
-      ctx.strokeStyle = tool === "eraser" ? COLOR_CELL_BG : COLOR_INK
+      ctx.save()
+      if (tool === "eraser") {
+        ctx.globalCompositeOperation = "destination-out"
+        ctx.strokeStyle = "rgba(0,0,0,1)"
+        ctx.lineWidth = penWidth * 6
+      } else {
+        ctx.globalCompositeOperation = "source-over"
+        ctx.strokeStyle = COLOR_INK
+        ctx.lineWidth = penWidth
+      }
       ctx.lineCap = "round"
       ctx.lineJoin = "round"
-      ctx.lineWidth = tool === "eraser" ? penWidth * 6 : penWidth
+      ctx.beginPath()
       ctx.moveTo(cur[0].x, cur[0].y)
       for (let i = 1; i < cur.length; i++) {
         ctx.lineTo(cur[i].x, cur[i].y)
       }
       ctx.stroke()
+      ctx.restore()
     }
-  }, [tool, penWidth, rows, canvasW, canvasH])
+  }, [tool, penWidth, canvasW, canvasH])
 
   // ─── Pointer event helpers ────────────────────────────────────────────────
 
   function canvasPoint(e: React.PointerEvent<HTMLCanvasElement>): Point {
-    const canvas = canvasRef.current!
+    const canvas = drawCanvasRef.current!
     const rect = canvas.getBoundingClientRect()
-    // rect size = canvas CSS size (scale * canvasW); canvas pixel size = canvasW
     const scaleX = canvasW / rect.width
     const scaleY = canvasH / rect.height
     return {
@@ -209,10 +222,10 @@ export function CanvasHandwriting({
       if (!isDrawingRef.current) return
       e.preventDefault()
       currentRef.current.push(canvasPoint(e))
-      redraw()
+      redrawStrokes()
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [redraw, canvasW, canvasH],
+    [redrawStrokes, canvasW, canvasH],
   )
 
   const commitStroke = useCallback(() => {
@@ -225,11 +238,11 @@ export function CanvasHandwriting({
     strokesRef.current.push({
       points: pts,
       width: tool === "eraser" ? penWidth * 6 : penWidth,
-      color: tool === "eraser" ? COLOR_CELL_BG : COLOR_INK,
+      isEraser: tool === "eraser",
     })
     setHasStrokes(true)
-    redraw()
-  }, [tool, penWidth, redraw])
+    redrawStrokes()
+  }, [tool, penWidth, redrawStrokes])
 
   // ─── Toolbar actions ──────────────────────────────────────────────────────
 
@@ -237,26 +250,40 @@ export function CanvasHandwriting({
     if (strokesRef.current.length === 0) return
     strokesRef.current.pop()
     if (strokesRef.current.length === 0) setHasStrokes(false)
-    redraw()
+    redrawStrokes()
   }
 
   function handleClear() {
     strokesRef.current = []
     currentRef.current = []
     setHasStrokes(false)
-    const canvas = canvasRef.current
+    const canvas = drawCanvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext("2d")
     if (!ctx) return
-    drawGrid(ctx, rows, canvasW, canvasH)
+    ctx.clearRect(0, 0, canvasW, canvasH)
   }
 
-  // ─── Export ───────────────────────────────────────────────────────────────
+  // ─── Export (Merge Grid + Drawing onto one Canvas) ─────────────────────────
 
   function handleExtract() {
-    const canvas = canvasRef.current
-    if (!canvas || !hasStrokes) return
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.92)
+    const gridCanvas = gridCanvasRef.current
+    const drawCanvas = drawCanvasRef.current
+    if (!gridCanvas || !drawCanvas || !hasStrokes) return
+
+    // Create temporary offscreen canvas to merge
+    const exportCanvas = document.createElement("canvas")
+    exportCanvas.width = canvasW
+    exportCanvas.height = canvasH
+    const expCtx = exportCanvas.getContext("2d")
+    if (!expCtx) return
+
+    // 1. Draw grid background
+    expCtx.drawImage(gridCanvas, 0, 0)
+    // 2. Draw user strokes on top
+    expCtx.drawImage(drawCanvas, 0, 0)
+
+    const dataUrl = exportCanvas.toDataURL("image/jpeg", 0.92)
     const base64 = dataUrl.split(",")[1] ?? ""
     onExtract(base64, "image/jpeg", dataUrl)
   }
@@ -353,20 +380,37 @@ export function CanvasHandwriting({
         </button>
       </div>
 
-      {/* Canvas container */}
+      {/* Canvas container with stacked layers */}
       <div ref={containerRef} className="w-full">
         <div
           className="overflow-x-auto rounded-xl border border-slate-300 shadow-sm"
           style={{ width: "100%" }}
         >
           {/* Extra right padding for row markers */}
-          <div className="inline-block pr-10">
+          <div
+            className="relative inline-block pr-10"
+            style={{ width: displayW + 40, height: displayH }}
+          >
+            {/* Layer 1: Background Grid (chỉ chứa lưới 원고지, không bao giờ bị tẩy đè) */}
             <canvas
-              ref={canvasRef}
+              ref={gridCanvasRef}
               width={canvasW}
               height={canvasH}
+              className="pointer-events-none absolute left-0 top-0"
               style={{
-                display: "block",
+                width: displayW,
+                height: displayH,
+              }}
+              aria-hidden="true"
+            />
+
+            {/* Layer 2: Drawing Ink Layer (chứa nét bút vẽ, tẩy dùng destination-out chỉ xóa nét bút) */}
+            <canvas
+              ref={drawCanvasRef}
+              width={canvasW}
+              height={canvasH}
+              className="absolute left-0 top-0"
+              style={{
                 width: displayW,
                 height: displayH,
                 cursor: tool === "eraser" ? "cell" : "crosshair",
