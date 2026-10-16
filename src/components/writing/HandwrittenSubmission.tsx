@@ -27,6 +27,7 @@ type OcrResult = {
 type Props = {
   questionId: string
   onOcr: (_result: { text: string; cells: string[]; imageSrc: string }) => void
+  mode?: InputMode
   onModeChange?: (_mode: InputMode) => void
 }
 
@@ -67,16 +68,22 @@ async function prepareImage(
   return { base64, mimeType: "image/jpeg", preview }
 }
 
-export function HandwrittenSubmission({ questionId, onOcr, onModeChange }: Props) {
+export function HandwrittenSubmission({
+  questionId,
+  onOcr,
+  mode: controlledMode,
+  onModeChange,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [mode, setMode] = useState<InputMode>("upload")
+  const [internalMode, setInternalMode] = useState<InputMode>("upload")
+  const mode = controlledMode ?? internalMode
   const [isPreparing, setIsPreparing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [ocrDone, setOcrDone] = useState<OcrResult | null>(null)
   const ocrMutation = api.writing.ocrHandwritten53.useMutation()
 
   function handleModeChange(newMode: InputMode) {
-    setMode(newMode)
+    setInternalMode(newMode)
     onModeChange?.(newMode)
   }
 

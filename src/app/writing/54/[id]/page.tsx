@@ -120,22 +120,22 @@ export default function Writing54PracticePage({ params }: Props) {
                 {Math.max(...attempts.map((item) => item.totalScore ?? 0))}/50
               </div>
             )}
-            {inputMode !== "draw" && (
-              <div className="mb-4">
-                <p className="mb-2 text-center text-xs font-semibold text-slate-500">
-                  원고지 · 25 ô × 28 dòng · tối đa 700 ô
-                </p>
-                <WongojipEditor
-                  ref={editorRef}
-                  maxCells={700}
-                  onCellsChange={handleCellsChange}
-                  disabled={gradeMutation.isLoading}
-                  errors={formatErrors}
-                />
-              </div>
-            )}
+            {/* 원고지 Editor (dùng CSS hidden thay vì unmount để giữ nguyên ref và dữ liệu) */}
+            <div className={inputMode === "draw" ? "hidden" : "mb-4"}>
+              <p className="mb-2 text-center text-xs font-semibold text-slate-500">
+                원고지 · 25 ô × 28 dòng · tối đa 700 ô
+              </p>
+              <WongojipEditor
+                ref={editorRef}
+                maxCells={700}
+                onCellsChange={handleCellsChange}
+                disabled={gradeMutation.isLoading}
+                errors={formatErrors}
+              />
+            </div>
             <HandwrittenSubmission54
               questionId={params.id}
+              mode={inputMode}
               onModeChange={(m) => setInputMode(m)}
               onGraded={({
                 grade: resultGrade,

@@ -15,6 +15,7 @@ type Props = {
     cells: string[]
     imageSrc: string
   }) => void
+  mode?: InputMode
   onModeChange?: (_mode: InputMode) => void
 }
 
@@ -51,15 +52,21 @@ async function prepareImage(file: File) {
   return { base64, mimeType: "image/jpeg", preview }
 }
 
-export function HandwrittenSubmission54({ questionId, onGraded, onModeChange }: Props) {
+export function HandwrittenSubmission54({
+  questionId,
+  onGraded,
+  mode: controlledMode,
+  onModeChange,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [mode, setMode] = useState<InputMode>("upload")
+  const [internalMode, setInternalMode] = useState<InputMode>("upload")
+  const mode = controlledMode ?? internalMode
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const mutation = api.writing54.gradeHandwritten54.useMutation()
 
   function handleModeChange(newMode: InputMode) {
-    setMode(newMode)
+    setInternalMode(newMode)
     onModeChange?.(newMode)
   }
 

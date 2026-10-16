@@ -218,28 +218,34 @@ export default function WritingPracticePage({ params }: PageProps) {
                   </div>
                 )}
 
-                {/* 원고지 Editor — with right-side margin for markers (ẩn khi đang ở tab vẽ tay để người dùng nhìn rõ đề bài) */}
-                {inputMode !== "draw" && (
-                  <div className="mb-4 pr-10">
-                    <p className="mb-2 text-center text-xs font-semibold text-slate-500">
-                      ✏️ 원고지 — nhấp vào ô để bắt đầu viết
-                    </p>
-                    <WongojipEditor
-                      ref={editorRef}
-                      onCellsChange={handleCellsChange}
-                      disabled={gradeMutation.isLoading}
-                      errors={formatErrors}
-                    />
-                  </div>
-                )}
+                {/* 원고지 Editor — with right-side margin for markers (dùng hidden thay vì unmount để giữ nguyên ref và text sau khi OCR) */}
+                <div
+                  className={[
+                    "mb-4 pr-10",
+                    inputMode === "draw" ? "hidden" : "block",
+                  ].join(" ")}
+                >
+                  <p className="mb-2 text-center text-xs font-semibold text-slate-500">
+                    ✏️ 원고지 — nhấp vào ô để bắt đầu viết
+                  </p>
+                  <WongojipEditor
+                    ref={editorRef}
+                    onCellsChange={handleCellsChange}
+                    disabled={gradeMutation.isLoading}
+                    errors={formatErrors}
+                  />
+                </div>
                 <HandwrittenSubmission
                   questionId={id}
+                  mode={inputMode}
                   onModeChange={(m) => setInputMode(m)}
                   onOcr={({ cells: ocrCells, imageSrc }) => {
-                    // Fill OCR result vào editor để user kiểm tra trước khi chấm
+                    // 1. Cập nhật trực tiếp vào state của trang
+                    setCells(ocrCells)
+                    // 2. Nạp ô vào editor component
                     editorRef.current?.setCells(ocrCells)
                     setPendingOcrImageSrc(imageSrc)
-                    // Chuyển lại về chế độ xem ô để user kiểm tra và chấm bài
+                    // 3. Tự động chuyển về tab ô chữ để người dùng kiểm tra kết quả vừa OCR
                     setInputMode("upload")
                   }}
                 />
