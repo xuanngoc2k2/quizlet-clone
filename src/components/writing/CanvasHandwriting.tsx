@@ -164,6 +164,7 @@ export function CanvasHandwriting({
   const currentRef = useRef<Point[]>([])
   const isDrawingRef = useRef(false)
   const activePointerIdRef = useRef<number | null>(null)
+  const penDetectedRef = useRef(false)
 
   const [tool, setTool] = useState<"pen" | "eraser">("pen")
   const [penWidth, setPenWidth] = useState(2.5)
@@ -222,6 +223,31 @@ export function CanvasHandwriting({
     }
   }, [tool, penWidth, canvasW, canvasH])
 
+  // ─── Native touch prevention for iOS Safari ───────────────────────────────
+
+  useEffect(() => {
+    const canvas = drawCanvasRef.current
+    if (!canvas) return
+
+    // iOS Safari ignores e.preventDefault() on passive listeners.
+    // Adding non-passive touch listeners completely stops iOS Safari from initiating text selection or scrolling on the canvas.
+    function preventTouch(e: TouchEvent) {
+      e.preventDefault()
+    }
+
+    canvas.addEventListener("touchstart", preventTouch, { passive: false })
+    canvas.addEventListener("touchmove", preventTouch, { passive: false })
+    canvas.addEventListener("touchend", preventTouch, { passive: false })
+    canvas.addEventListener("touchcancel", preventTouch, { passive: false })
+
+    return () => {
+      canvas.removeEventListener("touchstart", preventTouch)
+      canvas.removeEventListener("touchmove", preventTouch)
+      canvas.removeEventListener("touchend", preventTouch)
+      canvas.removeEventListener("touchcancel", preventTouch)
+    }
+  }, [])
+
   // ─── Pointer event helpers ────────────────────────────────────────────────
 
   function canvasPoint(e: React.PointerEvent<HTMLCanvasElement>): Point {
@@ -238,11 +264,27 @@ export function CanvasHandwriting({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      // Chống hành vi mặc định của trình duyệt (chọn văn bản, menu ngữ cảnh, v.v.)
+      // 1. Strict Palm Rejection:
+      // If Apple Pencil ("pen") is used, completely ignore touch/palm contact ("touch")
+      if (e.pointerType === "pen") {
+        penDetectedRef.current = true
+      } else if (penDetectedRef.current && e.pointerType === "touch") {
+        // Lòng bàn tay chạm vào khi đang dùng bút vẽ -> loại bỏ hoàn toàn
+        e.preventDefault()
+        e.stopPropagation()
+        return
+      }
+
+      // If already drawing with a pointer, ignore any additional simultaneous pointer (palm/fingers)
+      if (isDrawingRef.current) {
+        e.preventDefault()
+        e.stopPropagation()
+        return
+      }
+
       e.preventDefault()
       e.stopPropagation()
 
-      // Khóa pointer capture để tiếp tục nhận sự kiện cả khi di chuyển nhanh ra ngoài mép canvas
       try {
         ;(e.target as HTMLCanvasElement).setPointerCapture(e.pointerId)
       } catch {
@@ -260,14 +302,19 @@ export function CanvasHandwriting({
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (!isDrawingRef.current) return
+      // If an active stroke is drawing, discard any other pointer (e.g. palm resting)
       if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) {
+        e.preventDefault()
+        e.stopPropagation()
         return
       }
+
+      if (!isDrawingRef.current) return
+
       e.preventDefault()
       e.stopPropagation()
 
-      // Lấy tất cả các điểm coalesced events nếu có (Apple Pencil / high refresh rate màn hình iPad)
+      // Lấy tất cả các điểm coalesced events nếu có (Apple Pencil 120Hz/240Hz sampling)
       const nativeEvent = e.nativeEvent as PointerEvent
       if (typeof nativeEvent.getCoalescedEvents === "function") {
         const events = nativeEvent.getCoalescedEvents()
@@ -297,10 +344,14 @@ export function CanvasHandwriting({
 
   const commitStroke = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (!isDrawingRef.current) return
       if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) {
+        e.preventDefault()
+        e.stopPropagation()
         return
       }
+
+      if (!isDrawingRef.current) return
+
       e.preventDefault()
       e.stopPropagation()
 
@@ -382,7 +433,7 @@ export function CanvasHandwriting({
   const displayH = Math.round(canvasH * scale)
 
   return (
-    <div className="select-none space-y-3" style={{ WebkitUserSelect: "none" }}>
+    <div className="select-none space-y-3" style={{ userSelect: "none", WebkitUserSelect: "none" }}>
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Pen / Eraser toggle */}
@@ -470,7 +521,12 @@ export function CanvasHandwriting({
       <div ref={containerRef} className="w-full">
         <div
           className="overflow-x-auto rounded-xl border border-slate-300 shadow-sm"
-          style={{ width: "100%", touchAction: "pan-x pan-y" }}
+          style={{
+            width: "100%",
+            touchAction: "none",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+          }}
         >
           {/* Extra right padding for row markers */}
           <div
@@ -478,6 +534,7 @@ export function CanvasHandwriting({
             style={{
               width: displayW + 40,
               height: displayH,
+              touchAction: "none",
               userSelect: "none",
               WebkitUserSelect: "none",
             }}
@@ -491,6 +548,7 @@ export function CanvasHandwriting({
               style={{
                 width: displayW,
                 height: displayH,
+                touchAction: "none",
                 userSelect: "none",
                 WebkitUserSelect: "none",
               }}
