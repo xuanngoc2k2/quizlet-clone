@@ -54,10 +54,17 @@ async function requestGemini(body: object, source: string) {
 
       const errorText = await res.text()
       lastError = `${source} API error (${res.status}): ${errorText}`
-      if (!isRetryableGeminiError(res.status) || index === apiKeys.length - 1) {
+      const isRetryable = isRetryableGeminiError(res.status)
+      const isLastKey = index === apiKeys.length - 1
+
+      if (!isRetryable || isLastKey) {
         if (res.status === 429) throw new Error("AI quota exceeded. Please wait and try again.")
+        if (res.status === 503) throw new Error("AI service is currently overloaded. Please try again in a moment.")
         throw new Error(lastError)
       }
+
+      // Retryable + có key khác → thử key tiếp theo (delay nhỏ)
+      await new Promise((r) => setTimeout(r, 500))
     } catch (error) {
       const status = Number(error instanceof Error ? error.message.match(/\((\d+)\)/)?.[1] : undefined)
       const isApiError = error instanceof Error && status > 0
