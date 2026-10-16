@@ -1,8 +1,9 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Camera, ImagePlus, Loader2, ScanText } from "lucide-react"
+import { Camera, ImagePlus, Loader2, PenLine, ScanText, Upload } from "lucide-react"
 import { Button } from "@/components/ui/Button"
+import { CanvasHandwriting } from "@/components/writing/CanvasHandwriting"
 import { api } from "@/lib/trpc-provider"
 import type { WritingGrade54 } from "@/lib/writing-types"
 
@@ -15,6 +16,8 @@ type Props = {
     imageSrc: string
   }) => void
 }
+
+type InputMode = "upload" | "draw"
 
 async function prepareImage(file: File) {
   const preview = URL.createObjectURL(file)
@@ -49,9 +52,28 @@ async function prepareImage(file: File) {
 
 export function HandwrittenSubmission54({ questionId, onGraded }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [mode, setMode] = useState<InputMode>("upload")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const mutation = api.writing54.gradeHandwritten54.useMutation()
+
+  // ── Shared grading call ─────────────────────────────────────────────────────
+
+  async function runGrade(base64: string, mimeType: string, previewSrc: string) {
+    const result = await mutation.mutateAsync({
+      questionId,
+      imageBase64: base64,
+      imageMimeType: mimeType,
+    })
+    onGraded({
+      grade: result.grade as WritingGrade54,
+      answer: result.answer,
+      cells: result.cells,
+      imageSrc: previewSrc,
+    })
+  }
+
+  // ── Upload flow ─────────────────────────────────────────────────────────────
 
   async function handleFile(file: File) {
     if (!file.type.startsWith("image/")) return setError("Chỉ hỗ trợ file ảnh")
@@ -59,17 +81,7 @@ export function HandwrittenSubmission54({ questionId, onGraded }: Props) {
     setError(null)
     try {
       const prepared = await prepareImage(file)
-      const result = await mutation.mutateAsync({
-        questionId,
-        imageBase64: prepared.base64,
-        imageMimeType: prepared.mimeType,
-      })
-      onGraded({
-        grade: result.grade as WritingGrade54,
-        answer: result.answer,
-        cells: result.cells,
-        imageSrc: prepared.preview,
-      })
+      await runGrade(prepared.base64, prepared.mimeType, prepared.preview)
     } catch (submissionError) {
       setError(
         submissionError instanceof Error ? submissionError.message : "Không thể OCR và chấm ảnh",
@@ -79,45 +91,105 @@ export function HandwrittenSubmission54({ questionId, onGraded }: Props) {
     }
   }
 
+  // ── Canvas draw flow ────────────────────────────────────────────────────────
+
+  async function handleCanvasExtract(base64: string, mimeType: string, previewDataUrl: string) {
+    setBusy(true)
+    setError(null)
+    try {
+      await runGrade(base64, mimeType, previewDataUrl)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không thể OCR và chấm bài viết tay")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const loading = busy || mutation.isLoading
+
   return (
     <section
       className="rounded-2xl border border-dashed border-orange-300 bg-orange-50/70 p-4"
-      onPaste={(event) => {
-        const file = Array.from(event.clipboardData.items)
-          .find((item) => item.kind === "file" && item.type.startsWith("image/"))
-          ?.getAsFile()
-        if (file) {
-          event.preventDefault()
-          void handleFile(file)
-        }
-      }}
+      onPaste={
+        mode === "upload"
+          ? (event) => {
+              const file = Array.from(event.clipboardData.items)
+                .find((item) => item.kind === "file" && item.type.startsWith("image/"))
+                ?.getAsFile()
+              if (file) {
+                event.preventDefault()
+                void handleFile(file)
+              }
+            }
+          : undefined
+      }
       tabIndex={0}
-      aria-label="Khu vực dán ảnh bài viết tay"
+      aria-label="Khu vực nhập bài viết tay câu 54"
     >
-      <div className="flex items-start gap-3">
+      {/* Header */}
+      <div className="mb-3 flex items-start gap-3">
         <div className="rounded-xl bg-orange-100 p-2 text-orange-700">
           <ScanText className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-orange-950">Upload ảnh bài viết tay</h2>
-          <p className="mt-1 text-xs leading-relaxed text-orange-800">
-            Chụp rõ toàn bộ trang 원고지 600~700 ký tự hoặc dán ảnh từ clipboard. AI sẽ đọc OCR,
-            kiểm tra ô và chấm theo barem câu 54.
+          <h2 className="text-sm font-semibold text-orange-950">Nhập bài viết tay</h2>
+          <p className="mt-0.5 text-xs leading-relaxed text-orange-800">
+            Chọn cách nhập bài — AI sẽ OCR, kiểm tra ô và chấm theo barem câu 54.
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => inputRef.current?.click()} disabled={busy}>
-              {busy ? (
+        </div>
+      </div>
+
+      {/* Mode switcher */}
+      <div className="mb-4 inline-flex overflow-hidden rounded-xl border border-orange-200 bg-white shadow-sm">
+        <button
+          type="button"
+          onClick={() => setMode("upload")}
+          className={[
+            "flex items-center gap-1.5 px-4 py-2 text-xs font-semibold transition-colors",
+            mode === "upload"
+              ? "bg-orange-500 text-white"
+              : "text-orange-700 hover:bg-orange-50",
+          ].join(" ")}
+        >
+          <Upload className="h-3.5 w-3.5" />
+          Upload / Chụp ảnh
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("draw")}
+          className={[
+            "flex items-center gap-1.5 px-4 py-2 text-xs font-semibold transition-colors",
+            mode === "draw"
+              ? "bg-orange-500 text-white"
+              : "text-orange-700 hover:bg-orange-50",
+          ].join(" ")}
+        >
+          <PenLine className="h-3.5 w-3.5" />
+          ✏️ Viết trên màn hình
+        </button>
+      </div>
+
+      {/* Upload mode */}
+      {mode === "upload" && (
+        <div>
+          <p className="mb-3 text-xs leading-relaxed text-orange-800">
+            Chụp rõ toàn bộ trang 원고지 600~700 ký tự hoặc dán ảnh từ clipboard. AI sẽ đọc
+            OCR, kiểm tra ô và chấm theo barem câu 54.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => inputRef.current?.click()} disabled={loading}>
+              {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <ImagePlus className="h-4 w-4" />
               )}
-              {busy ? "Đang OCR và chấm..." : "Chọn ảnh"}
+              {loading ? "Đang OCR và chấm..." : "Chọn ảnh"}
             </Button>
             <Button
               size="sm"
               variant="secondary"
               onClick={() => inputRef.current?.click()}
-              disabled={busy}
+              disabled={loading}
             >
               <Camera className="h-4 w-4" />
               Chụp ảnh
@@ -137,7 +209,29 @@ export function HandwrittenSubmission54({ questionId, onGraded }: Props) {
           </div>
           {error && <p className="mt-2 text-xs font-medium text-red-600">{error}</p>}
         </div>
-      </div>
+      )}
+
+      {/* Draw mode */}
+      {mode === "draw" && (
+        <div>
+          <p className="mb-3 text-xs leading-relaxed text-orange-800">
+            Dùng Apple Pencil hoặc ngón tay để viết vào ô 원고지 bên dưới (600~700 ký tự). Mỗi
+            ô = 1 ký tự. Nhấn <strong>Trích xuất &amp; Chấm bài</strong> — AI sẽ OCR và chấm
+            ngay theo barem câu 54.
+          </p>
+
+          {error && <p className="mb-2 text-xs font-medium text-red-600">{error}</p>}
+
+          <CanvasHandwriting
+            maxCells={700}
+            onExtract={(base64, mimeType, previewDataUrl) =>
+              void handleCanvasExtract(base64, mimeType, previewDataUrl)
+            }
+            isLoading={loading}
+            extractLabel={loading ? "Đang OCR và chấm..." : "Trích xuất & Chấm bài"}
+          />
+        </div>
+      )}
     </section>
   )
 }

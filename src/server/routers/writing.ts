@@ -136,7 +136,7 @@ const gradeSchema = z.object({
 
 const handwrittenOcrSchema = z.object({
   text: z.string(),
-  cells: z.array(z.string()).length(300),
+  cells: z.array(z.string()).max(300),
   ocrConfidence: z.number().min(0).max(1),
   spacingScore: z.number().min(0).max(10),
   spacingFeedback: z.string(),
@@ -344,6 +344,9 @@ export const writingRouter = router({
         { temperature: 0.1, maxTokens: 8192 },
       )
       const ocr = handwrittenOcrSchema.parse(ocrRaw)
+      // Normalize cells về đúng 300 phần tử (Gemini có thể trả về ít hơn hoặc nhiều hơn)
+      const normalizedCells = ocr.cells.slice(0, 300)
+      while (normalizedCells.length < 300) normalizedCells.push("")
       const handwritingContext = `\nTHÔNG TIN OCR BÀI VIẾT TAY:\n- Độ tin cậy OCR: ${ocr.ocrConfidence}\n- Điểm khoảng cách ô: ${ocr.spacingScore}/10\n- Nhận xét khoảng cách: ${ocr.spacingFeedback}\n- Cảnh báo bố cục: ${ocr.layoutWarnings.join("; ") || "Không có"}\n- Lỗi chính tả do OCR phát hiện: ${ocr.spellingErrors.map((item) => `${item.original} → ${item.corrected}`).join(", ") || "Không có"}`
       const prompt = buildGradePrompt(question.instruction, question.imageAlt, ocr.text, handwritingContext)
       const { callGeminiJSON } = await import("../lib/gemini")
@@ -365,20 +368,57 @@ export const writingRouter = router({
           deviceId,
           ...(ctx.userId ? { userId: ctx.userId } : {}),
           answer: ocr.text,
-          cellsJson: ocr.cells,
+          cellsJson: normalizedCells,
           submissionType: "handwritten",
           imageData: input.imageBase64,
           imageMimeType: input.imageMimeType,
           ocrText: ocr.text,
-          ocrCellsJson: ocr.cells,
+          ocrCellsJson: normalizedCells,
           gradeJson: grade as object,
           totalScore: grade.totalScore,
         },
       })
-      return { grade, answer: ocr.text, cells: ocr.cells, ocr }
+      return { grade, answer: ocr.text, cells: normalizedCells, ocr }
     }),
 
-  /** Save a completed attempt to DB */
+  /** OCR a handwritten image → return text + cells to fill into editor. Does NOT grade. */
+  ocrHandwritten53: aiProcedure
+    .input(
+      z.object({
+        questionId: z.string(),
+        imageBase64: z.string().min(1),
+        imageMimeType: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const question = await ctx.prisma.writingQuestion53.findUnique({
+        where: { id: input.questionId },
+      })
+      if (!question) throw new Error("Question not found")
+
+      const ocrRaw = await callGeminiVisionJSON(
+        buildHandwrittenOcrPrompt(question.rangeMin, question.rangeMax),
+        input.imageBase64,
+        input.imageMimeType,
+        { temperature: 0.1, maxTokens: 8192 },
+      )
+      const ocr = handwrittenOcrSchema.parse(ocrRaw)
+      // Normalize cells về đúng 300 phần tử
+      const normalizedCells = ocr.cells.slice(0, 300)
+      while (normalizedCells.length < 300) normalizedCells.push("")
+
+      return {
+        text: ocr.text,
+        cells: normalizedCells,
+        ocrConfidence: ocr.ocrConfidence,
+        spacingScore: ocr.spacingScore,
+        spacingFeedback: ocr.spacingFeedback,
+        spellingErrors: ocr.spellingErrors,
+        layoutWarnings: ocr.layoutWarnings,
+      }
+    }),
+
+
   saveAttempt: publicProcedure
     .input(
       z.object({

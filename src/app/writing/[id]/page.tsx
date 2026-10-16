@@ -36,6 +36,8 @@ export default function WritingPracticePage({ params }: PageProps) {
   const [showHistory, setShowHistory] = useState(false)
   const [questionLayout, setQuestionLayout] = useState<QuestionLayout>("top")
   const [handwrittenImage, setHandwrittenImage] = useState<string | null>(null)
+  // imageSrc từ OCR — lưu tạm để gửi kèm khi chấm (nếu submit là handwritten)
+  const [pendingOcrImageSrc, setPendingOcrImageSrc] = useState<string | null>(null)
 
   const gradeMutation = api.writing.gradeWriting53.useMutation()
   const saveAttemptMutation = api.writing.saveAttempt.useMutation()
@@ -51,11 +53,14 @@ export default function WritingPracticePage({ params }: PageProps) {
   async function handleSubmit() {
     if (cellCount === 0) return
     setSubmitError(null)
-    setHandwrittenImage(null)
 
     const serialized = serializeCells(cells)
     setAnswer(serialized)
     setViewCells([...cells])
+
+    // Nếu bài từ OCR thì gắn ảnh vào kết quả
+    const imageSrc = pendingOcrImageSrc
+    setHandwrittenImage(imageSrc)
 
     try {
       const result = await gradeMutation.mutateAsync({
@@ -81,6 +86,7 @@ export default function WritingPracticePage({ params }: PageProps) {
     setAnswer("")
     setSubmitError(null)
     setHandwrittenImage(null)
+    setPendingOcrImageSrc(null)
     setFormatErrors({})
     editorRef.current?.reset()
     gradeMutation.reset()
@@ -225,16 +231,10 @@ export default function WritingPracticePage({ params }: PageProps) {
                 </div>
                 <HandwrittenSubmission
                   questionId={id}
-                  onGraded={({
-                    grade: handwrittenGrade,
-                    answer: ocrAnswer,
-                    cells: ocrCells,
-                    imageSrc,
-                  }) => {
-                    setGrade(handwrittenGrade)
-                    setAnswer(ocrAnswer)
-                    setViewCells(ocrCells)
-                    setHandwrittenImage(imageSrc)
+                  onOcr={({ cells: ocrCells, imageSrc }) => {
+                    // Fill OCR result vào editor để user kiểm tra trước khi chấm
+                    editorRef.current?.setCells(ocrCells)
+                    setPendingOcrImageSrc(imageSrc)
                   }}
                 />
               </div>

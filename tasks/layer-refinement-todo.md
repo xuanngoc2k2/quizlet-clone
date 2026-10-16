@@ -17,6 +17,20 @@
 
 ## Tasks
 
+### [R-22] — Canvas Handwriting Mode for TOPIK Writing Q53 & Q54
+
+**Type:** Feature  
+**Description:** Thêm chế độ vẽ viết tay trực tiếp trên màn hình (hỗ trợ iPad/Apple Pencil/ngón tay/chuột) với Canvas có kẻ ô 원고지 (300 ô cho câu 53, 700 ô cho câu 54). Người dùng vẽ chữ, bấm "Trích xuất chữ viết" hoặc "Trích xuất & Chấm bài" để AI OCR, điền vào ô và chấm điểm.  
+**Acceptance Criteria:**
+- Component `CanvasHandwriting` vẽ 원고지 kẻ ô (25 cột, tự động chia dòng theo `maxCells`), hỗ trợ Bút, Tẩy, Undo, Xóa tất cả, đổi độ dày nét.
+- Hỗ trợ Pointer Events mượt mà cho iPad/Apple Pencil (`touch-action: none`).
+- Câu 53 (`HandwrittenSubmission`): có tab switch giữa Upload ảnh và Viết trên màn hình, OCR xong điền vào 원고지 editor để người dùng kiểm tra trước khi bấm Chấm bài.
+- Câu 54 (`HandwrittenSubmission54`): có tab switch giữa Upload ảnh và Viết trên màn hình (kẻ 700 ô 원고지), OCR và chấm trực tiếp.
+- Ảnh vẽ từ Canvas được lưu lại cùng attempt.
+- Typecheck, lint và test pass.  
+**Status:** ✅ Done  
+**Commit:** feat: add canvas handwriting mode with wongojip grid for Q53 and Q54 (R-22)
+
 ### [R-16] — TOPIK II Writing Question 54
 
 **Type:** Feature  
