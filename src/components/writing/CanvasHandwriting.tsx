@@ -170,7 +170,7 @@ export function CanvasHandwriting({
 
   const gridCanvasRef = useRef<HTMLCanvasElement>(null)
   const drawCanvasRef = useRef<HTMLCanvasElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   /** All committed strokes */
   const strokesRef = useRef<Stroke[]>([])
@@ -180,11 +180,15 @@ export function CanvasHandwriting({
   const activePointerIdRef = useRef<number | null>(null)
   const penDetectedRef = useRef(false)
 
+  // Two-finger scroll tracking state
+  const isTwoFingerScrollRef = useRef(false)
+  const lastTouchRef = useRef<{ x: number; y: number } | null>(null)
+
   const [tool, setTool] = useState<"pen" | "eraser">("pen")
   const [penWidth, setPenWidth] = useState(2.5)
   const [hasStrokes, setHasStrokes] = useState(false)
   const [dpr, setDpr] = useState(2)
-  const [zoom, setZoom] = useState(1) // User controlled zoom: 0.8x -> 2.0x
+  const [zoom, setZoom] = useState(1) // User controlled zoom: 0.65x -> 2.0x
 
   // ── Determine Retina DevicePixelRatio ──────────────────────────────────────
 
@@ -202,7 +206,6 @@ export function CanvasHandwriting({
     const ctx = gridCanvas.getContext("2d")
     if (!ctx) return
 
-    // Set high-res bitmap buffer
     gridCanvas.width = canvasW * dpr
     gridCanvas.height = canvasH * dpr
 
@@ -226,15 +229,12 @@ export function CanvasHandwriting({
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    // Clear entire transparent drawing layer
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Render committed strokes with smooth curve & Retina scale
     for (const stroke of strokesRef.current) {
       renderStroke(ctx, stroke.points, stroke.width, stroke.isEraser, dpr)
     }
 
-    // In-progress stroke
     const cur = currentRef.current
     if (cur.length > 0) {
       renderStroke(
@@ -247,35 +247,87 @@ export function CanvasHandwriting({
     }
   }, [tool, penWidth, dpr])
 
-  // ─── Native touch prevention for iOS Safari ───────────────────────────────
+  // ─── Native touch gesture handling: 2-finger scroll vs 1-finger draw ─────
 
   useEffect(() => {
     const canvas = drawCanvasRef.current
-    if (!canvas) return
+    const scrollContainer = scrollContainerRef.current
+    if (!canvas || !scrollContainer) return
 
-    function preventTouch(e: TouchEvent) {
-      e.preventDefault()
+    function onTouchStart(e: TouchEvent) {
+      if (e.touches.length >= 2) {
+        // Multi-touch: user wants to scroll the canvas with 2 fingers!
+        isTwoFingerScrollRef.current = true
+        // Abort any in-progress drawing stroke
+        isDrawingRef.current = false
+        currentRef.current = []
+        redrawStrokes()
+
+        const t1 = e.touches[0]
+        const t2 = e.touches[1]
+        lastTouchRef.current = {
+          x: (t1.clientX + t2.clientX) / 2,
+          y: (t1.clientY + t2.clientY) / 2,
+        }
+        e.preventDefault()
+        return
+      }
+
+      // Single touch: handled via pointer events for drawing
+      if (e.touches.length === 1 && !penDetectedRef.current) {
+        isTwoFingerScrollRef.current = false
+      }
     }
 
-    canvas.addEventListener("touchstart", preventTouch, { passive: false })
-    canvas.addEventListener("touchmove", preventTouch, { passive: false })
-    canvas.addEventListener("touchend", preventTouch, { passive: false })
-    canvas.addEventListener("touchcancel", preventTouch, { passive: false })
+    function onTouchMove(e: TouchEvent) {
+      if (isTwoFingerScrollRef.current && e.touches.length >= 2 && lastTouchRef.current) {
+        e.preventDefault()
+        const t1 = e.touches[0]
+        const t2 = e.touches[1]
+        const currentMidX = (t1.clientX + t2.clientX) / 2
+        const currentMidY = (t1.clientY + t2.clientY) / 2
+
+        const deltaX = lastTouchRef.current.x - currentMidX
+        const deltaY = lastTouchRef.current.y - currentMidY
+
+        scrollContainer!.scrollLeft += deltaX
+        scrollContainer!.scrollTop += deltaY
+
+        lastTouchRef.current = { x: currentMidX, y: currentMidY }
+        return
+      }
+
+      // Prevent native iOS scroll when drawing with 1 touch
+      if (e.touches.length === 1 && isDrawingRef.current) {
+        e.preventDefault()
+      }
+    }
+
+    function onTouchEnd(e: TouchEvent) {
+      if (e.touches.length < 2) {
+        isTwoFingerScrollRef.current = false
+        lastTouchRef.current = null
+      }
+    }
+
+    canvas.addEventListener("touchstart", onTouchStart, { passive: false })
+    canvas.addEventListener("touchmove", onTouchMove, { passive: false })
+    canvas.addEventListener("touchend", onTouchEnd, { passive: false })
+    canvas.addEventListener("touchcancel", onTouchEnd, { passive: false })
 
     return () => {
-      canvas.removeEventListener("touchstart", preventTouch)
-      canvas.removeEventListener("touchmove", preventTouch)
-      canvas.removeEventListener("touchend", preventTouch)
-      canvas.removeEventListener("touchcancel", preventTouch)
+      canvas.removeEventListener("touchstart", onTouchStart)
+      canvas.removeEventListener("touchmove", onTouchMove)
+      canvas.removeEventListener("touchend", onTouchEnd)
+      canvas.removeEventListener("touchcancel", onTouchEnd)
     }
-  }, [])
+  }, [redrawStrokes])
 
   // ─── Pointer event helpers ────────────────────────────────────────────────
 
   function canvasPoint(e: React.PointerEvent<HTMLCanvasElement>): Point {
     const canvas = drawCanvasRef.current!
     const rect = canvas.getBoundingClientRect()
-    // Map screen touch coordinates to logical canvas size (900xH)
     const scaleX = canvasW / rect.width
     const scaleY = canvasH / rect.height
     return {
@@ -287,6 +339,9 @@ export function CanvasHandwriting({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
+      // Ignore if user is doing two-finger scrolling
+      if (isTwoFingerScrollRef.current) return
+
       // Palm rejection
       if (e.pointerType === "pen") {
         penDetectedRef.current = true
@@ -322,6 +377,8 @@ export function CanvasHandwriting({
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (isTwoFingerScrollRef.current) return
+
       if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) {
         e.preventDefault()
         e.stopPropagation()
@@ -440,7 +497,6 @@ export function CanvasHandwriting({
     const drawCanvas = drawCanvasRef.current
     if (!gridCanvas || !drawCanvas || !hasStrokes) return
 
-    // Create high-resolution export canvas
     const exportCanvas = document.createElement("canvas")
     exportCanvas.width = canvasW * 2
     exportCanvas.height = canvasH * 2
@@ -450,9 +506,7 @@ export function CanvasHandwriting({
     expCtx.imageSmoothingEnabled = true
     expCtx.imageSmoothingQuality = "high"
 
-    // 1. Draw grid background
     expCtx.drawImage(gridCanvas, 0, 0, exportCanvas.width, exportCanvas.height)
-    // 2. Draw user strokes on top
     expCtx.drawImage(drawCanvas, 0, 0, exportCanvas.width, exportCanvas.height)
 
     const dataUrl = exportCanvas.toDataURL("image/jpeg", 0.95)
@@ -586,11 +640,14 @@ export function CanvasHandwriting({
       </div>
 
       {/* Canvas container with stacked layers & overflow scroll for zoomed view */}
-      <div ref={containerRef} className="w-full">
+      <div className="w-full">
         <div
-          className="max-h-[75vh] overflow-auto rounded-xl border border-slate-300 bg-slate-100/60 p-2 shadow-inner"
+          ref={scrollContainerRef}
+          className="max-h-[75vh] overflow-x-auto overflow-y-auto rounded-xl border border-slate-300 bg-slate-100/60 p-2 shadow-inner"
           style={{
             width: "100%",
+            WebkitOverflowScrolling: "touch",
+            touchAction: "pan-x pan-y",
             userSelect: "none",
             WebkitUserSelect: "none",
           }}
@@ -601,7 +658,6 @@ export function CanvasHandwriting({
             style={{
               width: displayW + 40,
               height: displayH,
-              touchAction: "none",
               userSelect: "none",
               WebkitUserSelect: "none",
             }}
@@ -613,7 +669,6 @@ export function CanvasHandwriting({
               style={{
                 width: displayW,
                 height: displayH,
-                touchAction: "none",
                 userSelect: "none",
                 WebkitUserSelect: "none",
               }}
@@ -628,7 +683,6 @@ export function CanvasHandwriting({
                 width: displayW,
                 height: displayH,
                 cursor: tool === "eraser" ? "cell" : "crosshair",
-                touchAction: "none",
                 userSelect: "none",
                 WebkitUserSelect: "none",
                 WebkitTouchCallout: "none",
@@ -658,8 +712,8 @@ export function CanvasHandwriting({
         {extractLabel}
       </Button>
 
-      <p className="text-center text-[11px] text-slate-400">
-        Mỗi ô = 1 ký tự ({COLS} ô × {rows} dòng = {COLS * rows} ô) · Dùng nút phóng to/thu nhỏ trên thanh công cụ để viết thoải mái hơn
+      <p className="text-center text-[11px] text-slate-500">
+        💡 <strong>Mẹo iPad:</strong> Dùng <strong>bút/1 ngón tay</strong> để viết chữ · Dùng <strong>2 ngón tay</strong> để kéo cuộn bảng khi phóng to
       </p>
     </div>
   )
