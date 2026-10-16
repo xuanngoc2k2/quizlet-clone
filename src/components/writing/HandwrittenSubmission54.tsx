@@ -15,6 +15,7 @@ type Props = {
     cells: string[]
     imageSrc: string
   }) => void
+  onModeChange?: (_mode: InputMode) => void
 }
 
 type InputMode = "upload" | "draw"
@@ -50,12 +51,17 @@ async function prepareImage(file: File) {
   return { base64, mimeType: "image/jpeg", preview }
 }
 
-export function HandwrittenSubmission54({ questionId, onGraded }: Props) {
+export function HandwrittenSubmission54({ questionId, onGraded, onModeChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [mode, setMode] = useState<InputMode>("upload")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const mutation = api.writing54.gradeHandwritten54.useMutation()
+
+  function handleModeChange(newMode: InputMode) {
+    setMode(newMode)
+    onModeChange?.(newMode)
+  }
 
   // ── Shared grading call ─────────────────────────────────────────────────────
 
@@ -143,7 +149,7 @@ export function HandwrittenSubmission54({ questionId, onGraded }: Props) {
       <div className="mb-4 inline-flex overflow-hidden rounded-xl border border-orange-200 bg-white shadow-sm">
         <button
           type="button"
-          onClick={() => setMode("upload")}
+          onClick={() => handleModeChange("upload")}
           className={[
             "flex items-center gap-1.5 px-4 py-2 text-xs font-semibold transition-colors",
             mode === "upload"
@@ -156,7 +162,7 @@ export function HandwrittenSubmission54({ questionId, onGraded }: Props) {
         </button>
         <button
           type="button"
-          onClick={() => setMode("draw")}
+          onClick={() => handleModeChange("draw")}
           className={[
             "flex items-center gap-1.5 px-4 py-2 text-xs font-semibold transition-colors",
             mode === "draw"

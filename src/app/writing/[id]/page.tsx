@@ -38,6 +38,7 @@ export default function WritingPracticePage({ params }: PageProps) {
   const [handwrittenImage, setHandwrittenImage] = useState<string | null>(null)
   // imageSrc từ OCR — lưu tạm để gửi kèm khi chấm (nếu submit là handwritten)
   const [pendingOcrImageSrc, setPendingOcrImageSrc] = useState<string | null>(null)
+  const [inputMode, setInputMode] = useState<"upload" | "draw">("upload")
 
   const gradeMutation = api.writing.gradeWriting53.useMutation()
   const saveAttemptMutation = api.writing.saveAttempt.useMutation()
@@ -217,24 +218,29 @@ export default function WritingPracticePage({ params }: PageProps) {
                   </div>
                 )}
 
-                {/* 원고지 Editor — with right-side margin for markers */}
-                <div className="mb-4 pr-10">
-                  <p className="mb-2 text-center text-xs font-semibold text-slate-500">
-                    ✏️ 원고지 — nhấp vào ô để bắt đầu viết
-                  </p>
-                  <WongojipEditor
-                    ref={editorRef}
-                    onCellsChange={handleCellsChange}
-                    disabled={gradeMutation.isLoading}
-                    errors={formatErrors}
-                  />
-                </div>
+                {/* 원고지 Editor — with right-side margin for markers (ẩn khi đang ở tab vẽ tay để người dùng nhìn rõ đề bài) */}
+                {inputMode !== "draw" && (
+                  <div className="mb-4 pr-10">
+                    <p className="mb-2 text-center text-xs font-semibold text-slate-500">
+                      ✏️ 원고지 — nhấp vào ô để bắt đầu viết
+                    </p>
+                    <WongojipEditor
+                      ref={editorRef}
+                      onCellsChange={handleCellsChange}
+                      disabled={gradeMutation.isLoading}
+                      errors={formatErrors}
+                    />
+                  </div>
+                )}
                 <HandwrittenSubmission
                   questionId={id}
+                  onModeChange={(m) => setInputMode(m)}
                   onOcr={({ cells: ocrCells, imageSrc }) => {
                     // Fill OCR result vào editor để user kiểm tra trước khi chấm
                     editorRef.current?.setCells(ocrCells)
                     setPendingOcrImageSrc(imageSrc)
+                    // Chuyển lại về chế độ xem ô để user kiểm tra và chấm bài
+                    setInputMode("upload")
                   }}
                 />
               </div>

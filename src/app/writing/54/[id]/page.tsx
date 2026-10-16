@@ -29,6 +29,7 @@ export default function Writing54PracticePage({ params }: Props) {
   const [handwrittenImage, setHandwrittenImage] = useState<string | null>(null)
   const [formatErrors, setFormatErrors] = useState<Record<number, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [inputMode, setInputMode] = useState<"upload" | "draw">("upload")
 
   const handleCellsChange = useCallback((value: string[]) => {
     setCells(value)
@@ -119,20 +120,23 @@ export default function Writing54PracticePage({ params }: Props) {
                 {Math.max(...attempts.map((item) => item.totalScore ?? 0))}/50
               </div>
             )}
-            <div className="mb-4">
-              <p className="mb-2 text-center text-xs font-semibold text-slate-500">
-                원고지 · 25 ô × 28 dòng · tối đa 700 ô
-              </p>
-              <WongojipEditor
-                ref={editorRef}
-                maxCells={700}
-                onCellsChange={handleCellsChange}
-                disabled={gradeMutation.isLoading}
-                errors={formatErrors}
-              />
-            </div>
+            {inputMode !== "draw" && (
+              <div className="mb-4">
+                <p className="mb-2 text-center text-xs font-semibold text-slate-500">
+                  원고지 · 25 ô × 28 dòng · tối đa 700 ô
+                </p>
+                <WongojipEditor
+                  ref={editorRef}
+                  maxCells={700}
+                  onCellsChange={handleCellsChange}
+                  disabled={gradeMutation.isLoading}
+                  errors={formatErrors}
+                />
+              </div>
+            )}
             <HandwrittenSubmission54
               questionId={params.id}
+              onModeChange={(m) => setInputMode(m)}
               onGraded={({
                 grade: resultGrade,
                 answer: resultAnswer,

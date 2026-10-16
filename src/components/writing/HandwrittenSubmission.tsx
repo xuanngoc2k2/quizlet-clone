@@ -27,6 +27,7 @@ type OcrResult = {
 type Props = {
   questionId: string
   onOcr: (_result: { text: string; cells: string[]; imageSrc: string }) => void
+  onModeChange?: (_mode: InputMode) => void
 }
 
 type InputMode = "upload" | "draw"
@@ -66,13 +67,18 @@ async function prepareImage(
   return { base64, mimeType: "image/jpeg", preview }
 }
 
-export function HandwrittenSubmission({ questionId, onOcr }: Props) {
+export function HandwrittenSubmission({ questionId, onOcr, onModeChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [mode, setMode] = useState<InputMode>("upload")
   const [isPreparing, setIsPreparing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [ocrDone, setOcrDone] = useState<OcrResult | null>(null)
   const ocrMutation = api.writing.ocrHandwritten53.useMutation()
+
+  function handleModeChange(newMode: InputMode) {
+    setMode(newMode)
+    onModeChange?.(newMode)
+  }
 
   // ── Shared OCR call ─────────────────────────────────────────────────────────
 
@@ -152,7 +158,7 @@ export function HandwrittenSubmission({ questionId, onOcr }: Props) {
       <div className="mb-4 inline-flex overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-sm">
         <button
           type="button"
-          onClick={() => setMode("upload")}
+          onClick={() => handleModeChange("upload")}
           className={[
             "flex items-center gap-1.5 px-4 py-2 text-xs font-semibold transition-colors",
             mode === "upload"
@@ -165,7 +171,7 @@ export function HandwrittenSubmission({ questionId, onOcr }: Props) {
         </button>
         <button
           type="button"
-          onClick={() => setMode("draw")}
+          onClick={() => handleModeChange("draw")}
           className={[
             "flex items-center gap-1.5 px-4 py-2 text-xs font-semibold transition-colors",
             mode === "draw"
