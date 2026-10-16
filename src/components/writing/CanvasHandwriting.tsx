@@ -61,6 +61,67 @@ function drawGrid(ctx: CanvasRenderingContext2D, totalRows: number, canvasW: num
   }
 }
 
+// ─── Draw a smooth stroke (with quadratic bezier curves or dot) ───────────────
+
+function renderStroke(
+  ctx: CanvasRenderingContext2D,
+  pts: Point[],
+  width: number,
+  isEraser: boolean,
+) {
+  if (pts.length === 0) return
+
+  ctx.save()
+  if (isEraser) {
+    ctx.globalCompositeOperation = "destination-out"
+    ctx.strokeStyle = "rgba(0,0,0,1)"
+    ctx.fillStyle = "rgba(0,0,0,1)"
+  } else {
+    ctx.globalCompositeOperation = "source-over"
+    ctx.strokeStyle = COLOR_INK
+    ctx.fillStyle = COLOR_INK
+  }
+  ctx.lineCap = "round"
+  ctx.lineJoin = "round"
+  ctx.lineWidth = width
+
+  // If single tap / dot
+  if (pts.length === 1) {
+    ctx.beginPath()
+    ctx.arc(pts[0].x, pts[0].y, width / 2, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.restore()
+    return
+  }
+
+  // If 2 points, simple line
+  if (pts.length === 2) {
+    ctx.beginPath()
+    ctx.moveTo(pts[0].x, pts[0].y)
+    ctx.lineTo(pts[1].x, pts[1].y)
+    ctx.stroke()
+    ctx.restore()
+    return
+  }
+
+  // Smooth curve through points using midpoints
+  ctx.beginPath()
+  ctx.moveTo(pts[0].x, pts[0].y)
+
+  for (let i = 1; i < pts.length - 1; i++) {
+    const xc = (pts[i].x + pts[i + 1].x) / 2
+    const yc = (pts[i].y + pts[i + 1].y) / 2
+    ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc)
+  }
+
+  // Last segment
+  const last = pts[pts.length - 1]
+  const secondLast = pts[pts.length - 2]
+  ctx.quadraticCurveTo(secondLast.x, secondLast.y, last.x, last.y)
+  ctx.stroke()
+  ctx.restore()
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Point = { x: number; y: number; pressure?: number }
@@ -102,6 +163,7 @@ export function CanvasHandwriting({
   /** Current in-progress stroke */
   const currentRef = useRef<Point[]>([])
   const isDrawingRef = useRef(false)
+  const activePointerIdRef = useRef<number | null>(null)
 
   const [tool, setTool] = useState<"pen" | "eraser">("pen")
   const [penWidth, setPenWidth] = useState(2.5)
@@ -143,52 +205,20 @@ export function CanvasHandwriting({
     // Clear entire transparent drawing layer
     ctx.clearRect(0, 0, canvasW, canvasH)
 
-    // Render committed strokes
+    // Render committed strokes with smooth curve
     for (const stroke of strokesRef.current) {
-      if (stroke.points.length < 2) continue
-      ctx.save()
-      if (stroke.isEraser) {
-        ctx.globalCompositeOperation = "destination-out"
-        ctx.strokeStyle = "rgba(0,0,0,1)"
-      } else {
-        ctx.globalCompositeOperation = "source-over"
-        ctx.strokeStyle = COLOR_INK
-      }
-      ctx.lineCap = "round"
-      ctx.lineJoin = "round"
-      ctx.lineWidth = stroke.width
-      ctx.beginPath()
-      ctx.moveTo(stroke.points[0].x, stroke.points[0].y)
-      for (let i = 1; i < stroke.points.length; i++) {
-        const p = stroke.points[i]
-        ctx.lineTo(p.x, p.y)
-      }
-      ctx.stroke()
-      ctx.restore()
+      renderStroke(ctx, stroke.points, stroke.width, stroke.isEraser)
     }
 
     // In-progress stroke
     const cur = currentRef.current
-    if (cur.length >= 2) {
-      ctx.save()
-      if (tool === "eraser") {
-        ctx.globalCompositeOperation = "destination-out"
-        ctx.strokeStyle = "rgba(0,0,0,1)"
-        ctx.lineWidth = penWidth * 6
-      } else {
-        ctx.globalCompositeOperation = "source-over"
-        ctx.strokeStyle = COLOR_INK
-        ctx.lineWidth = penWidth
-      }
-      ctx.lineCap = "round"
-      ctx.lineJoin = "round"
-      ctx.beginPath()
-      ctx.moveTo(cur[0].x, cur[0].y)
-      for (let i = 1; i < cur.length; i++) {
-        ctx.lineTo(cur[i].x, cur[i].y)
-      }
-      ctx.stroke()
-      ctx.restore()
+    if (cur.length > 0) {
+      renderStroke(
+        ctx,
+        cur,
+        tool === "eraser" ? penWidth * 6 : penWidth,
+        tool === "eraser",
+      )
     }
   }, [tool, penWidth, canvasW, canvasH])
 
@@ -208,19 +238,56 @@ export function CanvasHandwriting({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
+      // Chống hành vi mặc định của trình duyệt (chọn văn bản, menu ngữ cảnh, v.v.)
       e.preventDefault()
-      ;(e.target as HTMLCanvasElement).setPointerCapture(e.pointerId)
+      e.stopPropagation()
+
+      // Khóa pointer capture để tiếp tục nhận sự kiện cả khi di chuyển nhanh ra ngoài mép canvas
+      try {
+        ;(e.target as HTMLCanvasElement).setPointerCapture(e.pointerId)
+      } catch {
+        // Safe fallback
+      }
+
+      activePointerIdRef.current = e.pointerId
       isDrawingRef.current = true
       currentRef.current = [canvasPoint(e)]
+      redrawStrokes()
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canvasW, canvasH],
+    [canvasW, canvasH, redrawStrokes],
   )
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
       if (!isDrawingRef.current) return
+      if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) {
+        return
+      }
       e.preventDefault()
+      e.stopPropagation()
+
+      // Lấy tất cả các điểm coalesced events nếu có (Apple Pencil / high refresh rate màn hình iPad)
+      const nativeEvent = e.nativeEvent as PointerEvent
+      if (typeof nativeEvent.getCoalescedEvents === "function") {
+        const events = nativeEvent.getCoalescedEvents()
+        if (events && events.length > 0) {
+          const canvas = drawCanvasRef.current!
+          const rect = canvas.getBoundingClientRect()
+          const scaleX = canvasW / rect.width
+          const scaleY = canvasH / rect.height
+          for (const ev of events) {
+            currentRef.current.push({
+              x: (ev.clientX - rect.left) * scaleX,
+              y: (ev.clientY - rect.top) * scaleY,
+              pressure: ev.pressure,
+            })
+          }
+          redrawStrokes()
+          return
+        }
+      }
+
       currentRef.current.push(canvasPoint(e))
       redrawStrokes()
     },
@@ -228,21 +295,40 @@ export function CanvasHandwriting({
     [redrawStrokes, canvasW, canvasH],
   )
 
-  const commitStroke = useCallback(() => {
-    if (!isDrawingRef.current) return
-    isDrawingRef.current = false
-    const pts = currentRef.current
-    currentRef.current = []
-    if (pts.length < 2) return
+  const commitStroke = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (!isDrawingRef.current) return
+      if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) {
+        return
+      }
+      e.preventDefault()
+      e.stopPropagation()
 
-    strokesRef.current.push({
-      points: pts,
-      width: tool === "eraser" ? penWidth * 6 : penWidth,
-      isEraser: tool === "eraser",
-    })
-    setHasStrokes(true)
-    redrawStrokes()
-  }, [tool, penWidth, redrawStrokes])
+      isDrawingRef.current = false
+      activePointerIdRef.current = null
+
+      try {
+        if ((e.target as HTMLCanvasElement).hasPointerCapture(e.pointerId)) {
+          ;(e.target as HTMLCanvasElement).releasePointerCapture(e.pointerId)
+        }
+      } catch {
+        // Safe fallback
+      }
+
+      const pts = currentRef.current
+      currentRef.current = []
+      if (pts.length === 0) return
+
+      strokesRef.current.push({
+        points: pts,
+        width: tool === "eraser" ? penWidth * 6 : penWidth,
+        isEraser: tool === "eraser",
+      })
+      setHasStrokes(true)
+      redrawStrokes()
+    },
+    [tool, penWidth, redrawStrokes],
+  )
 
   // ─── Toolbar actions ──────────────────────────────────────────────────────
 
@@ -296,7 +382,7 @@ export function CanvasHandwriting({
   const displayH = Math.round(canvasH * scale)
 
   return (
-    <div className="space-y-3">
+    <div className="select-none space-y-3" style={{ WebkitUserSelect: "none" }}>
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Pen / Eraser toggle */}
@@ -384,38 +470,49 @@ export function CanvasHandwriting({
       <div ref={containerRef} className="w-full">
         <div
           className="overflow-x-auto rounded-xl border border-slate-300 shadow-sm"
-          style={{ width: "100%" }}
+          style={{ width: "100%", touchAction: "pan-x pan-y" }}
         >
           {/* Extra right padding for row markers */}
           <div
-            className="relative inline-block pr-10"
-            style={{ width: displayW + 40, height: displayH }}
+            className="relative inline-block select-none pr-10"
+            style={{
+              width: displayW + 40,
+              height: displayH,
+              userSelect: "none",
+              WebkitUserSelect: "none",
+            }}
           >
-            {/* Layer 1: Background Grid (chỉ chứa lưới 원고지, không bao giờ bị tẩy đè) */}
+            {/* Layer 1: Background Grid */}
             <canvas
               ref={gridCanvasRef}
               width={canvasW}
               height={canvasH}
-              className="pointer-events-none absolute left-0 top-0"
+              className="pointer-events-none absolute left-0 top-0 select-none"
               style={{
                 width: displayW,
                 height: displayH,
+                userSelect: "none",
+                WebkitUserSelect: "none",
               }}
               aria-hidden="true"
             />
 
-            {/* Layer 2: Drawing Ink Layer (chứa nét bút vẽ, tẩy dùng destination-out chỉ xóa nét bút) */}
+            {/* Layer 2: Drawing Ink Layer */}
             <canvas
               ref={drawCanvasRef}
               width={canvasW}
               height={canvasH}
-              className="absolute left-0 top-0"
+              className="absolute left-0 top-0 select-none"
               style={{
                 width: displayW,
                 height: displayH,
                 cursor: tool === "eraser" ? "cell" : "crosshair",
                 touchAction: "none",
+                userSelect: "none",
+                WebkitUserSelect: "none",
+                WebkitTouchCallout: "none",
               }}
+              onContextMenu={(e) => e.preventDefault()}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={commitStroke}
