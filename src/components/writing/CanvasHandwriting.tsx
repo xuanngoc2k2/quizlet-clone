@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useEffect, useCallback, useState } from "react"
-import { Eraser, Undo2, Trash2, Pen } from "lucide-react"
+import { Eraser, Undo2, Trash2, Pen, ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button"
 const COLS = 25
 const DEFAULT_ROWS = 12 // 300 cells for Q53
 
-/** Pixel size of each cell on canvas */
+/** Pixel size of each cell on canvas (CSS pixels) */
 const CELL = 36
 
 const MAJOR_EVERY_COL = 5 // thicker border every N cols
@@ -20,11 +20,20 @@ const MAJOR_EVERY_ROW = 4 // thicker border every N rows
 const COLOR_CELL_BG = "#ffffff"
 const COLOR_GRID_MINOR = "#d1d5db" // gray-300
 const COLOR_GRID_MAJOR = "#6b7280" // gray-500
-const COLOR_INK = "#1a1a1a"
+const COLOR_INK = "#111827" // deep sharp black (gray-900)
 
 // ─── Draw 원고지 grid onto background canvas ──────────────────────────────────
 
-function drawGrid(ctx: CanvasRenderingContext2D, totalRows: number, canvasW: number, canvasH: number) {
+function drawGrid(
+  ctx: CanvasRenderingContext2D,
+  totalRows: number,
+  canvasW: number,
+  canvasH: number,
+  dpr: number,
+) {
+  ctx.save()
+  ctx.scale(dpr, dpr)
+
   ctx.fillStyle = COLOR_CELL_BG
   ctx.fillRect(0, 0, canvasW, canvasH)
 
@@ -33,7 +42,7 @@ function drawGrid(ctx: CanvasRenderingContext2D, totalRows: number, canvasW: num
     const isMajorRow = row % MAJOR_EVERY_ROW === 0
     ctx.beginPath()
     ctx.strokeStyle = isMajorRow ? COLOR_GRID_MAJOR : COLOR_GRID_MINOR
-    ctx.lineWidth = isMajorRow ? 1.5 : 0.7
+    ctx.lineWidth = isMajorRow ? 1.5 : 0.75
     ctx.moveTo(0, y)
     ctx.lineTo(canvasW, y)
     ctx.stroke()
@@ -44,7 +53,7 @@ function drawGrid(ctx: CanvasRenderingContext2D, totalRows: number, canvasW: num
     const isMajorCol = col % MAJOR_EVERY_COL === 0
     ctx.beginPath()
     ctx.strokeStyle = isMajorCol ? COLOR_GRID_MAJOR : COLOR_GRID_MINOR
-    ctx.lineWidth = isMajorCol ? 1.5 : 0.7
+    ctx.lineWidth = isMajorCol ? 1.5 : 0.75
     ctx.moveTo(x, 0)
     ctx.lineTo(x, canvasH)
     ctx.stroke()
@@ -59,6 +68,8 @@ function drawGrid(ctx: CanvasRenderingContext2D, totalRows: number, canvasW: num
     const label = String((row + 1) * COLS)
     ctx.fillText(label, canvasW + 4, (row + 1) * CELL - 2)
   }
+
+  ctx.restore()
 }
 
 // ─── Draw a smooth stroke (with quadratic bezier curves or dot) ───────────────
@@ -68,10 +79,13 @@ function renderStroke(
   pts: Point[],
   width: number,
   isEraser: boolean,
+  dpr: number,
 ) {
   if (pts.length === 0) return
 
   ctx.save()
+  ctx.scale(dpr, dpr)
+
   if (isEraser) {
     ctx.globalCompositeOperation = "destination-out"
     ctx.strokeStyle = "rgba(0,0,0,1)"
@@ -169,31 +183,40 @@ export function CanvasHandwriting({
   const [tool, setTool] = useState<"pen" | "eraser">("pen")
   const [penWidth, setPenWidth] = useState(2.5)
   const [hasStrokes, setHasStrokes] = useState(false)
-  const [scale, setScale] = useState(1)
+  const [dpr, setDpr] = useState(2)
+  const [zoom, setZoom] = useState(1) // User controlled zoom: 0.8x -> 2.0x
 
-  // ── Scale canvas to container width ──────────────────────────────────────
+  // ── Determine Retina DevicePixelRatio ──────────────────────────────────────
 
   useEffect(() => {
-    function measure() {
-      if (!containerRef.current) return
-      const containerW = containerRef.current.clientWidth
-      setScale(Math.min(1, containerW / canvasW))
+    if (typeof window !== "undefined") {
+      setDpr(Math.max(2, Math.min(3, window.devicePixelRatio || 2)))
     }
-    measure()
-    const ro = new ResizeObserver(measure)
-    if (containerRef.current) ro.observe(containerRef.current)
-    return () => ro.disconnect()
-  }, [canvasW])
+  }, [])
 
-  // ── Initial grid draw onto background canvas ──────────────────────────────
+  // ── Initial grid draw onto background canvas (Retina scaled) ──────────────
 
   useEffect(() => {
     const gridCanvas = gridCanvasRef.current
     if (!gridCanvas) return
     const ctx = gridCanvas.getContext("2d")
     if (!ctx) return
-    drawGrid(ctx, rows, canvasW, canvasH)
-  }, [rows, canvasW, canvasH])
+
+    // Set high-res bitmap buffer
+    gridCanvas.width = canvasW * dpr
+    gridCanvas.height = canvasH * dpr
+
+    drawGrid(ctx, rows, canvasW, canvasH, dpr)
+  }, [rows, canvasW, canvasH, dpr])
+
+  // ─── Setup drawing canvas bitmap buffer ────────────────────────────────────
+
+  useEffect(() => {
+    const drawCanvas = drawCanvasRef.current
+    if (!drawCanvas) return
+    drawCanvas.width = canvasW * dpr
+    drawCanvas.height = canvasH * dpr
+  }, [canvasW, canvasH, dpr])
 
   // ─── Redraw drawing canvas: all strokes + current stroke ──────────────────
 
@@ -204,11 +227,11 @@ export function CanvasHandwriting({
     if (!ctx) return
 
     // Clear entire transparent drawing layer
-    ctx.clearRect(0, 0, canvasW, canvasH)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Render committed strokes with smooth curve
+    // Render committed strokes with smooth curve & Retina scale
     for (const stroke of strokesRef.current) {
-      renderStroke(ctx, stroke.points, stroke.width, stroke.isEraser)
+      renderStroke(ctx, stroke.points, stroke.width, stroke.isEraser, dpr)
     }
 
     // In-progress stroke
@@ -219,9 +242,10 @@ export function CanvasHandwriting({
         cur,
         tool === "eraser" ? penWidth * 6 : penWidth,
         tool === "eraser",
+        dpr,
       )
     }
-  }, [tool, penWidth, canvasW, canvasH])
+  }, [tool, penWidth, dpr])
 
   // ─── Native touch prevention for iOS Safari ───────────────────────────────
 
@@ -229,8 +253,6 @@ export function CanvasHandwriting({
     const canvas = drawCanvasRef.current
     if (!canvas) return
 
-    // iOS Safari ignores e.preventDefault() on passive listeners.
-    // Adding non-passive touch listeners completely stops iOS Safari from initiating text selection or scrolling on the canvas.
     function preventTouch(e: TouchEvent) {
       e.preventDefault()
     }
@@ -253,6 +275,7 @@ export function CanvasHandwriting({
   function canvasPoint(e: React.PointerEvent<HTMLCanvasElement>): Point {
     const canvas = drawCanvasRef.current!
     const rect = canvas.getBoundingClientRect()
+    // Map screen touch coordinates to logical canvas size (900xH)
     const scaleX = canvasW / rect.width
     const scaleY = canvasH / rect.height
     return {
@@ -264,18 +287,15 @@ export function CanvasHandwriting({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      // 1. Strict Palm Rejection:
-      // If Apple Pencil ("pen") is used, completely ignore touch/palm contact ("touch")
+      // Palm rejection
       if (e.pointerType === "pen") {
         penDetectedRef.current = true
       } else if (penDetectedRef.current && e.pointerType === "touch") {
-        // Lòng bàn tay chạm vào khi đang dùng bút vẽ -> loại bỏ hoàn toàn
         e.preventDefault()
         e.stopPropagation()
         return
       }
 
-      // If already drawing with a pointer, ignore any additional simultaneous pointer (palm/fingers)
       if (isDrawingRef.current) {
         e.preventDefault()
         e.stopPropagation()
@@ -302,7 +322,6 @@ export function CanvasHandwriting({
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      // If an active stroke is drawing, discard any other pointer (e.g. palm resting)
       if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) {
         e.preventDefault()
         e.stopPropagation()
@@ -314,7 +333,6 @@ export function CanvasHandwriting({
       e.preventDefault()
       e.stopPropagation()
 
-      // Lấy tất cả các điểm coalesced events nếu có (Apple Pencil 120Hz/240Hz sampling)
       const nativeEvent = e.nativeEvent as PointerEvent
       if (typeof nativeEvent.getCoalescedEvents === "function") {
         const events = nativeEvent.getCoalescedEvents()
@@ -398,29 +416,46 @@ export function CanvasHandwriting({
     if (!canvas) return
     const ctx = canvas.getContext("2d")
     if (!ctx) return
-    ctx.clearRect(0, 0, canvasW, canvasH)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
   }
 
-  // ─── Export (Merge Grid + Drawing onto one Canvas) ─────────────────────────
+  // ─── Zoom Controls ────────────────────────────────────────────────────────
+
+  function zoomIn() {
+    setZoom((z) => Math.min(2.0, parseFloat((z + 0.15).toFixed(2))))
+  }
+
+  function zoomOut() {
+    setZoom((z) => Math.max(0.65, parseFloat((z - 0.15).toFixed(2))))
+  }
+
+  function resetZoom() {
+    setZoom(1)
+  }
+
+  // ─── Export (Merge Grid + Drawing onto one Canvas in high resolution) ──────
 
   function handleExtract() {
     const gridCanvas = gridCanvasRef.current
     const drawCanvas = drawCanvasRef.current
     if (!gridCanvas || !drawCanvas || !hasStrokes) return
 
-    // Create temporary offscreen canvas to merge
+    // Create high-resolution export canvas
     const exportCanvas = document.createElement("canvas")
-    exportCanvas.width = canvasW
-    exportCanvas.height = canvasH
+    exportCanvas.width = canvasW * 2
+    exportCanvas.height = canvasH * 2
     const expCtx = exportCanvas.getContext("2d")
     if (!expCtx) return
 
-    // 1. Draw grid background
-    expCtx.drawImage(gridCanvas, 0, 0)
-    // 2. Draw user strokes on top
-    expCtx.drawImage(drawCanvas, 0, 0)
+    expCtx.imageSmoothingEnabled = true
+    expCtx.imageSmoothingQuality = "high"
 
-    const dataUrl = exportCanvas.toDataURL("image/jpeg", 0.92)
+    // 1. Draw grid background
+    expCtx.drawImage(gridCanvas, 0, 0, exportCanvas.width, exportCanvas.height)
+    // 2. Draw user strokes on top
+    expCtx.drawImage(drawCanvas, 0, 0, exportCanvas.width, exportCanvas.height)
+
+    const dataUrl = exportCanvas.toDataURL("image/jpeg", 0.95)
     const base64 = dataUrl.split(",")[1] ?? ""
     onExtract(base64, "image/jpeg", dataUrl)
   }
@@ -428,9 +463,9 @@ export function CanvasHandwriting({
   // ─── Width presets ────────────────────────────────────────────────────────
   const widths = [1.5, 2.5, 4]
 
-  // ─── Render ───────────────────────────────────────────────────────────────
-  const displayW = Math.round(canvasW * scale)
-  const displayH = Math.round(canvasH * scale)
+  // ─── Render dimensions based on zoom ──────────────────────────────────────
+  const displayW = Math.round(canvasW * zoom)
+  const displayH = Math.round(canvasH * zoom)
 
   return (
     <div className="select-none space-y-3" style={{ userSelect: "none", WebkitUserSelect: "none" }}>
@@ -491,6 +526,39 @@ export function CanvasHandwriting({
           ))}
         </div>
 
+        {/* Zoom Controls */}
+        <div className="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50 text-slate-600">
+          <button
+            type="button"
+            onClick={zoomOut}
+            title="Thu nhỏ bảng viết"
+            className="flex h-7 w-7 items-center justify-center hover:bg-white active:bg-slate-100"
+          >
+            <ZoomOut className="h-3.5 w-3.5" />
+          </button>
+          <span className="px-2 text-[11px] font-semibold tracking-tighter text-slate-700">
+            {Math.round(zoom * 100)}%
+          </span>
+          <button
+            type="button"
+            onClick={zoomIn}
+            title="Phóng to bảng viết"
+            className="flex h-7 w-7 items-center justify-center hover:bg-white active:bg-slate-100"
+          >
+            <ZoomIn className="h-3.5 w-3.5" />
+          </button>
+          {zoom !== 1 && (
+            <button
+              type="button"
+              onClick={resetZoom}
+              title="Đặt lại kích thước 100%"
+              className="border-l border-slate-200 px-1.5 py-1 text-[10px] text-slate-500 hover:bg-white"
+            >
+              <RotateCcw className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+
         {/* Spacer */}
         <div className="flex-1" />
 
@@ -517,20 +585,19 @@ export function CanvasHandwriting({
         </button>
       </div>
 
-      {/* Canvas container with stacked layers */}
+      {/* Canvas container with stacked layers & overflow scroll for zoomed view */}
       <div ref={containerRef} className="w-full">
         <div
-          className="overflow-x-auto rounded-xl border border-slate-300 shadow-sm"
+          className="max-h-[75vh] overflow-auto rounded-xl border border-slate-300 bg-slate-100/60 p-2 shadow-inner"
           style={{
             width: "100%",
-            touchAction: "none",
             userSelect: "none",
             WebkitUserSelect: "none",
           }}
         >
           {/* Extra right padding for row markers */}
           <div
-            className="relative inline-block select-none pr-10"
+            className="relative mx-auto select-none rounded-lg bg-white shadow-sm"
             style={{
               width: displayW + 40,
               height: displayH,
@@ -539,12 +606,10 @@ export function CanvasHandwriting({
               WebkitUserSelect: "none",
             }}
           >
-            {/* Layer 1: Background Grid */}
+            {/* Layer 1: Background Grid (Retina sharp bitmap) */}
             <canvas
               ref={gridCanvasRef}
-              width={canvasW}
-              height={canvasH}
-              className="pointer-events-none absolute left-0 top-0 select-none"
+              className="pointer-events-none absolute left-0 top-0 select-none rounded-lg"
               style={{
                 width: displayW,
                 height: displayH,
@@ -555,12 +620,10 @@ export function CanvasHandwriting({
               aria-hidden="true"
             />
 
-            {/* Layer 2: Drawing Ink Layer */}
+            {/* Layer 2: Drawing Ink Layer (Retina sharp bitmap) */}
             <canvas
               ref={drawCanvasRef}
-              width={canvasW}
-              height={canvasH}
-              className="absolute left-0 top-0 select-none"
+              className="absolute left-0 top-0 select-none rounded-lg"
               style={{
                 width: displayW,
                 height: displayH,
@@ -596,7 +659,7 @@ export function CanvasHandwriting({
       </Button>
 
       <p className="text-center text-[11px] text-slate-400">
-        Mỗi ô = 1 ký tự ({COLS} ô × {rows} dòng = {COLS * rows} ô) · Viết 1 chữ / ô · AI sẽ OCR và trích xuất chữ viết
+        Mỗi ô = 1 ký tự ({COLS} ô × {rows} dòng = {COLS * rows} ô) · Dùng nút phóng to/thu nhỏ trên thanh công cụ để viết thoải mái hơn
       </p>
     </div>
   )
