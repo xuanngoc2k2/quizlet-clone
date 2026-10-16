@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useEffect, useCallback, useState } from "react"
-import { Eraser, Undo2, Trash2, Pen, ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
+import { Eraser, Undo2, Trash2, Pen, ZoomIn, ZoomOut, RotateCcw, Hand } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -180,11 +180,11 @@ export function CanvasHandwriting({
   const activePointerIdRef = useRef<number | null>(null)
   const penDetectedRef = useRef(false)
 
-  // Two-finger scroll tracking state
-  const isTwoFingerScrollRef = useRef(false)
-  const lastTouchRef = useRef<{ x: number; y: number } | null>(null)
+  // Drag-scroll tracking state (for pan tool)
+  const isPanDraggingRef = useRef(false)
+  const lastPanPosRef = useRef<{ x: number; y: number } | null>(null)
 
-  const [tool, setTool] = useState<"pen" | "eraser">("pen")
+  const [tool, setTool] = useState<"pen" | "eraser" | "pan">("pen")
   const [penWidth, setPenWidth] = useState(2.5)
   const [hasStrokes, setHasStrokes] = useState(false)
   const [dpr, setDpr] = useState(2)
@@ -247,87 +247,12 @@ export function CanvasHandwriting({
     }
   }, [tool, penWidth, dpr])
 
-  // ─── Native touch gesture handling: 2-finger scroll vs 1-finger draw ─────
-
-  useEffect(() => {
-    const canvas = drawCanvasRef.current
-    const scrollContainer = scrollContainerRef.current
-    if (!canvas || !scrollContainer) return
-
-    function onTouchStart(e: TouchEvent) {
-      if (e.touches.length >= 2) {
-        // Multi-touch: user wants to scroll the canvas with 2 fingers!
-        isTwoFingerScrollRef.current = true
-        // Abort any in-progress drawing stroke
-        isDrawingRef.current = false
-        currentRef.current = []
-        redrawStrokes()
-
-        const t1 = e.touches[0]
-        const t2 = e.touches[1]
-        lastTouchRef.current = {
-          x: (t1.clientX + t2.clientX) / 2,
-          y: (t1.clientY + t2.clientY) / 2,
-        }
-        e.preventDefault()
-        return
-      }
-
-      // Single touch: handled via pointer events for drawing
-      if (e.touches.length === 1 && !penDetectedRef.current) {
-        isTwoFingerScrollRef.current = false
-      }
-    }
-
-    function onTouchMove(e: TouchEvent) {
-      if (isTwoFingerScrollRef.current && e.touches.length >= 2 && lastTouchRef.current) {
-        e.preventDefault()
-        const t1 = e.touches[0]
-        const t2 = e.touches[1]
-        const currentMidX = (t1.clientX + t2.clientX) / 2
-        const currentMidY = (t1.clientY + t2.clientY) / 2
-
-        const deltaX = lastTouchRef.current.x - currentMidX
-        const deltaY = lastTouchRef.current.y - currentMidY
-
-        scrollContainer!.scrollLeft += deltaX
-        scrollContainer!.scrollTop += deltaY
-
-        lastTouchRef.current = { x: currentMidX, y: currentMidY }
-        return
-      }
-
-      // Prevent native iOS scroll when drawing with 1 touch
-      if (e.touches.length === 1 && isDrawingRef.current) {
-        e.preventDefault()
-      }
-    }
-
-    function onTouchEnd(e: TouchEvent) {
-      if (e.touches.length < 2) {
-        isTwoFingerScrollRef.current = false
-        lastTouchRef.current = null
-      }
-    }
-
-    canvas.addEventListener("touchstart", onTouchStart, { passive: false })
-    canvas.addEventListener("touchmove", onTouchMove, { passive: false })
-    canvas.addEventListener("touchend", onTouchEnd, { passive: false })
-    canvas.addEventListener("touchcancel", onTouchEnd, { passive: false })
-
-    return () => {
-      canvas.removeEventListener("touchstart", onTouchStart)
-      canvas.removeEventListener("touchmove", onTouchMove)
-      canvas.removeEventListener("touchend", onTouchEnd)
-      canvas.removeEventListener("touchcancel", onTouchEnd)
-    }
-  }, [redrawStrokes])
-
   // ─── Pointer event helpers ────────────────────────────────────────────────
 
   function canvasPoint(e: React.PointerEvent<HTMLCanvasElement>): Point {
     const canvas = drawCanvasRef.current!
     const rect = canvas.getBoundingClientRect()
+    // Map screen touch coordinates to logical canvas size (900xH)
     const scaleX = canvasW / rect.width
     const scaleY = canvasH / rect.height
     return {
@@ -339,9 +264,21 @@ export function CanvasHandwriting({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      // Ignore if user is doing two-finger scrolling
-      if (isTwoFingerScrollRef.current) return
+      // ── CASE 1: PAN MODE (Kéo cuộn bảng vẽ) ──────────────────────────────
+      if (tool === "pan") {
+        e.preventDefault()
+        e.stopPropagation()
+        isPanDraggingRef.current = true
+        lastPanPosRef.current = { x: e.clientX, y: e.clientY }
+        try {
+          ;(e.target as HTMLCanvasElement).setPointerCapture(e.pointerId)
+        } catch {
+          // Safe fallback
+        }
+        return
+      }
 
+      // ── CASE 2: PEN / ERASER DRAWING ──────────────────────────────────────
       // Palm rejection
       if (e.pointerType === "pen") {
         penDetectedRef.current = true
@@ -372,13 +309,26 @@ export function CanvasHandwriting({
       redrawStrokes()
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canvasW, canvasH, redrawStrokes],
+    [tool, canvasW, canvasH, redrawStrokes],
   )
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (isTwoFingerScrollRef.current) return
+      // ── CASE 1: PAN DRAGGING ──────────────────────────────────────────────
+      if (tool === "pan" && isPanDraggingRef.current && lastPanPosRef.current) {
+        e.preventDefault()
+        e.stopPropagation()
+        const dx = lastPanPosRef.current.x - e.clientX
+        const dy = lastPanPosRef.current.y - e.clientY
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollLeft += dx
+          scrollContainerRef.current.scrollTop += dy
+        }
+        lastPanPosRef.current = { x: e.clientX, y: e.clientY }
+        return
+      }
 
+      // ── CASE 2: PEN / ERASER DRAWING ──────────────────────────────────────
       if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) {
         e.preventDefault()
         e.stopPropagation()
@@ -414,11 +364,25 @@ export function CanvasHandwriting({
       redrawStrokes()
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [redrawStrokes, canvasW, canvasH],
+    [tool, redrawStrokes, canvasW, canvasH],
   )
 
   const commitStroke = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
+      // Release pan drag
+      if (tool === "pan") {
+        isPanDraggingRef.current = false
+        lastPanPosRef.current = null
+        try {
+          if ((e.target as HTMLCanvasElement).hasPointerCapture(e.pointerId)) {
+            ;(e.target as HTMLCanvasElement).releasePointerCapture(e.pointerId)
+          }
+        } catch {
+          // Safe fallback
+        }
+        return
+      }
+
       if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) {
         e.preventDefault()
         e.stopPropagation()
@@ -525,7 +489,7 @@ export function CanvasHandwriting({
     <div className="select-none space-y-3" style={{ userSelect: "none", WebkitUserSelect: "none" }}>
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Pen / Eraser toggle */}
+        {/* Pen / Eraser / Pan toggle */}
         <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
           <button
             type="button"
@@ -555,30 +519,47 @@ export function CanvasHandwriting({
             <Eraser className="h-3.5 w-3.5" />
             Tẩy
           </button>
+          <button
+            type="button"
+            onClick={() => setTool("pan")}
+            aria-pressed={tool === "pan"}
+            title="Công cụ bàn tay để kéo di chuyển bảng vẽ"
+            className={[
+              "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors",
+              tool === "pan"
+                ? "bg-primary-600 text-white shadow-sm"
+                : "text-slate-500 hover:text-slate-800",
+            ].join(" ")}
+          >
+            <Hand className="h-3.5 w-3.5" />
+            Di chuyển
+          </button>
         </div>
 
-        {/* Pen width */}
-        <div className="flex items-center gap-1.5">
-          {widths.map((w) => (
-            <button
-              key={w}
-              type="button"
-              onClick={() => setPenWidth(w)}
-              title={`Nét ${w}px`}
-              className={[
-                "flex h-7 w-7 items-center justify-center rounded-full border transition-colors",
-                penWidth === w
-                  ? "border-primary-400 bg-primary-50"
-                  : "border-slate-200 bg-white hover:border-slate-300",
-              ].join(" ")}
-            >
-              <span
-                className="rounded-full bg-slate-800"
-                style={{ width: w * 2.5, height: w * 2.5 }}
-              />
-            </button>
-          ))}
-        </div>
+        {/* Pen width (hide when pan mode) */}
+        {tool !== "pan" && (
+          <div className="flex items-center gap-1.5">
+            {widths.map((w) => (
+              <button
+                key={w}
+                type="button"
+                onClick={() => setPenWidth(w)}
+                title={`Nét ${w}px`}
+                className={[
+                  "flex h-7 w-7 items-center justify-center rounded-full border transition-colors",
+                  penWidth === w
+                    ? "border-primary-400 bg-primary-50"
+                    : "border-slate-200 bg-white hover:border-slate-300",
+                ].join(" ")}
+              >
+                <span
+                  className="rounded-full bg-slate-800"
+                  style={{ width: w * 2.5, height: w * 2.5 }}
+                />
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Zoom Controls */}
         <div className="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50 text-slate-600">
@@ -647,7 +628,6 @@ export function CanvasHandwriting({
           style={{
             width: "100%",
             WebkitOverflowScrolling: "touch",
-            touchAction: "pan-x pan-y",
             userSelect: "none",
             WebkitUserSelect: "none",
           }}
@@ -669,6 +649,7 @@ export function CanvasHandwriting({
               style={{
                 width: displayW,
                 height: displayH,
+                touchAction: "none",
                 userSelect: "none",
                 WebkitUserSelect: "none",
               }}
@@ -682,7 +663,9 @@ export function CanvasHandwriting({
               style={{
                 width: displayW,
                 height: displayH,
-                cursor: tool === "eraser" ? "cell" : "crosshair",
+                cursor:
+                  tool === "pan" ? "grab" : tool === "eraser" ? "cell" : "crosshair",
+                touchAction: "none",
                 userSelect: "none",
                 WebkitUserSelect: "none",
                 WebkitTouchCallout: "none",
@@ -713,7 +696,7 @@ export function CanvasHandwriting({
       </Button>
 
       <p className="text-center text-[11px] text-slate-500">
-        💡 <strong>Mẹo iPad:</strong> Dùng <strong>bút/1 ngón tay</strong> để viết chữ · Dùng <strong>2 ngón tay</strong> để kéo cuộn bảng khi phóng to
+        💡 <strong>Mẹo iPad:</strong> Bấm <strong>Bút</strong> để viết · Bấm <strong>Di chuyển ✋</strong> để kéo trượt bảng vẽ mượt mà khi phóng to
       </p>
     </div>
   )
